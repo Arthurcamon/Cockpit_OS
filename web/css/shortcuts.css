@@ -1,0 +1,866 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   COCKPIT OS — ONGLET RACCOURCIS (SHORTCUTS TAB)
+   Direction graphique : "Modern Purple" (Inspiré lecteur média moderne)
+   Grille 2 Colonnes (~35% gauche / ~65% droite) + Tuiles Carrées Tactiles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Scope principal de l'onglet */
+.shortcuts-tab-container {
+  width: 100%;
+  height: 100%;
+  background-color: #0a0a0f;
+  color: #e2e8f0;
+  font-family: inherit;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Grille CSS 2 Colonnes (35fr / 65fr) sans auto pour la hauteur */
+.shortcuts-grid-layout {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  gap: 10px;
+  grid-template-columns: 35fr 65fr;
+  grid-template-rows: 1fr;
+}
+
+/* Colonne Gauche : Apps Rapides + Actions Système empilées */
+.shortcuts-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.shortcuts-col-left .shortcuts-zone--apps {
+  flex: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.shortcuts-col-left .shortcuts-zone--system {
+  flex: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Colonne Droite : Conteneur Widget MFD_Raccourcis */
+.shortcuts-col-right {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Style de base scopé pour les zones de la colonne gauche */
+.shortcuts-zone {
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 18, 26, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* En-tête de zone gauche */
+.shortcuts-zone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.shortcuts-zone-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.01em;
+}
+
+.shortcuts-zone-title svg {
+  color: #a29bfe;
+  flex-shrink: 0;
+}
+
+.shortcuts-zone-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(108, 92, 231, 0.15);
+  border: 1px solid rgba(108, 92, 231, 0.3);
+  color: #a29bfe;
+  letter-spacing: 0.02em;
+}
+
+/* Conteneur de corps de zone */
+.shortcuts-zone-body {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Conteneur MFD_Raccourcis à Onglets (Colonne Droite) */
+.shortcuts-mfd-widget {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 18, 26, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Barre d'onglets du MFD */
+.shortcuts-mfd-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 38px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.shortcuts-mfd-tab-btn {
+  flex: 1;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #a0a5b5;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.shortcuts-mfd-tab-btn svg {
+  color: #a0a5b5;
+  transition: color 0.15s ease;
+}
+
+.shortcuts-mfd-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+.shortcuts-mfd-tab-btn.is-active {
+  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+  border-color: #8b5cf6;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+}
+
+.shortcuts-mfd-tab-btn.is-active svg {
+  color: #ffffff;
+}
+
+/* Zone de contenu des Panes MFD */
+.shortcuts-mfd-content {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+
+.shortcuts-mfd-pane {
+  display: none;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.shortcuts-mfd-pane.is-active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom scrollbar scopée */
+.shortcuts-scrollable-list::-webkit-scrollbar,
+.shortcuts-apps-grid::-webkit-scrollbar,
+.shortcuts-scenes-grid::-webkit-scrollbar,
+#shortcuts-steam-list::-webkit-scrollbar,
+#shortcuts-windows-list::-webkit-scrollbar {
+  width: 6px;
+}
+.shortcuts-scrollable-list::-webkit-scrollbar-track,
+.shortcuts-apps-grid::-webkit-scrollbar-track,
+.shortcuts-scenes-grid::-webkit-scrollbar-track,
+#shortcuts-steam-list::-webkit-scrollbar-track,
+#shortcuts-windows-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.shortcuts-scrollable-list::-webkit-scrollbar-thumb,
+.shortcuts-apps-grid::-webkit-scrollbar-thumb,
+.shortcuts-scenes-grid::-webkit-scrollbar-thumb,
+#shortcuts-steam-list::-webkit-scrollbar-thumb,
+#shortcuts-windows-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.shortcuts-scrollable-list::-webkit-scrollbar-thumb:hover,
+.shortcuts-apps-grid::-webkit-scrollbar-thumb:hover,
+.shortcuts-scenes-grid::-webkit-scrollbar-thumb:hover,
+#shortcuts-steam-list::-webkit-scrollbar-thumb:hover,
+#shortcuts-windows-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(108, 92, 231, 0.5);
+}
+
+/* Message vide / Chargement */
+.shortcuts-status-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  color: #a0a5b5;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+  grid-column: 1 / -1;
+}
+
+.shortcuts-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #6c5ce7;
+  border-radius: 50%;
+  animation: shortcuts-spin 0.8s linear infinite;
+}
+
+@keyframes shortcuts-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   1. APPS RAPIDES (Grille de Tuiles Carrées)
+   ─────────────────────────────────────────────────────────────────────────── */
+.shortcuts-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.shortcuts-app-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.shortcuts-app-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.shortcuts-app-btn:active,
+.shortcuts-app-btn.is-pressed {
+  transform: scale(0.95);
+  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+  color: #ffffff;
+}
+
+.shortcuts-app-btn.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.shortcuts-app-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  color: #a29bfe;
+  transition: color 0.15s ease;
+}
+
+.shortcuts-app-btn:active .shortcuts-app-icon,
+.shortcuts-app-btn.is-pressed .shortcuts-app-icon {
+  color: #ffffff;
+}
+
+.shortcuts-app-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: #e2e8f0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   2. JEUX STEAM (Grille de Tuiles Carrées Tactiles)
+   ─────────────────────────────────────────────────────────────────────────── */
+#shortcuts-steam-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  align-content: start;
+  padding-right: 4px;
+}
+
+.shortcuts-steam-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.shortcuts-steam-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.shortcuts-steam-item:active,
+.shortcuts-steam-item.is-pressed {
+  transform: scale(0.95);
+  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+  color: #ffffff;
+}
+
+.shortcuts-steam-item.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.shortcuts-steam-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a29bfe;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.shortcuts-steam-item:active .shortcuts-steam-icon,
+.shortcuts-steam-item.is-pressed .shortcuts-steam-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.shortcuts-steam-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: #e2e8f0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   3. ACTIONS SYSTÈME (Boutons de Contrôle)
+   ─────────────────────────────────────────────────────────────────────────── */
+.shortcuts-system-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.shortcuts-sysbtn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  flex: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.shortcuts-sysbtn svg {
+  flex-shrink: 0;
+}
+
+.shortcuts-sysbtn--neutral {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+}
+
+.shortcuts-sysbtn--neutral:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.shortcuts-sysbtn--neutral:active,
+.shortcuts-sysbtn--neutral.is-pressed {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+  border-color: #8b5cf6;
+  color: #ffffff;
+}
+
+/* Actions à risque gardent une couleur d'avertissement/danger discrète */
+.shortcuts-sysbtn--warning {
+  background: rgba(217, 119, 6, 0.12);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  color: #fcd34d;
+}
+
+.shortcuts-sysbtn--warning:hover {
+  background: rgba(217, 119, 6, 0.2);
+}
+
+.shortcuts-sysbtn--warning:active,
+.shortcuts-sysbtn--warning.is-pressed {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  border-color: #fbbf24;
+  color: #ffffff;
+}
+
+.shortcuts-sysbtn--danger {
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: #f87171;
+}
+
+.shortcuts-sysbtn--danger:hover {
+  background: rgba(220, 38, 38, 0.2);
+}
+
+.shortcuts-sysbtn--danger:active,
+.shortcuts-sysbtn--danger.is-pressed {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border-color: #f87171;
+  color: #ffffff;
+}
+
+.shortcuts-sysbtn.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   4. FENÊTRES OUVERTES (Grille de Tuiles Carrées Tactiles)
+   ─────────────────────────────────────────────────────────────────────────── */
+#shortcuts-windows-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  align-content: start;
+  padding-right: 4px;
+}
+
+.shortcuts-window-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.shortcuts-window-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.shortcuts-window-item:active,
+.shortcuts-window-item.is-pressed {
+  transform: scale(0.95);
+  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+  color: #ffffff;
+}
+
+.shortcuts-window-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a29bfe;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.shortcuts-window-item:active .shortcuts-window-icon,
+.shortcuts-window-item.is-pressed .shortcuts-window-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.shortcuts-window-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #e2e8f0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   5. SCÈNES (Liste Verticale de Cartes Larges avec Description)
+   ─────────────────────────────────────────────────────────────────────────── */
+.shortcuts-scenes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.shortcuts-scene-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.shortcuts-scene-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.shortcuts-scene-btn:active,
+.shortcuts-scene-btn.is-pressed {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+  color: #ffffff;
+}
+
+.shortcuts-scene-btn.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.shortcuts-scene-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+.shortcuts-scene-icon {
+  width: 22px;
+  height: 22px;
+  color: #a29bfe;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.shortcuts-scene-btn:active .shortcuts-scene-icon,
+.shortcuts-scene-btn.is-pressed .shortcuts-scene-icon {
+  color: #ffffff;
+}
+
+.shortcuts-scene-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.01em;
+}
+
+.shortcuts-scene-desc {
+  font-size: 11px;
+  font-weight: 500;
+  color: #a0a5b5;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
+  width: 100%;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+
+.shortcuts-scene-btn:active .shortcuts-scene-desc,
+.shortcuts-scene-btn.is-pressed .shortcuts-scene-desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   MODALE DE CONFIRMATION SÉCURISÉE (Actions Critiques)
+   ─────────────────────────────────────────────────────────────────────────── */
+.shortcuts-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.shortcuts-modal-overlay.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.shortcuts-modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: #12121a;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transform: scale(0.92);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.shortcuts-modal-overlay.is-active .shortcuts-modal-card {
+  transform: scale(1);
+}
+
+.shortcuts-modal-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  margin-bottom: 14px;
+}
+
+.shortcuts-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.shortcuts-modal-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #a0a5b5;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.shortcuts-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.shortcuts-modal-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.shortcuts-modal-btn--cancel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.shortcuts-modal-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.shortcuts-modal-btn--cancel:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.shortcuts-modal-btn--confirm {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border: 1px solid #f87171;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.shortcuts-modal-btn--confirm:active {
+  transform: scale(0.96);
+  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+}
+
+/* Feedback toast discret */
+.shortcuts-toast {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(18, 18, 26, 0.95);
+  border: 1px solid rgba(108, 92, 231, 0.4);
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #a29bfe;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.shortcuts-toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}

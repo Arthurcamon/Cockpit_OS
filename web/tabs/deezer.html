@@ -1,0 +1,192 @@
+<!-- ══ Onglet Deezer (Restructuré Pleine Largeur) ══════════════════════════════
+     Interface haut de gamme pleine largeur optimisée pour Samsung Galaxy Tab A8.
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<div class="deezer-layout-container-modern">
+  
+  <!-- 1. HEADER (Ma Musique + Bouton d'actualisation) -->
+  <div class="deezer-header-modern">
+    <h1 class="deezer-title-modern">Ma Musique</h1>
+    <!-- Bouton d'actualisation manuelle des playlists -->
+    <button class="deezer-settings-btn-modern" id="dz-refresh-playlists" title="Actualiser les playlists">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+        <polyline points="21 3 21 8 16 8"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 2. PANNEAU DE RECHERCHE (Input + Pilules de filtres intégrées dans une seule capsule) -->
+  <div class="deezer-search-panel-modern">
+    <div class="search-bar pill-glass-modern">
+      <svg class="search-bar-icon-modern" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        type="text"
+        id="dz-search-input"
+        class="search-bar-input-modern"
+        placeholder="Rechercher un titre, artiste, album..."
+        autocomplete="off"
+      />
+      <button class="search-bar__clear" id="dz-search-clear" title="Effacer">✕</button>
+    </div>
+
+    <div class="search-filters-modern">
+      <button class="filter-btn filter-btn--active" data-filter="track">Titre</button>
+      <button class="filter-btn" data-filter="artist">Artiste</button>
+      <button class="filter-btn" data-filter="album">Album</button>
+      <button class="filter-btn" data-filter="playlist">Playlist</button>
+    </div>
+  </div>
+
+  <!-- 3. BARS DE NAVIGATION / FIL D'ARIANE (Cachée par défaut) -->
+  <div class="navigation-bar-modern" id="dz-navigation-bar" style="display: none;">
+    <button class="back-btn" id="dz-back-btn" title="Retour" style="display: none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span>Retour</span>
+    </button>
+    <!-- Fil d'Ariane dynamique pour la navigation -->
+    <div id="dz-breadcrumb" class="breadcrumb"></div>
+  </div>
+
+  <!-- 4. CONTENU DEFILABLE DE L'ONGLET -->
+  <div class="deezer-scrollable-content-modern" id="dz-content">
+    
+    <!-- Vue 1 : Accueil Deezer (Playlists, Flow & Albums à Découvrir) -->
+    <div id="view-playlists" class="deezer-view deezer-view--active">
+      
+      <!-- Bouton compact "Mon Flow" aligné à gauche -->
+      <div class="flow-banner-container-modern">
+        <button class="flow-btn-modern" id="dz-play-flow" title="Lancer le Flow Deezer">
+          <div class="flow-btn-content-modern">
+            <span class="flow-btn-icon-modern">⚡</span>
+            <div class="flow-btn-text-modern">
+              <span class="flow-btn-title-modern">Mon Flow</span>
+              <span class="flow-btn-subtitle-modern">Votre mix personnalisé infini</span>
+            </div>
+          </div>
+          <div class="flow-btn-play-modern">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+              <polygon points="6 4 18 12 6 20 6 4"/>
+            </svg>
+          </div>
+        </button>
+      </div>
+
+      <!-- Section : Mes Playlists -->
+      <div class="section-container-modern">
+        <div class="section-header-modern" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+          <h2 class="section-title-modern" style="margin: 0;">Mes Playlists</h2>
+          
+          <div class="playlists-controls" style="display: flex; align-items: center; gap: 12px;">
+            <!-- Sélecteur de tri des playlists -->
+            <div class="playlists-sort-bar" id="dz-playlists-sort-bar" style="display: flex; align-items: center; gap: 8px;">
+              <span class="sort-label" style="font-size: 13px; color: rgba(255,255,255,0.5);">Trier par :</span>
+              <select id="dz-playlists-sort-select" class="sort-select" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 8px 12px; font-size: 13px; color: #ffffff; outline: none; cursor: pointer;">
+                <option value="recent">Mises à jour (Modifiées récemment)</option>
+                <option value="opened">Récemment écoutées</option>
+                <option value="alpha">Ordre alphabétique (A-Z)</option>
+                <option value="tracks_desc">Nombre de pistes (Décroissant)</option>
+              </select>
+            </div>
+            <!-- Bouton pour tout afficher ou replier la liste à 4 playlists -->
+            <button class="toggle-view-btn-modern" id="dz-toggle-playlists">Tout afficher</button>
+          </div>
+        </div>
+        
+        <div class="grid-playlists-modern" id="dz-playlists-grid">
+          <div class="skeleton-grid">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Vue 2 : Résultats de recherche -->
+    <div id="view-search" class="deezer-view">
+      <div class="section-header-modern">
+        <h2 class="section-title-modern" id="dz-search-title">Résultats</h2>
+      </div>
+      <div id="dz-search-results" class="results-list"></div>
+    </div>
+
+    <!-- Vue 3 : Morceaux d'une playlist ou album (Sheet coulissante) -->
+    <div id="view-tracks" class="deezer-view deezer-sheet">
+      <!-- Poignée visuelle de glissement (drag handle) -->
+      <div class="deezer-sheet-handle"></div>
+      
+      <!-- Bouton Retour / Fermer dédié moderne -->
+      <button class="deezer-sheet-close-btn" id="dz-back-btn-tracks" title="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="playlist-hero-modern" id="dz-tracks-hero">
+        <div class="playlist-hero__img-wrapper">
+          <img id="dz-tracks-cover" src="" alt="" class="playlist-hero__img" />
+        </div>
+        <div class="playlist-hero__info">
+          <h2 class="playlist-hero__title" id="dz-tracks-title">Playlist</h2>
+          <p class="playlist-hero__meta" id="dz-tracks-meta"></p>
+          <button class="btn-play-all-modern" id="dz-play-all">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Lire tout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sélecteur de tri des pistes -->
+      <div class="tracks-sort-bar" id="dz-tracks-sort-bar" style="display: none;">
+        <span class="sort-label">Trier par :</span>
+        <select id="dz-sort-select" class="sort-select">
+          <option value="default">Ordre par défaut</option>
+          <option value="recent">Ajoutés récemment</option>
+          <option value="title">Titre (A-Z)</option>
+          <option value="artist">Artiste (A-Z)</option>
+        </select>
+      </div>
+
+      <div id="dz-tracks-list" class="tracks-list"></div>
+    </div>
+
+    <!-- Vue 4 : Albums d'un artiste (Sheet coulissante) -->
+    <div id="view-albums" class="deezer-view deezer-sheet">
+      <!-- Poignée visuelle de glissement (drag handle) -->
+      <div class="deezer-sheet-handle"></div>
+      
+      <!-- Bouton Retour / Fermer dédié moderne -->
+      <button class="deezer-sheet-close-btn" id="dz-back-btn-albums" title="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="artist-hero" id="dz-artist-hero">
+        <div class="artist-hero__img-wrapper">
+          <img id="dz-artist-img" src="" alt="" class="artist-hero__img" />
+        </div>
+        <h2 class="artist-hero__name" id="dz-artist-name">Artiste</h2>
+      </div>
+      <div class="section-header-modern" style="margin-top: 20px;">
+        <h3 class="section-title-modern">Albums</h3>
+      </div>
+      <div class="grid-albums-modern" id="dz-albums-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- Overlay d'arrière-plan semi-transparente pour les sheets -->
+  <div id="dz-sheet-overlay" class="deezer-sheet-overlay"></div>
+
+</div>

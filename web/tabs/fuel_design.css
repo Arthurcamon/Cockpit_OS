@@ -1,0 +1,82 @@
+.fuel-tab-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: #08090e !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 12px 14px !important;
+  box-sizing: border-box !important;
+  gap: 12px !important;
+}
+
+.fuel-tab-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+}
+
+.fuel-tab-liters, .fuel-tab-laps {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  line-height: 1 !important;
+}
+
+.fuel-tab-unit {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #a1a1aa !important;
+  margin-left: 2px !important;
+}
+
+.fuel-tab-bar-bg {
+  width: 100% !important;
+  height: 8px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+}
+
+.fuel-tab-bar-fill {
+  height: 100% !important;
+  background: linear-gradient(90deg, #f97316 0%, #ea580c 100%) !important;
+  border-radius: 4px !important;
+  transition: width 0.3s ease !important;
+}
+
+.fuel-tab-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  grid-template-rows: 1fr 1fr !important;
+  gap: 10px !important;
+  flex: 1 !important;
+}
+
+.fuel-tab-box {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 6px !important;
+  padding: 10px !important;
+}
+
+.fuel-tab-box-lbl {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #71717a !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 6px !important;
+}
+
+.fuel-tab-box-val {
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  font-family: monospace !important;
+  line-height: 1 !important;
+}

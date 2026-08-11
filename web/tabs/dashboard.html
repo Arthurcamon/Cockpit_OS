@@ -1,0 +1,234 @@
+<!-- ══ Onglet Tableau de Bord CarPlay (Cockpit) ═════════════════════════════════
+     Affiche l'interface CarPlay haute-fidélité : Navigation GPS dominante,
+     Lecteur multimédia synchronisé et Statistiques virtuelles du véhicule.
+     Inspiré des systèmes d'infodivertissement de pointe.
+════════════════════════════════════════════════════════════════════════ -->
+
+<div class="cockpit-container">
+  
+  <!-- Grille CarPlay Principale -->
+  <div class="carplay-grid">
+
+    <!-- 1. WIDGET NAVIGATION GPS (DOMINANT - GAUCHE) -->
+    <div class="widget-card widget-carplay-navigation" id="widget-gps-nav">
+      <div class="widget-header">
+        <svg class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+        <span class="widget-title">Navigation GPS</span>
+        <span class="nav-active-badge">
+          <span class="nav-active-badge__dot"></span>
+          <span>Guidage actif</span>
+        </span>
+      </div>
+
+      <div class="widget-content carplay-nav-content">
+        <!-- Conteneur Carte vectorielle avec superposition -->
+        <div class="carplay-map-wrapper">
+          
+          <!-- Mock Map vectorielle stylisée en SVG de nuit -->
+          <svg class="carplay-map-svg" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="car-glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="route-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#60a5fa"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Arrière-plan sombre de la carte -->
+            <rect width="800" height="420" fill="#08080c" rx="16"/>
+
+            <!-- Zones vertes (Parcs) -->
+            <path d="M40 30 C 120 40, 150 90, 130 160 C 100 210, 50 180, 30 120 Z" fill="#14261c" opacity="0.4" />
+            <path d="M680 220 C 740 210, 780 260, 790 310 C 760 360, 700 350, 670 300 Z" fill="#14261c" opacity="0.3" />
+
+            <!-- Cours d'eau (Rivière Seine) -->
+            <path d="M0 340 C 200 310, 350 360, 550 280 C 680 220, 750 250, 800 230 L800 420 L0 420 Z" fill="#111c30" opacity="0.45" />
+            <path d="M0 340 C 200 310, 350 360, 550 280 C 680 220, 750 250, 800 230" stroke="#1b2e4c" stroke-width="8" opacity="0.6"/>
+
+            <!-- Réseau routier secondaire (lignes fines d'arrière-plan) -->
+            <path d="M0 60 L800 60" stroke="#14141f" stroke-width="8" />
+            <path d="M0 240 L800 240" stroke="#14141f" stroke-width="8" />
+            <path d="M140 0 L140 420" stroke="#14141f" stroke-width="10" />
+            <path d="M640 0 L640 420" stroke="#14141f" stroke-width="10" />
+
+            <!-- Routes principales (Champs-Élysées / Avenues) -->
+            <path d="M-50 160 L850 160" stroke="#1e1e2d" stroke-width="24" />
+            <path d="M420 -50 L420 500" stroke="#1e1e2d" stroke-width="24" />
+            <path d="M-50 300 L850 300" stroke="#1c1c28" stroke-width="20" />
+
+            <!-- Marquages routiers discontinus -->
+            <path d="M-50 160 L850 160" stroke="#2a2a3d" stroke-width="1" stroke-dasharray="10 15" />
+            <path d="M420 -50 L420 500" stroke="#2a2a3d" stroke-width="1" stroke-dasharray="10 15" />
+
+            <!-- Ligne d'itinéraire BLEUE lumineuse (Route active) -->
+            <path d="M420 450 L420 160 L850 160" stroke="#3b82f6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(59,130,246,0.85));"/>
+            <path d="M420 450 L420 160 L850 160" stroke="url(#route-gradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Icône du véhicule (Pulsing Arrow) sur l'itinéraire (420, 270) -->
+            <g transform="translate(420, 260)">
+              <circle r="26" fill="url(#car-glow)"/>
+              <circle r="18" fill="#3b82f6" opacity="0.15">
+                <animate attributeName="r" values="10;24;10" dur="2s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite" />
+              </circle>
+              <circle r="8" fill="#ffffff" />
+              <circle r="5" fill="#3b82f6" />
+              <!-- Flèche de direction pointant vers le haut -->
+              <path d="M0 -12 L5 -4 L-5 -4 Z" fill="#3b82f6" />
+            </g>
+
+            <!-- Drapeau de Destination finale (690, 160) -->
+            <g transform="translate(690, 160)">
+              <circle r="16" fill="#ef4444" opacity="0.2">
+                <animate attributeName="r" values="8;16;8" dur="1.5s" repeatCount="indefinite" />
+              </g>
+              <path d="M0 -14 C-5 -14 -9 -10 -9 -5 C-9 2 0 12 0 12 C0 12 9 2 9 -5 C9 -10 5 -14 0 -14 Z" fill="#ef4444" />
+              <circle cx="0" cy="-5" r="3.5" fill="#ffffff" />
+            </g>
+          </svg>
+
+          <!-- Carte d'instruction de guidage (Superposée en haut à gauche) -->
+          <div class="carplay-instruction-overlay">
+            <div class="instruction-indicator">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="instruction-arrow-icon">
+                <path d="M18 8l4 4-4 4M2 12h20M2 12V2" />
+              </svg>
+            </div>
+            <div class="instruction-details">
+              <span class="instruction-distance">Dans 350 m</span>
+              <span class="instruction-road">Avenue des Champs-Élysées</span>
+            </div>
+          </div>
+
+          <!-- Informations d'arrivée (Superposées en bas) -->
+          <div class="carplay-arrival-bar">
+            <div class="arrival-item">
+              <span class="arrival-value text-gradient-blue font-mono-value">14 min</span>
+              <span class="arrival-label">DURÉE</span>
+            </div>
+            <div class="arrival-divider"></div>
+            <div class="arrival-item">
+              <span class="arrival-value font-mono-value">8.2 km</span>
+              <span class="arrival-label">DISTANCE</span>
+            </div>
+            <div class="arrival-divider"></div>
+            <div class="arrival-item">
+              <span class="arrival-value font-mono-value">05:21</span>
+              <span class="arrival-label">ARRIVÉE</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- PANNEAU DROIT (LÉGÈREMENT PLUS ÉTROIT) -->
+    <div class="carplay-side-panel">
+
+      <!-- 2. WIDGET COMPACT MEDIA PLAYER (STYLE RECURRING) -->
+      <div class="widget-card widget-carplay-media" id="widget-dashboard-media">
+        <div class="widget-header">
+          <svg class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"/>
+            <circle cx="6" cy="18" r="3"/>
+            <circle cx="18" cy="16" r="3"/>
+          </svg>
+          <span class="widget-title">Lecture En Cours</span>
+        </div>
+
+        <div class="widget-content carplay-media-content">
+          <div class="media-player-compact-row">
+            <!-- Pochette d'album & Vinyl -->
+            <div class="dash-cover-container">
+              <div class="dash-cover-wrapper">
+                <img id="dash-media-cover" class="dash-cover-img" src="" alt="Pochette" />
+                <div id="dash-media-cover-placeholder" class="dash-cover-placeholder">♪</div>
+              </div>
+            </div>
+
+            <!-- Informations titre / artiste -->
+            <div class="dash-media-meta">
+              <span id="dash-media-title" class="dash-title-text">Aucune lecture</span>
+              <span id="dash-media-artist" class="dash-artist-text">—</span>
+            </div>
+          </div>
+
+          <!-- Barre de progression dégradé (Cliquable/Seekable) -->
+          <div class="dash-progress-container">
+            <span class="dash-progress-time font-mono-value" id="dash-media-pos">0:00</span>
+            <div class="dash-progress-bar-wrapper" id="dash-media-progress-bar" title="Cliquer pour naviguer">
+              <div class="dash-progress-bar-fill" id="dash-media-progress"></div>
+            </div>
+            <span class="dash-progress-time font-mono-value" id="dash-media-dur">0:00</span>
+          </div>
+
+          <!-- Contrôles circulaires de lecture -->
+          <div class="dash-controls-row">
+            <button class="dash-circular-btn" id="dash-media-prev" title="Précédent">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <polygon points="19 20 9 12 19 4 19 20"/>
+                <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+            <button class="dash-circular-btn dash-circular-btn--play play-btn-accent" id="dash-media-play" title="Lecture / Pause">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" id="dash-media-play-icon">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </button>
+            <button class="dash-circular-btn" id="dash-media-next" title="Suivant">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <polygon points="5 4 15 12 5 20 5 4"/>
+                <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. CAR INFO COMPACT WIDGETS SUB-GRID -->
+      <div class="carplay-stats-grid">
+        
+        <!-- Stats 1: Vitesse -->
+        <div class="widget-card carplay-stat-card">
+          <div class="stat-card-content">
+            <div class="stat-card-num-group">
+              <span class="stat-card-number font-extra-large">120</span>
+              <span class="stat-card-unit">km/h</span>
+            </div>
+            <span class="stat-card-label">Vitesse</span>
+          </div>
+        </div>
+
+        <!-- Stats 2: Batterie -->
+        <div class="widget-card carplay-stat-card">
+          <div class="stat-card-content">
+            <div class="stat-card-num-group">
+              <span class="stat-card-number font-extra-large text-gradient-purple">84</span>
+              <span class="stat-card-unit">%</span>
+            </div>
+            <span class="stat-card-label">Batterie</span>
+          </div>
+        </div>
+
+        <!-- Stats 3: Autonomie -->
+        <div class="widget-card carplay-stat-card">
+          <div class="stat-card-content">
+            <div class="stat-card-num-group">
+              <span class="stat-card-number font-extra-large">412</span>
+              <span class="stat-card-unit">km</span>
+            </div>
+            <span class="stat-card-label">Autonomie</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
