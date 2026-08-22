@@ -200,6 +200,12 @@ class DeezerCDPPlayer:
         # OPTIMISATION 1 : Connexion WebSocket CDP persistante et cache de la cible
         self._active_ws = None
         self._active_ws_url: Optional[str] = None
+        # Boucle asyncio dans laquelle _active_ws a été créée. windows_media.py
+        # exécute chaque commande dans une boucle neuve (asyncio.run() dans un
+        # thread dédié) — un websocket créé dans une autre boucle ne peut pas y
+        # être réutilisé (échoue sur send()/recv()). Suivre l'identité de la
+        # boucle permet de forcer une reconnexion propre au lieu d'un échec.
+        self._active_ws_loop_id: Optional[int] = None
         self._cached_target: Optional[dict] = None
         self._req_id: int = 0
 
@@ -212,25 +218,45 @@ class DeezerCDPPlayer:
                 pass
         self._active_ws = None
         self._active_ws_url = None
+        self._active_ws_loop_id = None
+
+    def _drop_ws_from_foreign_loop(self) -> None:
+        """
+        Comme _close_ws, mais sans tenter de fermer proprement le socket : appelé
+        quand la connexion appartient à une AUTRE boucle asyncio que l'actuelle,
+        où l'attendre planterait. Le serveur CDP détectera la déconnexion de
+        lui-même une fois le socket ramassé par le garbage collector.
+        """
+        self._active_ws = None
+        self._active_ws_url = None
+        self._active_ws_loop_id = None
 
     async def _get_ws(self, target: dict):
-        """Réutilise la connexion WebSocket CDP ouverte ou en crée une nouvelle."""
+        """Réutilise la connexion WebSocket CDP ouverte (dans la même boucle) ou en crée une nouvelle."""
         ws_url = target.get("webSocketDebuggerUrl")
         if not ws_url:
             return None
 
+        current_loop_id = id(asyncio.get_running_loop())
+
         if self._active_ws is not None:
             try:
-                if not self._active_ws.closed and self._active_ws_url == ws_url:
+                same_loop = self._active_ws_loop_id == current_loop_id
+                if not self._active_ws.closed and self._active_ws_url == ws_url and same_loop:
                     return self._active_ws
             except Exception:
-                pass
-            await self._close_ws()
+                same_loop = True  # inconnu → tenter une fermeture propre par défaut
+
+            if same_loop:
+                await self._close_ws()
+            else:
+                self._drop_ws_from_foreign_loop()
 
         try:
             import websockets  # type: ignore[import]
             self._active_ws = await websockets.connect(ws_url, open_timeout=5)
             self._active_ws_url = ws_url
+            self._active_ws_loop_id = current_loop_id
             logger.info(f"✅ Connexion WebSocket CDP persistante établie ({ws_url})")
             return self._active_ws
         except Exception as e:
@@ -550,7 +576,12 @@ class DeezerCDPPlayer:
         return candidates[0]
 
     async def _cdp_eval(self, target: dict, js: str) -> tuple:
-        """Exécute une expression JS via le WebSocket CDP réutilisable."""
+        """Exécute une expression JS via le WebSocket CDP réutilisable (ignore la valeur de retour)."""
+        ok, _value, err = await self._cdp_eval_value(target, js)
+        return ok, err
+
+    async def _cdp_eval_value(self, target: dict, js: str) -> tuple:
+        """Comme _cdp_eval, mais retourne aussi la valeur JS évaluée (returnByValue) : (succès, valeur, erreur)."""
         ws = await self._get_ws(target)
         if not ws:
             # En cas d'échec (ex: Deezer Desktop relancé), forcer la ré-interrogation des targets CDP
@@ -563,7 +594,7 @@ class DeezerCDPPlayer:
                     ws = await self._get_ws(target)
 
         if not ws:
-            return False, "Impossible d'établir la connexion WebSocket CDP persistante"
+            return False, None, "Impossible d'établir la connexion WebSocket CDP persistante"
 
         self._req_id += 1
         req_id = self._req_id
@@ -581,19 +612,100 @@ class DeezerCDPPlayer:
                 if resp.get("id") == req_id:
                     break
         except asyncio.TimeoutError:
-            return False, "Timeout : Deezer Desktop n'a pas répondu (10s)"
+            return False, None, "Timeout : Deezer Desktop n'a pas répondu (10s)"
         except Exception as e:
             logger.warning(f"Erreur communication CDP ({e}), réinitialisation de la connexion persistante")
             await self._close_ws()
             self._cached_target = None
-            return False, f"Erreur WebSocket CDP : {e}"
+            return False, None, f"Erreur WebSocket CDP : {e}"
 
         exc = resp.get("result", {}).get("exceptionDetails")
         if exc:
             description = (exc.get("exception", {}).get("description")
                            or exc.get("text") or str(exc))
-            return False, f"Erreur JS Deezer : {description}"
-        return True, None
+            return False, None, f"Erreur JS Deezer : {description}"
+        value = resp.get("result", {}).get("result", {}).get("value")
+        return True, value, None
+
+    async def _get_target(self) -> Optional[dict]:
+        targets = await self._list_cdp_targets()
+        if not targets:
+            return None
+        return self._find_deezer_target(targets)
+
+    # ══════════════════════════════════════════════════════════════════
+    # État & contrôle direct (shuffle / repeat / lecture)
+    #
+    # Windows Media Session (SMTC) ne reflète pas le shuffle/repeat de Deezer
+    # Desktop : changer l'un des deux via SMTC (try_change_shuffle_active_async,
+    # try_change_auto_repeat_mode_async) n'a aucun effet, et l'état interne réel
+    # de Deezer n'y remonte pas non plus (vérifié : activer le shuffle côté
+    # Deezer ne change jamais ce que SMTC rapporte). dzPlayer expose ces deux
+    # état/contrôles directement et fiablement, donc on passe par CDP pour Deezer
+    # plutôt que par la session Windows Media.
+    # ══════════════════════════════════════════════════════════════════
+
+    async def get_player_state(self) -> Optional[dict]:
+        """
+        État de lecture réel de Deezer Desktop lu directement via dzPlayer (CDP).
+        Retourne None si CDP est indisponible (Deezer non lancé avec le port de
+        débogage distant) ou si la page Deezer n'est pas encore chargée.
+        """
+        target = await self._get_target()
+        if not target:
+            return None
+
+        js = """
+        (() => {
+            if (typeof window.dzPlayer === 'undefined') return null;
+            return {
+                playing: !!window.dzPlayer.isPlaying(),
+                shuffle: !!window.dzPlayer.isShuffle(),
+                repeat: window.dzPlayer.getRepeat(),
+                position: window.dzPlayer.getPosition(),
+                duration: Number(window.dzPlayer.getDuration()) || 0,
+            };
+        })()
+        """.strip()
+        ok, value, _err = await self._cdp_eval_value(target, js)
+        return value if (ok and value is not None) else None
+
+    async def set_shuffle(self, enabled: bool) -> Optional[bool]:
+        """Active/désactive le mode aléatoire dans Deezer. Retourne le nouvel état ou None si échec."""
+        target = await self._get_target()
+        if not target:
+            return None
+        js = f"""
+        (() => {{
+            if (typeof window.dzPlayer === 'undefined') return null;
+            window.dzPlayer.control.setShuffle({'true' if enabled else 'false'});
+            return !!window.dzPlayer.isShuffle();
+        }})()
+        """.strip()
+        ok, value, _err = await self._cdp_eval_value(target, js)
+        return value if ok else None
+
+    async def cycle_repeat(self) -> Optional[int]:
+        """
+        Fait passer le mode répétition Deezer au suivant : none(0) → all(2) → track(1) → none(0)
+        (même ordre que le cycle utilisé côté SMTC pour les autres lecteurs).
+        Retourne le nouveau mode (0/1/2) ou None si échec.
+        """
+        target = await self._get_target()
+        if not target:
+            return None
+        js = """
+        (() => {
+            if (typeof window.dzPlayer === 'undefined') return null;
+            const current = window.dzPlayer.getRepeat();
+            const next = ({0: 2, 2: 1, 1: 0})[current];
+            const resolved = (next === undefined) ? 0 : next;
+            window.dzPlayer.control.setRepeat(resolved);
+            return window.dzPlayer.getRepeat();
+        })()
+        """.strip()
+        ok, value, _err = await self._cdp_eval_value(target, js)
+        return value if ok else None
 
     # ══════════════════════════════════════════════════════════════════
     # Diagnostic

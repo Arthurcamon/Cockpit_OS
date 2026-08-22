@@ -7,6 +7,16 @@ import logging
 import sys
 from typing import Optional
 
+# La console Windows utilise par défaut un encodage historique (cp1252) qui ne
+# supporte pas les emojis/accents utilisés dans les messages de log ("✅", "🎧"...).
+# Sans ceci, logger.info(...) plante silencieusement (UnicodeEncodeError avalée
+# par le module logging, qui l'affiche comme "--- Logging error ---").
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def get_logger(name: str, level: Optional[int] = None) -> logging.Logger:
     """

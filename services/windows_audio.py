@@ -8,6 +8,7 @@ IMPORTANT — Dépendances Windows :
 
 import asyncio
 import platform
+import re
 from core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -23,8 +24,17 @@ if IS_WINDOWS:
     except ImportError:
         PYCAW_AVAILABLE = False
         logger.warning("pycaw non installé — mode simulation activé")
+
+    try:
+        from winsdk.windows.devices.radios import Radio, RadioKind, RadioState, RadioAccessStatus
+        WINSDK_RADIO_AVAILABLE = True
+        logger.info("winsdk chargé — contrôle du radio Bluetooth actif")
+    except ImportError as e:
+        WINSDK_RADIO_AVAILABLE = False
+        logger.warning(f"winsdk non installé — bascule Bluetooth désactivée ({e})")
 else:
     PYCAW_AVAILABLE = False
+    WINSDK_RADIO_AVAILABLE = False
     logger.info("Système non-Windows détecté — audio en mode simulation")
 
 
@@ -69,7 +79,21 @@ def _get_windows_audio_devices():
     return None, None
 
 
+_BT_DEVICE_INSTANCE_RE = re.compile(r"^(BTHENUM|BTHLE)\\DEV_", re.IGNORECASE)
+
+
 def _get_windows_bluetooth_devices():
+    """
+    Énumère les appareils Bluetooth réellement appairés (téléphones, casques...).
+
+    Chaque appareil Bluetooth crée aussi, sous Windows, une sous-entrée PnP par
+    service qu'il expose (Object Push, NAP, PBAP, AVRCP...). Ces sous-entrées ont
+    des noms localisés impossibles à filtrer de façon fiable par mots-clés
+    ("Service d'objet poussé", "Service NAP de réseau personnel"...). On les
+    distingue plutôt par la forme de leur InstanceId : un appareil réel a un
+    identifiant "BTHENUM\\DEV_<adresse MAC>\\..." ou "BTHLE\\DEV_<adresse MAC>\\...",
+    alors qu'un service enfant a un identifiant "BTHENUM\\{<GUID de service>}_...".
+    """
     if not IS_WINDOWS:
         return None
     try:
@@ -77,7 +101,7 @@ def _get_windows_bluetooth_devices():
         ps_cmd = (
             "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
             "Get-PnpDevice -Class Bluetooth | "
-            "Where-Object {$_.InstanceId -like 'BTHENUM\\*' -or $_.InstanceId -like 'BTHLE\\*'} | "
+            "Where-Object {$_.InstanceId -like 'BTHENUM\\DEV_*' -or $_.InstanceId -like 'BTHLE\\DEV_*'} | "
             "Select-Object FriendlyName, InstanceId, Status | "
             "ConvertTo-Json"
         )
@@ -86,40 +110,19 @@ def _get_windows_bluetooth_devices():
             raw = json.loads(res.stdout)
             if isinstance(raw, dict):
                 raw = [raw]
-            
-            bt_dict = {}
-            ignore_keywords = [
-                "énumérateur", "enumerateur", "microsoft", "gatt", "attributes", 
-                "rfcomm", "pbap", "map ", "hands-free ag", "bthle"
-            ]
-            prefixes_to_strip = [
-                "Transport Avrcp ", "Transport LE ", "Transport ", "Service "
-            ]
 
+            bt_dict = {}
             for item in raw:
                 fname = item.get("FriendlyName", "").strip()
                 iid = item.get("InstanceId", "")
                 status = item.get("Status", "")
                 if not fname or not iid:
                     continue
-                iid_upper = iid.upper()
-                if not (iid_upper.startswith("BTHENUM\\") or iid_upper.startswith("BTHLE\\")):
-                    continue
-                
-                fn_lower = fname.lower()
-                if any(kw in fn_lower for kw in ignore_keywords):
-                    continue
-
-                clean_name = fname
-                for p in prefixes_to_strip:
-                    if clean_name.startswith(p):
-                        clean_name = clean_name[len(p):].strip()
-
-                if not clean_name:
+                if not _BT_DEVICE_INSTANCE_RE.match(iid):
                     continue
 
                 is_conn = (status.upper() == "OK")
-                norm_key = clean_name.lower()
+                norm_key = fname.lower()
 
                 if norm_key in bt_dict:
                     if is_conn:
@@ -127,16 +130,16 @@ def _get_windows_bluetooth_devices():
                         bt_dict[norm_key]["id"] = iid
                 else:
                     icon = "📶"
-                    c_lower = clean_name.lower()
+                    c_lower = fname.lower()
                     if any(x in c_lower for x in ["head", "casque", "buds", "airpods", "wh-", "wf-", "sony", "bose"]): icon = "🎧"
                     elif any(x in c_lower for x in ["key", "clavier"]): icon = "⌨️"
                     elif any(x in c_lower for x in ["mouse", "souris"]): icon = "🖱️"
                     elif any(x in c_lower for x in ["speaker", "enceinte", "jbl", "boom"]): icon = "🔊"
-                    elif any(x in c_lower for x in ["phone", "galaxy", "iphone"]): icon = "📱"
+                    elif any(x in c_lower for x in ["phone", "galaxy", "iphone", "oppo", "reno"]): icon = "📱"
 
                     bt_dict[norm_key] = {
                         "id": iid,
-                        "name": clean_name,
+                        "name": fname,
                         "type": "bluetooth",
                         "connected": is_conn,
                         "paired": True,
@@ -150,43 +153,113 @@ def _get_windows_bluetooth_devices():
     return None
 
 
+async def _get_bluetooth_radio_async():
+    """Retourne l'objet Radio (WinRT) correspondant à l'adaptateur Bluetooth, ou None."""
+    radios = await Radio.get_radios_async()
+    for r in radios:
+        if r.kind == RadioKind.BLUETOOTH:
+            return r
+    return None
+
+
 def _get_windows_bluetooth_radio_status():
     """
-    Interroge l'état réel du radio/adaptateur Bluetooth sous Windows via PowerShell.
-    Cible les entrées de la classe Bluetooth dont l'InstanceId commence par "BTH\"
-    (adaptateur radio physique, à l'exclusion de BTHENUM\ et BTHLE\).
-    Retourne (True, instance_id) si Status == "OK", (False, instance_id) si désactivé/erreur,
-    ou (None, None) en cas d'échec de la requête.
+    Interroge l'état réel du radio Bluetooth via l'API WinRT Radio.
+
+    Remplace l'ancienne implémentation basée sur `Get-PnpDevice -Class Bluetooth`,
+    qui pouvait retourner plusieurs entrées "BTH\\*" dans un ordre non garanti
+    (ex: l'énumérateur "Bluetooth LE" avec Status=Error listé avant le vrai
+    radio "Bluetooth" avec Status=OK) — ce qui faisait remonter à tort un
+    Bluetooth "désactivé" alors qu'il était bien actif.
+
+    Retourne True/False si lu avec succès, None si l'API échoue ou est indisponible.
+    """
+    if not IS_WINDOWS or not WINSDK_RADIO_AVAILABLE:
+        return None
+    try:
+        async def _run():
+            radio = await _get_bluetooth_radio_async()
+            return None if radio is None else (radio.state == RadioState.ON)
+        return asyncio.run(_run())
+    except Exception as e:
+        logger.debug(f"Erreur lecture radio Bluetooth (winsdk): {e}")
+        return None
+
+
+def _set_windows_bluetooth_radio_state(enabled: bool):
+    """
+    Active/désactive le radio Bluetooth via l'API WinRT Radio.SetStateAsync.
+
+    Contrairement à Enable-PnpDevice/Disable-PnpDevice (ancienne implémentation),
+    cette API ne nécessite PAS de droits administrateur.
+
+    Retourne (nouvel_état: bool|None, access_denied: bool).
+    """
+    if not IS_WINDOWS or not WINSDK_RADIO_AVAILABLE:
+        return None, False
+    try:
+        async def _run():
+            radio = await _get_bluetooth_radio_async()
+            if radio is None:
+                return None, False
+            target = RadioState.ON if enabled else RadioState.OFF
+            access_status = await radio.set_state_async(target)
+            denied = access_status != RadioAccessStatus.ALLOWED
+            return (radio.state == RadioState.ON), denied
+        return asyncio.run(_run())
+    except Exception as e:
+        logger.debug(f"Erreur écriture radio Bluetooth (winsdk): {e}")
+        return None, False
+
+
+ELEVATED_TASK_NAME = "CockpitOS_BluetoothHelper"
+
+
+def _run_elevated_pnp_action(instance_id: str, enable: bool):
+    """
+    Active/désactive un appareil PnP (utilisé pour connecter/déconnecter un appareil
+    Bluetooth déjà appairé) avec des droits administrateur, via la tâche planifiée
+    pré-autorisée "CockpitOS_BluetoothHelper" (voir scripts/setup_admin_task.ps1).
+
+    Enable-PnpDevice/Disable-PnpDevice nécessitent des droits admin ; les déclencher
+    directement en sous-processus depuis ce service (non élevé) échoue silencieusement.
+    La tâche planifiée, elle, a été configurée une fois (un seul prompt UAC) pour
+    tourner avec les droits les plus élevés sans re-demander de confirmation ensuite.
+
+    Retourne (succès: bool, message_erreur: str).
     """
     if not IS_WINDOWS:
-        return None, None
+        return False, "non disponible hors Windows"
     try:
-        import subprocess, json
-        ps_cmd = (
-            "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
-            "Get-PnpDevice -Class Bluetooth | "
-            "Where-Object {$_.InstanceId -like 'BTH\\*' -and $_.InstanceId -notlike 'BTHENUM\\*' -and $_.InstanceId -notlike 'BTHLE\\*'} | "
-            "Select-Object FriendlyName, InstanceId, Status | "
-            "ConvertTo-Json"
+        import subprocess, json, os, time, tempfile
+
+        tmp = tempfile.gettempdir()
+        action_file = os.path.join(tmp, "cockpit_os_pnp_action.json")
+        result_file = os.path.join(tmp, "cockpit_os_pnp_result.json")
+
+        if os.path.exists(result_file):
+            os.remove(result_file)
+        with open(action_file, "w", encoding="utf-8") as f:
+            json.dump({"instance_id": instance_id, "action": "enable" if enable else "disable"}, f)
+
+        res = subprocess.run(
+            ["schtasks", "/run", "/tn", ELEVATED_TASK_NAME],
+            capture_output=True, encoding="utf-8", errors="replace", timeout=5
         )
-        res = subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, encoding="utf-8", errors="replace", timeout=3)
-        if res.returncode == 0 and res.stdout.strip():
-            raw = json.loads(res.stdout)
-            if isinstance(raw, dict):
-                raw = [raw]
-            for item in raw:
-                iid = item.get("InstanceId", "")
-                status = item.get("Status", "")
-                if not iid:
-                    continue
-                iid_upper = iid.upper()
-                if iid_upper.startswith("BTH\\") and not (iid_upper.startswith("BTHENUM\\") or iid_upper.startswith("BTHLE\\")):
-                    is_ok = (status.upper() == "OK")
-                    return is_ok, iid
-            return False, None
+        if res.returncode != 0:
+            return False, "Tâche planifiée introuvable — exécutez scripts/setup_admin_task.bat une fois."
+
+        for _ in range(20):  # ~4s max
+            if os.path.exists(result_file):
+                # Set-Content -Encoding UTF8 (PowerShell 5.1) écrit toujours un BOM UTF-8
+                with open(result_file, "r", encoding="utf-8-sig") as f:
+                    data = json.load(f)
+                os.remove(result_file)
+                return bool(data.get("ok")), data.get("error", "")
+            time.sleep(0.2)
+        return False, "Timeout en attendant la tâche élevée."
     except Exception as e:
-        logger.debug(f"Erreur requête statut radio Bluetooth Windows: {e}")
-    return None, None
+        return False, str(e)
 
 
 class WindowsAudioService:
@@ -223,7 +296,6 @@ class WindowsAudioService:
         self._cached_real_inputs = None
         self._cached_real_bt = None
         self._cached_real_bt_radio_status = None
-        self._cached_real_bt_radio_iid = None
 
         # Cache de l'interface COM IAudioEndpointVolume — évite de la recréer (Activate())
         # à chaque commande, ce qui est relativement coûteux et devenait un goulot
@@ -271,7 +343,7 @@ class WindowsAudioService:
         try:
             real_out, real_in = _get_windows_audio_devices()
             real_bt = _get_windows_bluetooth_devices()
-            bt_radio_status, bt_radio_iid = _get_windows_bluetooth_radio_status()
+            bt_radio_status = _get_windows_bluetooth_radio_status()
             if real_out is not None:
                 self._cached_real_outputs = real_out
             if real_in is not None:
@@ -280,7 +352,6 @@ class WindowsAudioService:
                 self._cached_real_bt = real_bt
             if bt_radio_status is not None:
                 self._cached_real_bt_radio_status = bt_radio_status
-                self._cached_real_bt_radio_iid = bt_radio_iid
         except Exception as e:
             logger.debug(f"Erreur rafraîchissement PnP devices: {e}")
         self._last_pnp_fetch_time = time.time()
@@ -313,24 +384,26 @@ class WindowsAudioService:
                 logger.debug(f"Attempt set default audio endpoint PnP: {e}")
 
     def _set_bluetooth_connected(self, dev_id: str, connected: bool):
-        if self._cached_real_bt:
-            for d in self._cached_real_bt:
+        """Retourne (succès: bool, message_erreur: str) — l'appel a réellement agi sur Windows ou non."""
+        if IS_WINDOWS and dev_id and not dev_id.startswith("bt_"):
+            ok, err = _run_elevated_pnp_action(dev_id, enable=connected)
+        else:
+            ok, err = True, ""
+
+        if ok:
+            if self._cached_real_bt:
+                for d in self._cached_real_bt:
+                    if d["id"] == dev_id or d["name"] == dev_id:
+                        d["connected"] = connected
+                        break
+            for d in self._bluetooth_devices:
                 if d["id"] == dev_id or d["name"] == dev_id:
                     d["connected"] = connected
                     break
-        for d in self._bluetooth_devices:
-            if d["id"] == dev_id or d["name"] == dev_id:
-                d["connected"] = connected
-                break
+        else:
+            logger.warning(f"Échec connect/disconnect Bluetooth pour {dev_id}: {err}")
 
-        if IS_WINDOWS and dev_id and not dev_id.startswith("bt_"):
-            try:
-                import subprocess
-                action = "Enable-PnpDevice" if connected else "Disable-PnpDevice"
-                ps_cmd = f"Get-PnpDevice -InstanceId '{dev_id}' -ErrorAction SilentlyContinue | {action} -Confirm:$false -ErrorAction SilentlyContinue"
-                subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, timeout=3)
-            except Exception as e:
-                logger.debug(f"PnP Bluetooth connect/disconnect attempt: {e}")
+        return ok, err
 
     def _get_output_devices_list(self) -> list:
         real_out = self._cached_real_outputs
@@ -595,41 +668,22 @@ class WindowsAudioService:
                 return {"type": "audio.device.updated", "device_id": dev_id, "direction": direction}
 
             elif command == "bluetooth.toggle":
-                import subprocess
                 # 1. Détermine l'état cible souhaité
                 req_enabled = data.get("enabled")
                 current_enabled = self._cached_real_bt_radio_status if self._cached_real_bt_radio_status is not None else self._bluetooth_enabled
                 target_enabled = bool(req_enabled) if req_enabled is not None else not current_enabled
 
-                # 2. Récupère l'InstanceId du radio et tente Enable-PnpDevice / Disable-PnpDevice sur Windows
-                radio_iid = self._cached_real_bt_radio_iid
-                if not radio_iid:
-                    _, radio_iid = _get_windows_bluetooth_radio_status()
+                # 2. Bascule le radio via l'API WinRT Radio (aucun droit admin requis)
+                real_status, access_denied = _set_windows_bluetooth_radio_state(target_enabled)
 
-                admin_error = False
-                if radio_iid:
-                    action = "Enable-PnpDevice" if target_enabled else "Disable-PnpDevice"
-                    ps_cmd = f"Get-PnpDevice -InstanceId '{radio_iid}' -ErrorAction SilentlyContinue | {action} -Confirm:$false"
-                    try:
-                        res = subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, encoding="utf-8", timeout=4)
-                        if res.returncode != 0 or "Access is denied" in res.stderr or "accès refusé" in res.stderr.lower():
-                            admin_error = True
-                            logger.warning("Impossible de modifier l'état du Bluetooth : droits administrateur requis")
-                    except Exception as e:
-                        admin_error = True
-                        logger.warning(f"Impossible de modifier l'état du Bluetooth : droits administrateur requis ({e})")
-                else:
-                    logger.warning("Impossible de modifier l'état du Bluetooth : adaptateur radio non trouvé")
-
-                # 3. Interroge immédiatement le statut réel pour renvoyer la vérité terrain
-                real_status, real_iid = _get_windows_bluetooth_radio_status()
                 if real_status is not None:
                     self._cached_real_bt_radio_status = real_status
-                    self._cached_real_bt_radio_iid = real_iid
                     final_enabled = real_status
                 else:
+                    logger.warning("Impossible de modifier l'état du Bluetooth : adaptateur radio introuvable (winsdk)")
                     self._bluetooth_enabled = target_enabled
                     final_enabled = target_enabled
+                    access_denied = True
 
                 if not final_enabled:
                     if self._cached_real_bt:
@@ -639,10 +693,10 @@ class WindowsAudioService:
                         d["connected"] = False
 
                 logger.info(f"Bluetooth state: {'activé' if final_enabled else 'désactivé'}")
-                if admin_error and final_enabled != target_enabled:
+                if access_denied and final_enabled != target_enabled:
                     return {
                         "type": "error",
-                        "message": "Impossible de modifier l'état du Bluetooth : droits administrateur requis sur Windows.",
+                        "message": "Impossible de modifier l'état du Bluetooth : accès refusé ou adaptateur introuvable.",
                         "enabled": final_enabled
                     }
                 return {"type": "bluetooth.updated", "enabled": final_enabled}
@@ -650,8 +704,14 @@ class WindowsAudioService:
             elif command in ("bluetooth.connect", "bluetooth.disconnect"):
                 dev_id = data.get("device_id", "")
                 target_state = (command == "bluetooth.connect")
-                self._set_bluetooth_connected(dev_id, target_state)
-                logger.info(f"Appareil Bluetooth {dev_id} {'connecté' if target_state else 'déconnecté'}")
+                ok, err = self._set_bluetooth_connected(dev_id, target_state)
+                logger.info(f"Appareil Bluetooth {dev_id} {'connecté' if target_state else 'déconnecté'} : {'ok' if ok else 'échec — ' + err}")
+                if not ok:
+                    return {
+                        "type": "error",
+                        "message": "Impossible de modifier la connexion Bluetooth : exécutez scripts/setup_admin_task.bat une fois (droits admin requis).",
+                        "device_id": dev_id
+                    }
                 return {"type": "bluetooth.updated", "device_id": dev_id, "connected": target_state}
 
             elif command == "bluetooth.scan":

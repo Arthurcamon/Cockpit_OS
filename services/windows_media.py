@@ -87,6 +87,22 @@ class WindowsMediaService:
         # None = sélection automatique (Deezer en priorité, sinon session courante)
         self._selected_source: str | None = None
 
+        # Cache court du shuffle/repeat Deezer lu via CDP (voir plus bas) — évite
+        # d'ouvrir une nouvelle connexion WebSocket CDP à chaque poll média (1x/s).
+        self._dz_shuffle_repeat_cache: dict | None = None
+        self._dz_shuffle_repeat_cache_at: float = 0.0
+        self._DZ_CACHE_TTL = 3.0
+
+        # Dernier état connu avec une piste — certains lecteurs (Deezer Desktop
+        # notamment) retirent purement et simplement leur session Windows Media
+        # dès qu'ils sont mis en pause, au lieu de rester présents avec le statut
+        # "Paused". Sans ce cache, l'app afficherait "Aucune lecture en cours" au
+        # lieu de "en pause" avec le titre — ce qui donne l'impression que les
+        # boutons play/pause ne sont pas synchronisés avec l'ordinateur.
+        self._last_known_state: dict | None = None
+        self._last_known_at: float = 0.0
+        self._LAST_KNOWN_TTL = 30.0  # secondes avant d'abandonner le fallback
+
     # ── Lecture de l'état (point d'entrée public) ──────────────────────────
 
     async def get_current_state(self) -> dict:
@@ -138,13 +154,14 @@ class WindowsMediaService:
             session = await self._get_best_session(manager)
         except Exception as e:
             logger.error(f"_get_best_session() a échoué : {e}")
-            return base
+            return self._with_last_known_fallback(base)
 
         if not session:
             logger.debug("Aucune session média active")
-            return base
+            return self._with_last_known_fallback(base)
 
         # Nom du lecteur source
+        is_deezer = False
         try:
             source_app = _safe_get_attr(session, "source_app_user_model_id", default="")
             base["player"] = source_app.split("!")[-1].split(".exe")[0] if source_app else ""
@@ -170,9 +187,14 @@ class WindowsMediaService:
             pb = session.get_playback_info()
             if pb:
                 status_val = _safe_get_attr(pb, "playback_status", "value", default=0)
+                # Valeurs de l'énum WinRT GlobalSystemMediaTransportControlsSessionPlaybackStatus :
+                # Closed=0, Opened=1, Changing=2, Stopped=3, Playing=4, Paused=5.
+                # (L'ancien mapping ici associait à tort 4 à "rewinding" et 2 à "playing",
+                # ce qui faisait que le bouton play/pause de l'app ne reflétait jamais le
+                # vrai statut de lecture Windows.)
                 status_map = {
-                    0: "stopped", 1: "paused", 2: "playing",
-                    3: "fast_forwarding", 4: "rewinding", 5: "buffering",
+                    0: "stopped", 1: "stopped", 2: "buffering",
+                    3: "stopped", 4: "playing", 5: "paused",
                 }
                 base["status"] = status_map.get(status_val, "unknown")
 
@@ -198,6 +220,27 @@ class WindowsMediaService:
                     )
         except Exception as e:
             logger.warning(f"get_playback_info() a échoué : {e}")
+
+        # Deezer ne remonte jamais son shuffle/repeat réel via SMTC (vérifié : ces
+        # champs restent à leur valeur par défaut quoi qu'il arrive côté Deezer) —
+        # on les relit directement depuis dzPlayer via CDP quand c'est disponible.
+        # Mis en cache quelques secondes pour éviter une connexion CDP à chaque
+        # poll média (1x/s).
+        if is_deezer:
+            try:
+                import time
+                now = time.time()
+                if self._dz_shuffle_repeat_cache is None or (now - self._dz_shuffle_repeat_cache_at) >= self._DZ_CACHE_TTL:
+                    from services.deezer_player import deezer_player_service
+                    dz_state = await deezer_player_service.get_player_state()
+                    if dz_state is not None:
+                        self._dz_shuffle_repeat_cache = dz_state
+                        self._dz_shuffle_repeat_cache_at = now
+                if self._dz_shuffle_repeat_cache is not None:
+                    base["shuffle"] = bool(self._dz_shuffle_repeat_cache.get("shuffle", False))
+                    base["repeat"] = {0: "none", 1: "track", 2: "list"}.get(self._dz_shuffle_repeat_cache.get("repeat", 0), "none")
+            except Exception as e:
+                logger.debug(f"Lecture shuffle/repeat Deezer via CDP échouée : {e}")
 
         # Position et durée
         try:
@@ -261,9 +304,35 @@ class WindowsMediaService:
             self._cover_cache_data = cover_data
             base["cover_b64"] = cover_data
 
+        if base["title"]:
+            import time
+            self._last_known_state = {**base}
+            self._last_known_at = time.time()
+
+        return base
+
+    def _with_last_known_fallback(self, base: dict) -> dict:
+        """
+        Appelée quand plus aucune session Windows Media n'est active. Certains
+        lecteurs (Deezer Desktop) désenregistrent leur session dès la mise en
+        pause au lieu de rester présents avec le statut "Paused" — sans ce
+        fallback, l'app afficherait à tort "Aucune lecture" et les boutons
+        play/pause paraîtraient désynchronisés de l'ordinateur.
+        """
+        import time
+        if self._last_known_state and (time.time() - self._last_known_at) < self._LAST_KNOWN_TTL:
+            return {**self._last_known_state, "status": "paused", "sessions": base.get("sessions", [])}
         return base
 
     # ── Sélection de la session ───────────────────────────────────────────
+
+    @staticmethod
+    def _is_deezer_session(session) -> bool:
+        try:
+            source_app = (_safe_get_attr(session, "source_app_user_model_id", default="") or "").lower()
+            return any(name in source_app for name in DEEZER_PROCESS_NAMES)
+        except Exception:
+            return False
 
     # ── Utilitaire : nom lisible d'une source ─────────────────────────────
 
@@ -304,9 +373,10 @@ class WindowsMediaService:
             except Exception:
                 count = _safe_get_attr(sessions, "size", default=0)
 
+            # Mêmes valeurs d'énum que dans _get_windows_state() ci-dessus.
             status_map = {
-                0: "stopped", 1: "paused", 2: "playing",
-                3: "playing", 4: "playing", 5: "buffering",
+                0: "stopped", 1: "stopped", 2: "buffering",
+                3: "stopped", 4: "playing", 5: "paused",
             }
 
             for i in range(count):
@@ -446,18 +516,44 @@ class WindowsMediaService:
             elif command == "previous":
                 await session.try_skip_previous_async()
             elif command == "shuffle.toggle":
-                pb = session.get_playback_info()
-                current = bool(_safe_get_attr(pb, "is_shuffle_active", default=False))
-                await session.try_change_shuffle_active_async(not current)
+                if self._is_deezer_session(session):
+                    # SMTC ne reflète jamais le shuffle/repeat de Deezer (vérifié : ni la
+                    # lecture ni l'écriture ne fonctionnent) — on pilote dzPlayer directement,
+                    # y compris pour connaître l'état actuel avant de le basculer.
+                    import time
+                    from services.deezer_player import deezer_player_service
+                    if self._dz_shuffle_repeat_cache is None:
+                        self._dz_shuffle_repeat_cache = await deezer_player_service.get_player_state() or {}
+                    current = bool(self._dz_shuffle_repeat_cache.get("shuffle", False))
+                    result = await deezer_player_service.set_shuffle(not current)
+                    if result is None:
+                        logger.warning("shuffle.toggle Deezer : CDP indisponible, ignoré")
+                    else:
+                        self._dz_shuffle_repeat_cache["shuffle"] = result
+                        self._dz_shuffle_repeat_cache_at = time.time()
+                else:
+                    pb = session.get_playback_info()
+                    current = bool(_safe_get_attr(pb, "is_shuffle_active", default=False))
+                    await session.try_change_shuffle_active_async(not current)
             elif command == "repeat.cycle":
-                pb = session.get_playback_info()
-                mode = _safe_get_attr(pb, "auto_repeat_mode", default=None)
-                current_val = _safe_get_attr(mode, "value", default=0)
-                next_val = {0: 2, 2: 1, 1: 0}.get(current_val, 0)
-                from winsdk.windows.media import MediaPlaybackAutoRepeatMode
-                await session.try_change_auto_repeat_mode_async(
-                    MediaPlaybackAutoRepeatMode(next_val)
-                )
+                if self._is_deezer_session(session):
+                    import time
+                    from services.deezer_player import deezer_player_service
+                    result = await deezer_player_service.cycle_repeat()
+                    if result is None:
+                        logger.warning("repeat.cycle Deezer : CDP indisponible, ignoré")
+                    else:
+                        self._dz_shuffle_repeat_cache = {**(self._dz_shuffle_repeat_cache or {}), "repeat": result}
+                        self._dz_shuffle_repeat_cache_at = time.time()
+                else:
+                    pb = session.get_playback_info()
+                    mode = _safe_get_attr(pb, "auto_repeat_mode", default=None)
+                    current_val = _safe_get_attr(mode, "value", default=0)
+                    next_val = {0: 2, 2: 1, 1: 0}.get(current_val, 0)
+                    from winsdk.windows.media import MediaPlaybackAutoRepeatMode
+                    await session.try_change_auto_repeat_mode_async(
+                        MediaPlaybackAutoRepeatMode(next_val)
+                    )
             elif command == "seek":
                 position_sec = float(data.get("position", 0))
                 timeline = session.get_timeline_properties()
