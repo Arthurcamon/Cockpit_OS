@@ -191,6 +191,16 @@ function send(obj) {
   }
 }
 
+/**
+ * Dégradé de remplissage pour un slider de volume — lilas → violet
+ * (même paire que .media-cover-container), pour relier visuellement le
+ * volume à l'identité du lecteur média plutôt qu'introduire une couleur
+ * de plus. `pct` est le pourcentage rempli (0–100).
+ */
+function sliderFillBackground(pct) {
+  return 'linear-gradient(90deg, #c9c2f2 0%, #8577d9 ' + pct + '%, rgba(255,255,255,0.10) ' + pct + '%, rgba(255,255,255,0.10) 100%)';
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Gestion des messages entrants
 // ═══════════════════════════════════════════════════════════════════════════
@@ -512,13 +522,13 @@ function handleMessage(data) {
         var mediaTabSlider = el('media-tab-volume-slider');
         if (mediaTabSlider && activeEl !== mediaTabSlider) {
           mediaTabSlider.value = masterVol;
-          mediaTabSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (masterVol * 0.5) + '%, #f0abfc ' + masterVol + '%, rgba(255, 255, 255, 0.12) ' + masterVol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+          mediaTabSlider.style.setProperty('background', sliderFillBackground(masterVol), 'important');
         }
         var enduranceMasterSlider = el('vol-slider-master');
         var enduranceMasterText = el('vol-val-master');
         if (enduranceMasterSlider && activeEl !== enduranceMasterSlider) {
           enduranceMasterSlider.value = masterVol;
-          enduranceMasterSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (masterVol * 0.5) + '%, #f0abfc ' + masterVol + '%, rgba(255, 255, 255, 0.12) ' + masterVol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+          enduranceMasterSlider.style.setProperty('background', sliderFillBackground(masterVol), 'important');
         }
         if (enduranceMasterText) {
           enduranceMasterText.textContent = masterVol + '%';
@@ -577,7 +587,7 @@ function handleMessage(data) {
               var valLabel = wrapper.querySelector('.audio-app-value-modern');
               if (valLabel) valLabel.textContent = appVol + '%';
             }
-            appSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (appVol * 0.5) + '%, #f0abfc ' + appVol + '%, rgba(255, 255, 255, 0.12) ' + appVol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+            appSlider.style.setProperty('background', sliderFillBackground(appVol), 'important');
           }
         }
 
@@ -595,7 +605,7 @@ function handleMessage(data) {
           var endText = el('vol-val-' + endKey);
           if (endSlider && document.activeElement !== endSlider) {
             endSlider.value = appVol;
-            endSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (appVol * 0.5) + '%, #f0abfc ' + appVol + '%, rgba(255, 255, 255, 0.12) ' + appVol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+            endSlider.style.setProperty('background', sliderFillBackground(appVol), 'important');
           }
           if (endText) endText.textContent = appVol + '%';
           if (typeof appVolumes !== 'undefined') appVolumes[endKey] = appVol;
@@ -638,7 +648,7 @@ var Media = {
     var mediaTabSlider = el('media-tab-volume-slider');
     if (mediaTabSlider && activeEl !== mediaTabSlider) {
       mediaTabSlider.value = v;
-      mediaTabSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (v * 0.5) + '%, #f0abfc ' + v + '%, rgba(255, 255, 255, 0.12) ' + v + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+      mediaTabSlider.style.setProperty('background', sliderFillBackground(v), 'important');
     }
 
     // Synchroniser le slider Général de l'onglet Endurance
@@ -646,7 +656,7 @@ var Media = {
     var enduranceMasterText = el('vol-val-master');
     if (enduranceMasterSlider && activeEl !== enduranceMasterSlider) {
       enduranceMasterSlider.value = v;
-      enduranceMasterSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (v * 0.5) + '%, #f0abfc ' + v + '%, rgba(255, 255, 255, 0.12) ' + v + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+      enduranceMasterSlider.style.setProperty('background', sliderFillBackground(v), 'important');
     }
     if (enduranceMasterText) {
       enduranceMasterText.textContent = v + '%';
@@ -1792,7 +1802,7 @@ var UI = {
     var mediaTabSlider = el('media-tab-volume-slider');
     if (mediaTabSlider && activeEl !== mediaTabSlider) {
       mediaTabSlider.value = masterVol;
-      mediaTabSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (masterVol * 0.5) + '%, #f0abfc ' + masterVol + '%, rgba(255, 255, 255, 0.12) ' + masterVol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+      mediaTabSlider.style.setProperty('background', sliderFillBackground(masterVol), 'important');
     }
 
     // Toujours synchroniser le slider Général de l'onglet Endurance
@@ -1800,7 +1810,7 @@ var UI = {
     var enduranceMasterText = el('vol-val-master');
     if (enduranceMasterSlider && activeEl !== enduranceMasterSlider) {
       enduranceMasterSlider.value = masterVol;
-      enduranceMasterSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (masterVol * 0.5) + '%, #f0abfc ' + masterVol + '%, rgba(255, 255, 255, 0.12) ' + masterVol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+      enduranceMasterSlider.style.setProperty('background', sliderFillBackground(masterVol), 'important');
     }
     if (enduranceMasterText) {
       enduranceMasterText.textContent = masterVol + '%';
@@ -1832,7 +1842,7 @@ var UI = {
 
         if (endSlider && activeEl !== endSlider) {
           endSlider.value = avol;
-          endSlider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (avol * 0.5) + '%, #f0abfc ' + avol + '%, rgba(255, 255, 255, 0.12) ' + avol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+          endSlider.style.setProperty('background', sliderFillBackground(avol), 'important');
         }
         if (endText) endText.textContent = avol + '%';
         if (endMute) endMute.classList.toggle('muted', amuted);
@@ -1871,7 +1881,7 @@ var UI = {
             var valLabel = wrapper.querySelector('.audio-app-value-modern');
             if (valLabel) valLabel.textContent = vol + '%';
           }
-          slider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (vol * 0.5) + '%, #f0abfc ' + vol + '%, rgba(255, 255, 255, 0.12) ' + vol + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+          slider.style.setProperty('background', sliderFillBackground(vol), 'important');
         }
         var muteBtn = container.querySelector('.audio-app-mute-btn[data-pid="' + app.pid + '"]');
         if (muteBtn) {
@@ -1959,7 +1969,7 @@ var UI = {
 
       function updateSliderBg() {
         var v = parseFloat(slider.value) || 0;
-        slider.style.setProperty('background', 'linear-gradient(90deg, #4f46e5 0%, #a855f7 ' + (v * 0.5) + '%, #f0abfc ' + v + '%, rgba(255, 255, 255, 0.12) ' + v + '%, rgba(255, 255, 255, 0.12) 100%)', 'important');
+        slider.style.setProperty('background', sliderFillBackground(v), 'important');
       }
       updateSliderBg();
 
@@ -2420,7 +2430,9 @@ function loadTabs() {
 
 function initEvents() {
   // ── Navigation par onglets ──────────────────────────────────────────────
-  document.querySelectorAll('.tab-nav__btn').forEach(function(btn) {
+  // [data-tab] exclut le bouton "Automobile", qui ne navigue pas lui-même :
+  // il déplie/replie son sous-menu (Endurance / Cockpit), géré plus bas.
+  document.querySelectorAll('.tab-nav__btn[data-tab]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var tabName = btn.getAttribute('data-tab');
       document.querySelectorAll('.tab-nav__btn').forEach(function(b) {
@@ -2432,6 +2444,14 @@ function initEvents() {
       btn.classList.add('tab-nav__btn--active');
       var tabEl = el('tab-' + tabName);
       if (tabEl) tabEl.classList.add('tab-panel--active');
+
+      // Le bouton "Automobile" reste mis en évidence quand un de ses
+      // sous-onglets (Endurance / Cockpit) est l'onglet actif.
+      var autoParentToggle = el('nav-toggle-automobile');
+      if (autoParentToggle) {
+        var isInAutoGroup = !!btn.closest('#nav-group-automobile');
+        autoParentToggle.classList.toggle('tab-nav__btn--active', isInAutoGroup);
+      }
 
       // Gérer la visibilité du mini-player pour l'onglet média
       if (tabName === 'media') {
@@ -2461,6 +2481,16 @@ function initEvents() {
       }
     });
   });
+
+  // ── Sous-menu "Automobile" (Endurance / Cockpit) ────────────────────────
+  var autoToggle = el('nav-toggle-automobile');
+  var autoGroup = el('nav-group-automobile');
+  if (autoToggle && autoGroup) {
+    autoToggle.addEventListener('click', function() {
+      var isOpen = autoGroup.classList.toggle('tab-nav__group--open');
+      autoToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  }
 
   // ── Mini-player ─────────────────────────────────────────────────────────
   var miniPrev = el('mini-prev');

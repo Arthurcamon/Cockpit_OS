@@ -1,58 +1,54 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    COCKPIT OS — ONGLET RACCOURCIS (SHORTCUTS TAB)
-   Direction graphique : "Modern Purple" (Inspiré lecteur média moderne)
-   Grille 2 Colonnes (~35% gauche / ~65% droite) + Tuiles Carrées Tactiles
+   Design system : "Soft Glass" — voir Design_code/cockpit-os-design-system.md
+   Réutilise les tokens/composants de design-tokens.css (chargé dans index.html).
+   Grille 2 colonnes (gauche fixe / droite flexible), mêmes classes qu'avant :
+   seule la couche visuelle change, structure et logique JS intactes.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Scope principal de l'onglet */
 .shortcuts-tab-container {
   width: 100%;
   height: 100%;
-  background-color: #0a0a0f;
-  color: #e2e8f0;
-  font-family: inherit;
-  padding: 10px;
+  color: var(--text);
+  font-family: var(--font);
+  padding: 4px;
   box-sizing: border-box;
   overflow: hidden;
   position: relative;
 }
 
-/* Grille CSS 2 Colonnes (35fr / 65fr) sans auto pour la hauteur */
 .shortcuts-grid-layout {
   display: grid;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  gap: 10px;
-  grid-template-columns: 35fr 65fr;
+  gap: 18px;
+  grid-template-columns: 336px 1fr;
   grid-template-rows: 1fr;
+  position: relative;
+  z-index: 2;
 }
 
-/* Colonne Gauche : Apps Rapides + Actions Système empilées */
 .shortcuts-col-left {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
   height: 100%;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
+  min-height: 0;
 }
 
-.shortcuts-col-left .shortcuts-zone--apps {
-  flex: 1;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
+.shortcuts-col-left .shortcuts-zone--apps,
 .shortcuts-col-left .shortcuts-zone--system {
   flex: 1;
   box-sizing: border-box;
   overflow: hidden;
+  min-height: 0;
 }
 
-/* Colonne Droite : Conteneur Widget MFD_Raccourcis */
 .shortcuts-col-right {
   display: flex;
   flex-direction: column;
@@ -60,59 +56,83 @@
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
+  min-height: 0;
 }
 
-/* Style de base scopé pour les zones de la colonne gauche */
-.shortcuts-zone {
+/* ── Cartes en verre (zones gauche + widget MFD droite) ─────────────────── */
+.shortcuts-zone,
+.shortcuts-mfd-widget {
+  position: relative;
   box-sizing: border-box;
   overflow: hidden;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(18, 18, 26, 0.7);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  padding: 10px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--glass-a), var(--glass-b));
+  backdrop-filter: blur(26px) saturate(160%);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -14px 30px -24px rgba(0, 0, 0, 0.5),
+    0 22px 48px -22px rgba(0, 0, 0, 0.55);
+  padding: 0;
   display: flex;
   flex-direction: column;
 }
 
-/* En-tête de zone gauche */
+.shortcuts-mfd-widget {
+  position: relative;
+}
+.shortcuts-mfd-widget::before {
+  content: "";
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 340px; height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(143, 208, 232, 0.16), transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .shortcuts-zone-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 0;
+  padding: 19px 20px 12px;
+  border-bottom: none;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .shortcuts-zone-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #f1f5f9;
+  gap: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
   letter-spacing: 0.01em;
 }
 
 .shortcuts-zone-title svg {
-  color: #a29bfe;
+  color: var(--text-soft);
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
 
 .shortcuts-zone-badge {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 500;
-  padding: 3px 8px;
-  border-radius: 9999px;
-  background: rgba(108, 92, 231, 0.15);
-  border: 1px solid rgba(108, 92, 231, 0.3);
-  color: #a29bfe;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  border: none;
+  color: var(--text-faint);
   letter-spacing: 0.02em;
 }
 
-/* Conteneur de corps de zone */
 .shortcuts-zone-body {
   flex: 1;
   width: 100%;
@@ -121,79 +141,94 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  position: relative;
+  z-index: 2;
 }
 
-/* Conteneur MFD_Raccourcis à Onglets (Colonne Droite) */
-.shortcuts-mfd-widget {
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(18, 18, 26, 0.7);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  padding: 10px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Barre d'onglets du MFD */
+/* ── Barre d'onglets du widget MFD — capsule "segmented" ─────────────────── */
 .shortcuts-mfd-tabs {
-  display: flex;
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: 38px;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 3px;
+  width: fit-content;
+  height: auto;
+  margin: 19px 20px 15px;
+  padding: 5px;
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.35);
+  border-bottom: none;
   flex-shrink: 0;
   box-sizing: border-box;
 }
 
 .shortcuts-mfd-tab-btn {
-  flex: 1;
-  height: 32px;
+  position: relative;
+  z-index: 2;
+  flex: none;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  color: #a0a5b5;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 18px;
+  color: var(--text-faint);
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: all 0.15s ease;
+  transition: color 0.25s ease;
   box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .shortcuts-mfd-tab-btn svg {
-  color: #a0a5b5;
-  transition: color 0.15s ease;
+  width: 15px;
+  height: 15px;
+  color: inherit;
+  transition: color 0.25s ease;
 }
 
 .shortcuts-mfd-tab-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
+  color: var(--text-soft);
 }
 
+/* Le remplissage vient de #shortcuts-mfd-indicator (.seg-indicator) qui
+   glisse derrière le bouton actif — le bouton lui-même ne fait que changer
+   de couleur de texte, il n'a plus son propre fond. */
 .shortcuts-mfd-tab-btn.is-active {
-  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
-  border-color: #8b5cf6;
   color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+  font-weight: 600;
 }
 
 .shortcuts-mfd-tab-btn.is-active svg {
   color: #ffffff;
 }
 
-/* Zone de contenu des Panes MFD */
+/* ── Indicateur glissant (.seg-indicator, cf design-tokens.css) ─────────── */
+.shortcuts-mfd-tabs .seg-indicator {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  height: calc(100% - 10px);
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.30), 0 6px 16px -6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Contenu des panes MFD ────────────────────────────────────────────────*/
 .shortcuts-mfd-content {
   flex: 1;
   width: 100%;
@@ -201,6 +236,7 @@
   box-sizing: border-box;
   overflow: hidden;
   position: relative;
+  z-index: 2;
 }
 
 .shortcuts-mfd-pane {
@@ -209,6 +245,7 @@
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
+  padding: 0 20px 20px;
 }
 
 .shortcuts-mfd-pane.is-active {
@@ -216,36 +253,28 @@
   flex-direction: column;
 }
 
-/* Custom scrollbar scopée */
+/* ── Scrollbars discrètes, scopées à l'onglet ─────────────────────────────*/
 .shortcuts-scrollable-list::-webkit-scrollbar,
 .shortcuts-apps-grid::-webkit-scrollbar,
 .shortcuts-scenes-grid::-webkit-scrollbar,
 #shortcuts-steam-list::-webkit-scrollbar,
 #shortcuts-windows-list::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 .shortcuts-scrollable-list::-webkit-scrollbar-track,
 .shortcuts-apps-grid::-webkit-scrollbar-track,
 .shortcuts-scenes-grid::-webkit-scrollbar-track,
 #shortcuts-steam-list::-webkit-scrollbar-track,
 #shortcuts-windows-list::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  background: transparent;
 }
 .shortcuts-scrollable-list::-webkit-scrollbar-thumb,
 .shortcuts-apps-grid::-webkit-scrollbar-thumb,
 .shortcuts-scenes-grid::-webkit-scrollbar-thumb,
 #shortcuts-steam-list::-webkit-scrollbar-thumb,
 #shortcuts-windows-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-}
-.shortcuts-scrollable-list::-webkit-scrollbar-thumb:hover,
-.shortcuts-apps-grid::-webkit-scrollbar-thumb:hover,
-.shortcuts-scenes-grid::-webkit-scrollbar-thumb:hover,
-#shortcuts-steam-list::-webkit-scrollbar-thumb:hover,
-#shortcuts-windows-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(108, 92, 231, 0.5);
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 3px;
 }
 
 /* Message vide / Chargement */
@@ -257,22 +286,22 @@
   height: 100%;
   width: 100%;
   text-align: center;
-  color: #a0a5b5;
+  color: var(--text-faint);
   font-size: 12px;
   font-weight: 500;
-  gap: 8px;
+  gap: 12px;
   padding: 16px;
   box-sizing: border-box;
   grid-column: 1 / -1;
 }
 
 .shortcuts-spinner {
-  width: 22px;
-  height: 22px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-top-color: #6c5ce7;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  animation: shortcuts-spin 0.8s linear infinite;
+  border: 2.5px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.7);
+  animation: shortcuts-spin 0.9s linear infinite;
 }
 
 @keyframes shortcuts-spin {
@@ -280,50 +309,54 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   1. APPS RAPIDES (Grille de Tuiles Carrées)
+   1. APPS RAPIDES — cartes "glow" avec pebble et lueur de teinte propre
    ─────────────────────────────────────────────────────────────────────────── */
 .shortcuts-apps-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow-y: auto;
   align-content: start;
+  padding: 2px 20px 20px;
 }
 
 .shortcuts-app-btn {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1 / 1;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 8px;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 14px;
+  aspect-ratio: unset;
+  min-height: 100px;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 14px 14px 12px;
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: all 0.15s ease;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  color: var(--text);
+  background:
+    radial-gradient(120% 140% at 14% 10%, var(--glow, rgba(180, 170, 230, 0.24)), transparent 60%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
 }
 
 .shortcuts-app-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65);
 }
 
 .shortcuts-app-btn:active,
 .shortcuts-app-btn.is-pressed {
-  transform: scale(0.95);
-  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
-  border-color: #8b5cf6;
-  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
-  color: #ffffff;
+  transform: translateY(-1px) scale(0.98);
 }
 
 .shortcuts-app-btn.is-loading {
@@ -331,27 +364,75 @@
   pointer-events: none;
 }
 
+/* Six teintes cycliques (mêmes accents que le reste du design system) pour
+   distinguer les apps sans dépendre de données de couleur venant du backend. */
+.shortcuts-app-btn:nth-child(6n+1) { --glow: rgba(148, 163, 184, 0.26); }
+.shortcuts-app-btn:nth-child(6n+1) .shortcuts-app-icon { --pc1: #cbd5e0; --pc2: #64748b; }
+.shortcuts-app-btn:nth-child(6n+2) { --glow: rgba(133, 119, 217, 0.28); }
+.shortcuts-app-btn:nth-child(6n+2) .shortcuts-app-icon { --pc1: #c9c2f2; --pc2: #8577d9; }
+.shortcuts-app-btn:nth-child(6n+3) { --glow: rgba(219, 168, 106, 0.28); }
+.shortcuts-app-btn:nth-child(6n+3) .shortcuts-app-icon { --pc1: #f3e0b8; --pc2: #dba86a; }
+.shortcuts-app-btn:nth-child(6n+4) { --glow: rgba(217, 97, 74, 0.28); }
+.shortcuts-app-btn:nth-child(6n+4) .shortcuts-app-icon { --pc1: #f2b8b0; --pc2: #d9614a; }
+.shortcuts-app-btn:nth-child(6n+5) { --glow: rgba(79, 184, 171, 0.28); }
+.shortcuts-app-btn:nth-child(6n+5) .shortcuts-app-icon { --pc1: #b8e8e0; --pc2: #4fb8ab; }
+.shortcuts-app-btn:nth-child(6n+0) { --glow: rgba(92, 179, 126, 0.28); }
+.shortcuts-app-btn:nth-child(6n+0) .shortcuts-app-icon { --pc1: #c9ecd6; --pc2: #5cb37e; }
+
 .shortcuts-app-icon {
-  width: 28px;
-  height: 28px;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  position: relative;
+  flex: 0 0 auto;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
-  color: #a29bfe;
-  transition: color 0.15s ease;
+  color: #ffffff;
+  background: linear-gradient(155deg, var(--pc1, #c9c2f2), var(--pc2, #8577d9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -8px var(--pc2, #8577d9);
+  transition: none;
+}
+.shortcuts-app-icon::after {
+  content: "";
+  position: absolute;
+  top: 12%; left: 14%;
+  width: 55%; height: 38%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent 70%);
+  pointer-events: none;
+}
+.shortcuts-app-icon svg {
+  position: relative;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
 }
 
-.shortcuts-app-btn:active .shortcuts-app-icon,
-.shortcuts-app-btn.is-pressed .shortcuts-app-icon {
-  color: #ffffff;
+.shortcuts-app-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 100%;
 }
 
 .shortcuts-app-name {
-  font-size: 11px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.shortcuts-app-info {
+  font-size: 10.5px;
   font-weight: 500;
-  color: #e2e8f0;
-  text-align: center;
+  color: var(--text-faint);
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -359,51 +440,62 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   2. JEUX STEAM (Grille de Tuiles Carrées Tactiles)
+   2. JEUX STEAM — cartes carrées, même famille visuelle que les apps
    ─────────────────────────────────────────────────────────────────────────── */
 #shortcuts-steam-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow-y: auto;
   align-content: start;
-  padding-right: 4px;
 }
 
 .shortcuts-steam-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
   aspect-ratio: 1 / 1;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: var(--r-md);
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: all 0.15s ease;
   box-sizing: border-box;
   width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  background: var(--glow-bg, radial-gradient(120% 140% at 14% 100%, rgba(90, 127, 196, 0.22), transparent 65%)), linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
 }
 
+/* Six teintes cycliques, même principe que .shortcuts-app-btn, pour donner à
+   chaque tuile Steam une identité de couleur propre. */
+.shortcuts-steam-item:nth-child(6n+1) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(148, 163, 184, 0.26), transparent 65%); }
+.shortcuts-steam-item:nth-child(6n+1) .shortcuts-steam-icon { background: linear-gradient(155deg, #cbd5e0, #64748b); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #64748b; }
+.shortcuts-steam-item:nth-child(6n+2) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(133, 119, 217, 0.28), transparent 65%); }
+.shortcuts-steam-item:nth-child(6n+2) .shortcuts-steam-icon { background: linear-gradient(155deg, #c9c2f2, #8577d9); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #8577d9; }
+.shortcuts-steam-item:nth-child(6n+3) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(219, 168, 106, 0.28), transparent 65%); }
+.shortcuts-steam-item:nth-child(6n+3) .shortcuts-steam-icon { background: linear-gradient(155deg, #f3e0b8, #dba86a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #dba86a; }
+.shortcuts-steam-item:nth-child(6n+4) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(217, 97, 74, 0.28), transparent 65%); }
+.shortcuts-steam-item:nth-child(6n+4) .shortcuts-steam-icon { background: linear-gradient(155deg, #f2b8b0, #d9614a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #d9614a; }
+.shortcuts-steam-item:nth-child(6n+5) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(79, 184, 171, 0.28), transparent 65%); }
+.shortcuts-steam-item:nth-child(6n+5) .shortcuts-steam-icon { background: linear-gradient(155deg, #b8e8e0, #4fb8ab); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #4fb8ab; }
+.shortcuts-steam-item:nth-child(6n+0) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(92, 179, 126, 0.28), transparent 65%); }
+.shortcuts-steam-item:nth-child(6n+0) .shortcuts-steam-icon { background: linear-gradient(155deg, #c9ecd6, #5cb37e); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #5cb37e; }
+
 .shortcuts-steam-item:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65);
 }
 
 .shortcuts-steam-item:active,
 .shortcuts-steam-item.is-pressed {
-  transform: scale(0.95);
-  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
-  border-color: #8b5cf6;
-  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
-  color: #ffffff;
+  transform: translateY(-1px) scale(0.97);
 }
 
 .shortcuts-steam-item.is-loading {
@@ -412,30 +504,35 @@
 }
 
 .shortcuts-steam-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a29bfe;
-  flex-shrink: 0;
-  margin-bottom: 8px;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.shortcuts-steam-item:active .shortcuts-steam-icon,
-.shortcuts-steam-item.is-pressed .shortcuts-steam-icon {
-  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
+  background: linear-gradient(155deg, #b8d3f2, #5a7fc4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -8px #5a7fc4;
 }
+.shortcuts-steam-icon::after {
+  content: "";
+  position: absolute;
+  top: 12%; left: 14%;
+  width: 55%; height: 38%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
+  pointer-events: none;
+}
+.shortcuts-steam-icon svg { position: relative; z-index: 2; width: 15px; height: 15px; }
 
 .shortcuts-steam-name {
-  font-size: 11px;
-  font-weight: 500;
-  color: #e2e8f0;
-  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -443,93 +540,98 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   3. ACTIONS SYSTÈME (Boutons de Contrôle)
+   3. ACTIONS SYSTÈME — capsules, froid = sûr / chaud = sensible
    ─────────────────────────────────────────────────────────────────────────── */
 .shortcuts-system-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
   width: 100%;
   height: 100%;
   justify-content: space-between;
   box-sizing: border-box;
+  padding: 2px 20px 20px;
 }
 
 .shortcuts-sysbtn {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  gap: 12px;
+  padding: 8px 16px 8px 8px;
+  border-radius: 999px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: all 0.15s ease;
+  transition: transform 0.18s, box-shadow 0.25s;
   box-sizing: border-box;
   flex: 1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: none;
+  color: var(--text);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 10px 20px -14px rgba(0, 0, 0, 0.6);
+}
+
+.shortcuts-sysbtn::before {
+  content: "";
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: flex;
 }
 
 .shortcuts-sysbtn svg {
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  position: relative;
+  z-index: 2;
 }
 
-.shortcuts-sysbtn--neutral {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
+/* Icône ronde en pebble derrière le SVG (structure HTML inchangée : le SVG
+   est un enfant direct du bouton, on l'habille donc directement). */
+.shortcuts-sysbtn {
+  position: relative;
 }
-
-.shortcuts-sysbtn--neutral:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.shortcuts-sysbtn--neutral:active,
-.shortcuts-sysbtn--neutral.is-pressed {
-  transform: scale(0.97);
-  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
-  border-color: #8b5cf6;
+.shortcuts-sysbtn > svg {
+  width: 38px;
+  height: 38px;
+  padding: 11px;
+  box-sizing: border-box;
+  border-radius: 50%;
   color: #ffffff;
+  background: linear-gradient(155deg, #bcdcf2, #5aa0d9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px -6px #5aa0d9;
 }
 
-/* Actions à risque gardent une couleur d'avertissement/danger discrète */
+.shortcuts-sysbtn:hover { transform: translateY(-2px); }
+.shortcuts-sysbtn:active,
+.shortcuts-sysbtn.is-pressed { transform: translateY(0) scale(0.985); }
+
+.shortcuts-sysbtn--neutral { color: var(--text); }
+
 .shortcuts-sysbtn--warning {
-  background: rgba(217, 119, 6, 0.12);
-  border: 1px solid rgba(217, 119, 6, 0.25);
-  color: #fcd34d;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 12px 28px -14px rgba(219, 168, 92, 0.4);
+  color: var(--text);
 }
-
-.shortcuts-sysbtn--warning:hover {
-  background: rgba(217, 119, 6, 0.2);
-}
-
-.shortcuts-sysbtn--warning:active,
-.shortcuts-sysbtn--warning.is-pressed {
-  transform: scale(0.97);
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  border-color: #fbbf24;
-  color: #ffffff;
+.shortcuts-sysbtn--warning > svg {
+  background: linear-gradient(155deg, #f2d9b8, #dba85c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px -6px #dba85c;
 }
 
 .shortcuts-sysbtn--danger {
-  background: rgba(220, 38, 38, 0.12);
-  border: 1px solid rgba(220, 38, 38, 0.25);
-  color: #f87171;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 12px 28px -14px rgba(217, 97, 74, 0.46);
+  color: var(--text);
 }
-
-.shortcuts-sysbtn--danger:hover {
-  background: rgba(220, 38, 38, 0.2);
-}
-
-.shortcuts-sysbtn--danger:active,
-.shortcuts-sysbtn--danger.is-pressed {
-  transform: scale(0.97);
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-  border-color: #f87171;
-  color: #ffffff;
+.shortcuts-sysbtn--danger > svg {
+  background: linear-gradient(155deg, #f2b0a0, #d9614a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px -6px #d9614a;
 }
 
 .shortcuts-sysbtn.is-loading {
@@ -538,78 +640,98 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   4. FENÊTRES OUVERTES (Grille de Tuiles Carrées Tactiles)
+   4. FENÊTRES OUVERTES — cartes carrées, icône + titre
    ─────────────────────────────────────────────────────────────────────────── */
 #shortcuts-windows-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow-y: auto;
   align-content: start;
-  padding-right: 4px;
 }
 
 .shortcuts-window-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
   aspect-ratio: 1 / 1;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: var(--r-md);
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: all 0.15s ease;
   box-sizing: border-box;
   width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  background:
+    var(--glow-bg, radial-gradient(120% 140% at 14% 100%, rgba(169, 232, 207, 0.20), transparent 65%)),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
 }
 
+/* Six teintes cycliques, même principe que .shortcuts-app-btn et
+   .shortcuts-steam-item, pour qu'aucune fenêtre ne soit identique à la
+   précédente. */
+.shortcuts-window-item:nth-child(6n+1) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(148, 163, 184, 0.26), transparent 65%); }
+.shortcuts-window-item:nth-child(6n+1) .shortcuts-window-icon { background: linear-gradient(155deg, #cbd5e0, #64748b); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #64748b; }
+.shortcuts-window-item:nth-child(6n+2) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(133, 119, 217, 0.28), transparent 65%); }
+.shortcuts-window-item:nth-child(6n+2) .shortcuts-window-icon { background: linear-gradient(155deg, #c9c2f2, #8577d9); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #8577d9; }
+.shortcuts-window-item:nth-child(6n+3) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(219, 168, 106, 0.28), transparent 65%); }
+.shortcuts-window-item:nth-child(6n+3) .shortcuts-window-icon { background: linear-gradient(155deg, #f3e0b8, #dba86a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #dba86a; }
+.shortcuts-window-item:nth-child(6n+4) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(217, 97, 74, 0.28), transparent 65%); }
+.shortcuts-window-item:nth-child(6n+4) .shortcuts-window-icon { background: linear-gradient(155deg, #f2b8b0, #d9614a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #d9614a; }
+.shortcuts-window-item:nth-child(6n+5) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(79, 184, 171, 0.28), transparent 65%); }
+.shortcuts-window-item:nth-child(6n+5) .shortcuts-window-icon { background: linear-gradient(155deg, #b8e8e0, #4fb8ab); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #4fb8ab; }
+.shortcuts-window-item:nth-child(6n+0) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(92, 179, 126, 0.28), transparent 65%); }
+.shortcuts-window-item:nth-child(6n+0) .shortcuts-window-icon { background: linear-gradient(155deg, #c9ecd6, #5cb37e); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #5cb37e; }
+
 .shortcuts-window-item:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65);
 }
 
 .shortcuts-window-item:active,
 .shortcuts-window-item.is-pressed {
-  transform: scale(0.95);
-  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
-  border-color: #8b5cf6;
-  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
-  color: #ffffff;
+  transform: translateY(-1px) scale(0.97);
 }
 
 .shortcuts-window-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a29bfe;
-  flex-shrink: 0;
-  margin-bottom: 8px;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.shortcuts-window-item:active .shortcuts-window-icon,
-.shortcuts-window-item.is-pressed .shortcuts-window-icon {
-  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
+  background: linear-gradient(155deg, #b8e8e0, #4fb8ab);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -8px #4fb8ab;
+  transition: none;
 }
+.shortcuts-window-icon::after {
+  content: "";
+  position: absolute;
+  top: 12%; left: 14%;
+  width: 55%; height: 38%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
+  pointer-events: none;
+}
+.shortcuts-window-icon svg { position: relative; z-index: 2; width: 15px; height: 15px; }
 
 .shortcuts-window-title {
-  font-size: 11px;
-  font-weight: 500;
-  color: #e2e8f0;
-  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -617,7 +739,7 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   5. SCÈNES (Liste Verticale de Cartes Larges avec Description)
+   5. SCÈNES — lignes larges, halo qui pulse doucement quand une scène tourne
    ─────────────────────────────────────────────────────────────────────────── */
 .shortcuts-scenes-grid {
   display: flex;
@@ -627,7 +749,6 @@
   height: 100%;
   box-sizing: border-box;
   overflow-y: auto;
-  padding-right: 4px;
 }
 
 .shortcuts-scene-btn {
@@ -635,103 +756,105 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 26px;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: all 0.15s ease;
+  transition: transform 0.18s, box-shadow 0.3s;
   box-sizing: border-box;
   position: relative;
   width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: none;
+  color: var(--text);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.shortcuts-scene-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
-}
+.shortcuts-scene-btn:hover { transform: translateY(-2px); }
 
 .shortcuts-scene-btn:active,
 .shortcuts-scene-btn.is-pressed {
-  transform: scale(0.98);
-  background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%);
-  border-color: #8b5cf6;
-  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
-  color: #ffffff;
+  transform: translateY(-1px) scale(0.99);
 }
 
 .shortcuts-scene-btn.is-loading {
-  opacity: 0.6;
+  opacity: 0.75;
   pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 0 1px rgba(169, 232, 207, 0.35), 0 20px 44px -20px rgba(169, 232, 207, 0.5);
+  animation: shortcuts-scene-glow 1.4s ease-in-out infinite alternate;
+}
+@keyframes shortcuts-scene-glow {
+  from { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 0 1px rgba(169, 232, 207, 0.30), 0 16px 34px -20px rgba(169, 232, 207, 0.45); }
+  to   { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 0 1px rgba(169, 232, 207, 0.45), 0 24px 54px -18px rgba(169, 232, 207, 0.6); }
 }
 
 .shortcuts-scene-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
+  gap: 12px;
+  margin-bottom: 2px;
   width: 100%;
 }
 
 .shortcuts-scene-icon {
-  width: 22px;
-  height: 22px;
-  color: #a29bfe;
+  width: 42px;
+  height: 42px;
+  border-radius: 18px;
   flex-shrink: 0;
-  transition: color 0.15s ease;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(155deg, #c9c2f2, #8577d9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: none;
 }
 
-.shortcuts-scene-btn:active .shortcuts-scene-icon,
-.shortcuts-scene-btn.is-pressed .shortcuts-scene-icon {
-  color: #ffffff;
-}
+.shortcuts-scene-btn:nth-of-type(4n+1) .shortcuts-scene-icon { background: linear-gradient(155deg, #b8e8e0, #4fb8ab); }
+.shortcuts-scene-btn:nth-of-type(4n+2) .shortcuts-scene-icon { background: linear-gradient(155deg, #f2b8b0, #d9614a); }
+.shortcuts-scene-btn:nth-of-type(4n+3) .shortcuts-scene-icon { background: linear-gradient(155deg, #c9c2f2, #8577d9); }
+.shortcuts-scene-btn:nth-of-type(4n+0) .shortcuts-scene-icon { background: linear-gradient(155deg, #bcdcf2, #5aa0d9); }
 
 .shortcuts-scene-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: #f1f5f9;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
   letter-spacing: 0.01em;
 }
 
 .shortcuts-scene-desc {
   font-size: 11px;
   font-weight: 500;
-  color: #a0a5b5;
+  color: var(--text-faint);
   white-space: normal;
   word-break: break-word;
-  line-height: 1.35;
+  line-height: 1.4;
   width: 100%;
   text-align: left;
-  transition: color 0.15s ease;
-}
-
-.shortcuts-scene-btn:active .shortcuts-scene-desc,
-.shortcuts-scene-btn.is-pressed .shortcuts-scene-desc {
-  color: rgba(255, 255, 255, 0.85);
+  padding-left: 54px;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   MODALE DE CONFIRMATION SÉCURISÉE (Actions Critiques)
+   MODALE DE CONFIRMATION SÉCURISÉE (actions critiques)
    ─────────────────────────────────────────────────────────────────────────── */
 .shortcuts-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(8, 8, 10, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s ease, visibility 0.25s;
   box-sizing: border-box;
   padding: 20px;
 }
@@ -743,19 +866,21 @@
 
 .shortcuts-modal-card {
   width: 100%;
-  max-width: 420px;
-  background: #12121a;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  border-radius: 16px;
-  padding: 24px;
+  max-width: 360px;
+  border-radius: 44px;
+  padding: 34px 30px 28px;
   box-sizing: border-box;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 40px 80px -24px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transform: scale(0.92);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(0.94);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
 }
 
 .shortcuts-modal-overlay.is-active .shortcuts-modal-card {
@@ -763,97 +888,95 @@
 }
 
 .shortcuts-modal-icon {
-  width: 50px;
-  height: 50px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  margin-bottom: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ef4444;
-  margin-bottom: 14px;
+  color: #ffffff;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.5), #d9614a 70%);
+  box-shadow: 0 0 0 10px rgba(217, 97, 74, 0.10), 0 14px 30px -10px rgba(217, 97, 74, 0.5);
+  border: none;
 }
 
 .shortcuts-modal-title {
   font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 9px;
+  letter-spacing: -0.01em;
 }
 
 .shortcuts-modal-subtitle {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
-  color: #a0a5b5;
-  margin-bottom: 24px;
-  line-height: 1.4;
+  color: var(--text-faint);
+  margin-bottom: 0;
+  line-height: 1.6;
 }
 
 .shortcuts-modal-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
+  margin-top: 24px;
 }
 
 .shortcuts-modal-btn {
   flex: 1;
-  padding: 12px 18px;
-  border-radius: 12px;
+  padding: 13px 0;
+  border-radius: 999px;
+  font-family: var(--font);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: all 0.15s ease;
+  transition: transform 0.15s;
   box-sizing: border-box;
   text-align: center;
+  border: none;
 }
+.shortcuts-modal-btn:hover { transform: translateY(-1px); }
 
 .shortcuts-modal-btn--cancel {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-}
-
-.shortcuts-modal-btn--cancel:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.shortcuts-modal-btn--cancel:active {
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02));
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .shortcuts-modal-btn--confirm {
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-  border: 1px solid #f87171;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  background: linear-gradient(160deg, #f0a894, #d9614a);
+  color: #3a1710;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 14px 30px -12px rgba(217, 97, 74, 0.6);
 }
-
-.shortcuts-modal-btn--confirm:active {
-  transform: scale(0.96);
-  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
-}
+.shortcuts-modal-btn--confirm:active { transform: scale(0.97); }
 
 /* Feedback toast discret */
 .shortcuts-toast {
   position: absolute;
-  bottom: 12px;
+  bottom: 26px;
   left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: rgba(18, 18, 26, 0.95);
-  border: 1px solid rgba(108, 92, 231, 0.4);
-  border-radius: 9999px;
-  padding: 6px 16px;
-  font-size: 11px;
-  font-weight: 500;
-  color: #a29bfe;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, 16px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(40, 40, 46, 0.75), rgba(20, 20, 24, 0.75));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 20px 40px -14px rgba(0, 0, 0, 0.6);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  border: none !important;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s ease;
+  transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
   pointer-events: none;
   z-index: 100;
   white-space: nowrap;
@@ -862,5 +985,5 @@
 .shortcuts-toast.is-visible {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0);
+  transform: translate(-50%, 0);
 }

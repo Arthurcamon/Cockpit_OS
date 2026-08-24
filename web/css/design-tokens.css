@@ -1,0 +1,229 @@
+/* ===================================================================
+   Cockpit OS — Design tokens & composants "Soft Glass"
+   Voir cockpit-os-design-system.md pour la doc complète.
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+:root{
+  /* base */
+  --graphite-1:#191a1e;
+  --graphite-2:#101114;
+  --glass-a:rgba(255,255,255,0.10);
+  --glass-b:rgba(255,255,255,0.035);
+  --text:#f4f3f6;
+  --text-soft:rgba(244,243,246,0.62);
+  --text-faint:rgba(244,243,246,0.36);
+  --mint:#a9e8cf;
+
+  /* rayons */
+  --r-xl:40px;
+  --r-lg:28px;
+  --r-md:22px;
+
+  /* police */
+  --font:'Manrope',sans-serif;
+}
+
+*{box-sizing:border-box;}
+
+body.cockpit-surface{
+  font-family:var(--font);
+  color:var(--text);
+  background:linear-gradient(155deg, var(--graphite-1), var(--graphite-2) 70%);
+}
+
+/* -------------------------------------------------------------------
+   Halos lumineux diffus (fond d'écran / d'onglet)
+   Usage : <div class="halo" style="top:-160px;left:40px;width:520px;height:420px;
+             background:radial-gradient(circle, rgba(232,196,138,0.28), transparent 70%);"></div>
+------------------------------------------------------------------- */
+.halo{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(90px);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* -------------------------------------------------------------------
+   Surface de verre — conteneur de base de tout widget
+------------------------------------------------------------------- */
+.glass{
+  position:relative;
+  background:linear-gradient(160deg, var(--glass-a), var(--glass-b));
+  backdrop-filter:blur(26px) saturate(160%);
+  -webkit-backdrop-filter:blur(26px) saturate(160%);
+  border-radius:var(--r-lg);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.16),
+    inset 0 -14px 30px -24px rgba(0,0,0,0.5),
+    0 22px 48px -22px rgba(0,0,0,0.55);
+  overflow:hidden;
+}
+
+/* Carte avec halo interne : la couleur "émane" d'un coin.
+   Définir --glow (rgba de la couleur signature) sur l'élément. */
+.glow-card{
+  position:relative;
+  overflow:hidden;
+  border:none;
+  border-radius:var(--r-md);
+  background:
+    radial-gradient(120% 140% at 14% 10%, var(--glow, transparent), transparent 60%),
+    linear-gradient(160deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 14px 30px -20px rgba(0,0,0,0.6);
+  transition:transform .18s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+}
+.glow-card:hover{transform:translateY(-3px);}
+.glow-card:active{transform:translateY(-1px) scale(.98);}
+
+/* -------------------------------------------------------------------
+   Icône "pebble" — pour une app, une action, une fenêtre, une scène.
+   Définir --pc1 (clair) et --pc2 (foncé) sur l'élément.
+   Tailles usuelles : 38–52px (grande), 26–36px (petite, inline).
+------------------------------------------------------------------- */
+.pebble{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  border-radius:35%; /* squircle approximatif */
+  background:linear-gradient(155deg, var(--pc1), var(--pc2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 16px -8px var(--pc2);
+}
+.pebble::after{
+  content:"";
+  position:absolute;top:12%;left:14%;width:55%;height:38%;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,0.6), transparent 70%);
+  pointer-events:none;
+}
+.pebble.round{border-radius:50%;}
+
+/* -------------------------------------------------------------------
+   Bouton capsule — toute action (système, liste, CTA secondaire)
+------------------------------------------------------------------- */
+.capsule-btn{
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(160deg, rgba(255,255,255,0.065), rgba(255,255,255,0.018));
+  border-radius:999px;
+  padding:8px 16px 8px 8px;
+  border:none;cursor:pointer;color:var(--text);text-align:left;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 20px -14px rgba(0,0,0,0.6);
+  transition:transform .18s, box-shadow .25s;
+  font-family:var(--font);
+}
+.capsule-btn:hover{transform:translateY(-2px);}
+.capsule-btn:active{transform:translateY(0) scale(.985);}
+
+/* variante "chaude" pour les actions sensibles — définir --warm-glow */
+.capsule-btn.warm{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 12px 28px -14px var(--warm-glow, rgba(217,97,74,0.4));
+}
+
+/* pilule pleine, texte seul (tag, badge, bouton "Activer") */
+.pill-btn{
+  font-family:var(--font);
+  font-size:11.5px;font-weight:600;color:#fff;
+  padding:9px 18px;border-radius:999px;border:none;cursor:pointer;
+  background:linear-gradient(160deg, rgba(255,255,255,0.20), rgba(255,255,255,0.06));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.30);
+  transition:transform .15s;
+}
+.pill-btn:hover{transform:scale(1.04);}
+.pill-btn:active{transform:scale(.96);}
+
+/* -------------------------------------------------------------------
+   Onglets internes glissants (segmented control)
+------------------------------------------------------------------- */
+.segmented{
+  position:relative;display:inline-flex;padding:5px;border-radius:999px;
+  background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015));
+  box-shadow:inset 0 1px 4px rgba(0,0,0,0.35);
+}
+.seg-indicator{
+  position:absolute;top:5px;left:5px;height:calc(100% - 10px);border-radius:999px;
+  background:linear-gradient(160deg, rgba(255,255,255,0.26), rgba(255,255,255,0.08));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.30), 0 6px 16px -6px rgba(0,0,0,0.4);
+  transition:transform .4s cubic-bezier(.4,0,.2,1), width .4s cubic-bezier(.4,0,.2,1);
+  z-index:1;
+}
+.seg-btn{
+  position:relative;z-index:2;background:none;border:none;padding:9px 18px;border-radius:999px;
+  font-family:var(--font);font-size:12px;font-weight:600;color:var(--text-faint);
+  cursor:pointer;transition:color .25s;white-space:nowrap;
+}
+.seg-btn.active{color:#fff;}
+/* JS : positionner .seg-indicator en largeur/translateX sur le bouton actif au clic + au chargement */
+
+/* -------------------------------------------------------------------
+   Toast — notification discrète
+------------------------------------------------------------------- */
+.toast{
+  position:absolute;left:50%;bottom:26px;transform:translate(-50%,16px);z-index:40;
+  display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;
+  background:linear-gradient(160deg, rgba(40,40,46,0.75), rgba(20,20,24,0.75));
+  backdrop-filter:blur(20px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14), 0 20px 40px -14px rgba(0,0,0,0.6);
+  font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--text);
+  opacity:0;pointer-events:none;transition:opacity .3s, transform .3s;
+}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+
+/* -------------------------------------------------------------------
+   Modale de confirmation — actions irréversibles
+------------------------------------------------------------------- */
+.confirm-overlay{
+  position:absolute;inset:0;background:rgba(8,8,10,0.55);backdrop-filter:blur(14px);
+  display:none;align-items:center;justify-content:center;z-index:50;
+}
+.confirm-overlay.open{display:flex;}
+.confirm-card{
+  width:360px;padding:34px 30px 28px;border-radius:44px;text-align:center;
+  font-family:var(--font);
+  background:linear-gradient(160deg, rgba(255,255,255,0.11), rgba(255,255,255,0.03));
+  backdrop-filter:blur(30px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.18), 0 40px 80px -24px rgba(0,0,0,0.7);
+}
+.confirm-icon{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 18px;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  background:radial-gradient(circle at 32% 28%, rgba(255,255,255,0.5), #d9614a 70%);
+  box-shadow:0 0 0 10px rgba(217,97,74,0.10), 0 14px 30px -10px rgba(217,97,74,0.5);
+}
+.confirm-actions{display:flex;gap:10px;margin-top:24px;}
+.confirm-actions button{
+  flex:1;padding:13px 0;border-radius:999px;font-size:13px;font-weight:600;
+  border:none;cursor:pointer;font-family:var(--font);transition:transform .15s;
+}
+.confirm-actions button:hover{transform:translateY(-1px);}
+.btn-cancel{background:linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);}
+.btn-confirm{background:linear-gradient(160deg, #f0a894, #d9614a);color:#3a1710;box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 14px 30px -12px rgba(217,97,74,0.6);}
+
+/* -------------------------------------------------------------------
+   État actif / live — halo qui pulse doucement (scène active, appareil allumé…)
+   Définir --sg2 (couleur signature) sur l'élément.
+------------------------------------------------------------------- */
+.glow-pulse{
+  animation:glowPulse 2.6s ease-in-out infinite alternate;
+}
+@keyframes glowPulse{
+  from{box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px var(--sg2), 0 16px 34px -20px var(--sg2);}
+  to{box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px var(--sg2), 0 24px 54px -18px var(--sg2);}
+}
+
+/* -------------------------------------------------------------------
+   Spinner de chargement
+------------------------------------------------------------------- */
+.loading-ring{
+  width:34px;height:34px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,0.12);
+  border-top-color:rgba(255,255,255,0.7);
+  animation:spin .9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* -------------------------------------------------------------------
+   Scrollbars discrètes
+------------------------------------------------------------------- */
+.cockpit-surface ::-webkit-scrollbar{width:5px;}
+.cockpit-surface ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.10);border-radius:3px;}

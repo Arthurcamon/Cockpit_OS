@@ -1,0 +1,216 @@
+COCKPIT OS — CONTENU DES ONGLETS (pour design UI)
+====================================================
+
+CONTEXTE
+--------
+Cockpit OS est une interface tactile destinée à une tablette (Samsung Galaxy
+Tab A8), montée dans une voiture ou un cockpit de simulation, qui sert de
+télécommande pour un PC. L'esprit est proche d'Android Auto / Apple CarPlay /
+Tesla : gros éléments tactiles, lisibilité à distance.
+
+L'app comporte 5 onglets, accessibles depuis une barre de navigation. Ce
+document décrit, pour chaque onglet, à quoi il sert et quels éléments
+doivent y figurer — sans détail technique, juste ce que l'utilisateur doit
+voir et pouvoir faire.
+
+
+ÉLÉMENTS COMMUNS À TOUS LES ÉCRANS
+-----------------------------------
+- Un en-tête fixe en haut : logo/nom de l'app, indicateur de connexion
+  (connecté / déconnecté au PC), horloge.
+- Une barre de navigation verticale (à gauche) avec 5 boutons, un par
+  onglet, chacun avec une icône + un libellé court.
+- Un mini-lecteur de musique qui peut s'afficher en permanence en bas de
+  l'écran (pochette, titre, artiste, boutons précédent/lecture-pause/
+  suivant, barre de progression) — utile pour garder le contrôle de la
+  musique même quand on n'est pas sur l'onglet Médias.
+
+
+ONGLET 1 — "COCKPIT" (écran d'accueil)
+----------------------------------------
+Rôle : écran principal, dans l'esprit d'un tableau de bord de voiture
+connectée (façon CarPlay). Réunit en un coup d'œil la navigation, la
+musique et quelques infos véhicule.
+
+Éléments à prévoir :
+- Un grand bloc "Navigation GPS" (occupe la majorité de l'écran, côté
+  gauche) :
+  - Une carte routière stylisée.
+  - Un badge "guidage actif".
+  - Une bulle d'instruction de conduite (ex : distance avant le prochain
+    virage + nom de la rue).
+  - Une barre en bas de carte avec 3 informations : durée restante,
+    distance restante, heure d'arrivée estimée.
+- Un bloc "Lecture en cours" (musique), plus compact, sur le côté droit :
+  - Pochette d'album.
+  - Titre + artiste.
+  - Barre de progression avec temps écoulé / durée totale.
+  - 3 boutons : précédent, lecture/pause, suivant.
+- Sous ce bloc musique, 3 petites tuiles "statistiques véhicule" côte à
+  côte : vitesse (km/h), niveau de batterie (%), autonomie restante (km).
+
+
+ONGLET 2 — "DEEZER" (bibliothèque musicale)
+----------------------------------------------
+Rôle : parcourir et lancer de la musique depuis son compte Deezer (façon
+appli Deezer/Spotify simplifiée pour un usage tactile en conduite).
+
+Éléments à prévoir :
+- Un titre d'en-tête "Ma Musique" + un bouton pour rafraîchir la liste.
+- Une barre de recherche avec 4 filtres à côté (Titre / Artiste / Album /
+  Playlist).
+- Un bouton en avant "Mon Flow" (mix personnalisé infini) mis en valeur,
+  avec sous-titre et une icône lecture.
+- Une grille de vignettes "Mes Playlists" (image de couverture + nom +
+  nombre de pistes), avec :
+  - Un sélecteur de tri (récentes, écoutées récemment, alphabétique,
+    nombre de pistes).
+  - Un bouton pour tout afficher / replier la liste.
+- Une vue "Résultats de recherche" (liste de morceaux/artistes/albums
+  trouvés).
+- Un panneau qui glisse pour afficher le détail d'une playlist ou d'un
+  album : grande image de couverture, titre, nombre de pistes, bouton
+  "Lire tout", tri des morceaux, puis la liste des morceaux.
+- Un panneau similaire pour afficher les albums d'un artiste (photo de
+  l'artiste + grille d'albums).
+- Un fil d'Ariane / bouton retour quand on navigue dans une playlist, un
+  artiste, etc.
+
+
+ONGLET 3 — "MÉDIAS" (lecteur complet + son)
+-----------------------------------------------
+Rôle : contrôle complet de la lecture audio en cours et du son de
+l'ordinateur (volumes par application + appareils Bluetooth).
+
+Éléments à prévoir :
+Colonne principale (lecteur) :
+- Grande pochette d'album centrée.
+- Nom de l'application source (ex : "Deezer Desktop").
+- Titre + artiste du morceau.
+- Barre de progression cliquable (avec temps écoulé / durée).
+- Rangée de contrôles : aléatoire (shuffle), précédent, lecture/pause
+  (bouton plus gros, mis en avant), suivant, répétition (avec état
+  "aucune / toute la liste / un seul titre").
+- Un bouton muet/son + un curseur de volume général.
+
+Colonne secondaire (deux modules empilés) :
+- Module "Mixeur de volume" : une ligne par application qui fait du son
+  sur le PC (nom de l'app, bouton muet, curseur de volume individuel).
+- Module "Bluetooth" :
+  - Un interrupteur pour activer/désactiver le Bluetooth, avec badge
+    d'état (Activé/Désactivé).
+  - Une liste des appareils appairés (icône selon le type d'appareil :
+    casque, enceinte, téléphone, etc., nom de l'appareil, état
+    connecté/déconnecté, bouton pour connecter/déconnecter).
+
+
+ONGLET 4 — "ENDURANCE" (tableau de bord course/simulation)
+----------------------------------------------------------------
+Rôle : tableau de bord de course automobile en temps réel, pour une
+session de simulation (type endurance/course de plusieurs heures). Très
+dense en informations, façon volant/écran de voiture de course.
+
+Éléments à prévoir, organisés en zones :
+
+- Rangée de voyants en haut à gauche : phares, essuie-glaces (avec petit
+  badge indiquant la vitesse des essuie-glaces), limiteur de vitesse aux
+  stands ("PIT"), voyant moteur, DRS (aileron mobile) — chaque voyant
+  s'allume/change de couleur selon son état, et est cliquable.
+
+- Panneau gauche à onglets internes (4 sous-onglets) :
+  - "Lecteur" : mini lecteur de musique (pochette, titre, artiste,
+    barre de progression, contrôles lecture).
+  - "Volume" : mixeur audio dédié à la conduite (canaux Général, Jeu,
+    Musique, Discord, chacun avec curseur).
+  - "Réglages" : grille de réglages électroniques de la voiture
+    (Antipatinage/TC Cut, TC Slip, répartiteur de barre stabilisatrice
+    avant, ABS, répartiteur de freinage/BB Bias, migration de freinage/
+    BB Migr, barre stabilisatrice arrière), chaque réglage avec boutons
+    +/- et valeur actuelle affichée.
+  - "Contrôles" : une grille de 9 boutons façon "button box" de
+    simulation (Phares, Flash, Allumage, Démarreur, Essuie-glaces,
+    Limiteur stand, Vue caméra, Échap, Quitter).
+
+- Panneau central (le plus grand, informations vitales de pilotage) :
+  - Une rampe de "shift lights" (voyants qui s'allument progressivement
+    du vert au bleu selon le régime moteur, pour indiquer quand passer
+    la vitesse).
+  - Une barre "delta" (écart de temps au tour précédent/référence, en
+    secondes, avec couleur verte/rouge selon si on est plus rapide ou
+    plus lent).
+  - 3 badges de secteurs de piste (S1, S2, S3) avec code couleur.
+  - Un très grand affichage du rapport de vitesse engagé + le régime
+    moteur en dessous.
+  - Deux barres de jauge (accélérateur et frein) qui montrent la
+    pression appliquée sur les pédales.
+  - Un grand affichage de la vitesse du véhicule.
+  - Température de la piste et température de l'air (en bas).
+
+- Widget "Session" en haut à droite : temps restant de course, position
+  actuelle, numéro du tour, heure actuelle — 4 informations côte à côte.
+
+- Panneau droit à onglets internes (4 sous-onglets) :
+  - "Pneus" : les 4 roues (avant gauche/droite, arrière gauche/droite)
+    disposées en croix, chacune avec : type de gomme, température du
+    pneu, température du frein, pression (PSI).
+  - "Carburant" : niveau en litres, jauge visuelle, nombre de tours
+    restants avec le carburant actuel, et 4 chiffres (temps estimé
+    avant le plein, quantité à ravitailler, temps du dernier tour,
+    moyenne des 5 derniers tours).
+  - "Classement" : tableau de classement de la course — position,
+    numéro de voiture + logo de la marque, nom du pilote, écart avec le
+    leader, écart avec le concurrent devant (intervalle). Le pilote de
+    l'utilisateur doit être mis en valeur dans la liste.
+  - "Résumé" : 3 temps au tour mis en valeur (tour prédit, dernier tour,
+    meilleur tour).
+
+- Bloc batterie/énergie (bas gauche, pour véhicules hybrides/électriques) :
+  niveau de charge en %, jauge visuelle, puissance en régénération et en
+  déploiement (kW).
+
+- Bloc réglages électroniques compact (bas droite) : une rangée de
+  pastilles colorées par famille de réglage (antipatinage en bleu,
+  suspension/barre stabilisatrice en violet — avant/arrière côte à côte,
+  ABS en orange, répartiteur de freinage en rouge), chacune affichant sa
+  valeur actuelle en gros.
+
+
+ONGLET 5 — "RACCOURCIS" (actions rapides sur le PC)
+--------------------------------------------------------
+Rôle : lancer rapidement des applications, gérer les fenêtres ouvertes et
+effectuer des actions système sur l'ordinateur, sans avoir à y toucher
+directement.
+
+Éléments à prévoir :
+Colonne gauche :
+- Zone "Apps Rapides" : grille d'icônes d'applications bureautiques à
+  lancer en un clic.
+- Zone "Actions Système" : 5 boutons d'action (Verrouiller, Mettre en
+  veille, Fermer la session, Redémarrer, Éteindre) — les actions
+  sensibles (redémarrer, éteindre, fermer la session) doivent afficher
+  une confirmation avant d'être exécutées.
+
+Colonne droite (widget à onglets internes, plus large) :
+- 3 sous-onglets en haut : "Steam" (bibliothèque de jeux), "Fenêtres"
+  (liste des fenêtres/applications actuellement ouvertes sur le PC, pour
+  passer de l'une à l'autre), "Scènes" (raccourcis vers des scènes/
+  configurations prédéfinies, ex. OBS).
+- Chaque sous-onglet affiche une liste ou une grille correspondante, avec
+  un indicateur de chargement pendant la récupération des données.
+
+Éléments transverses :
+- Une notification discrète (toast) qui apparaît brièvement pour
+  confirmer une action.
+- Une fenêtre de confirmation plein écran pour les actions système
+  sensibles, avec icône d'alerte, question de confirmation, et boutons
+  Annuler / Confirmer.
+
+
+MODULES PRÉVUS MAIS PAS ENCORE IMPLÉMENTÉS
+---------------------------------------------
+Pour info, ces modules sont prévus pour une version future et pourraient
+un jour rejoindre un onglet existant ou en former un nouveau :
+- OBS Studio (contrôle de streaming/enregistrement)
+- SimHub (déjà partiellement présent dans l'onglet Endurance)
+- Discord
+- Système de plugins pour ajouter d'autres modules

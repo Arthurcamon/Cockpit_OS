@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Cockpit OS — Interface multimédia tactile" />
   <title>Cockpit OS</title>
+  <link rel="stylesheet" href="/css/design-tokens.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/style.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/shortcuts.css?v=__APP_VERSION__" />
 </head>
@@ -40,40 +41,6 @@
 
     <!-- Navigation verticale à gauche -->
     <nav class="tab-nav">
-      <button class="tab-nav__btn tab-nav__btn--active" data-tab="dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-        </svg>
-        <span class="tab-nav__label">Cockpit</span>
-      </button>
-      <button class="tab-nav__btn" data-tab="deezer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18V5l12-2v13"/>
-          <circle cx="6" cy="18" r="3"/>
-          <circle cx="18" cy="16" r="3"/>
-        </svg>
-        <span class="tab-nav__label">Deezer</span>
-      </button>
-      <button class="tab-nav__btn" data-tab="media">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-        </svg>
-        <span class="tab-nav__label">Médias</span>
-      </button>
-      <button class="tab-nav__btn" data-tab="endurance">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="13" r="8"/>
-          <path d="M12 9v4l2.5 2.5"/>
-          <path d="M12 2v3"/>
-          <path d="M10 2h4"/>
-        </svg>
-        <span class="tab-nav__label">Endurance</span>
-      </button>
       <button class="tab-nav__btn" data-tab="shortcuts">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1.5"/>
@@ -83,6 +50,58 @@
         </svg>
         <span class="tab-nav__label">Raccourcis</span>
       </button>
+      <button class="tab-nav__btn" data-tab="media">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+        <span class="tab-nav__label">Médias</span>
+      </button>
+      <button class="tab-nav__btn" data-tab="deezer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V5l12-2v13"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="16" r="3"/>
+        </svg>
+        <span class="tab-nav__label">Deezer</span>
+      </button>
+
+      <!-- Groupe "Automobile" : bouton dépliant → Endurance / Cockpit -->
+      <div class="tab-nav__group" id="nav-group-automobile">
+        <button type="button" class="tab-nav__btn tab-nav__btn--group tab-nav__btn--active" id="nav-toggle-automobile" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="13" r="8"/>
+            <path d="M12 9v4l2.5 2.5"/>
+            <path d="M12 2v3"/>
+            <path d="M10 2h4"/>
+          </svg>
+          <span class="tab-nav__label">Automobile</span>
+          <svg class="tab-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="tab-nav__submenu" id="nav-submenu-automobile">
+          <button class="tab-nav__btn tab-nav__btn--sub" data-tab="endurance">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="13" r="8"/>
+              <path d="M12 9v4l2.5 2.5"/>
+              <path d="M12 2v3"/>
+              <path d="M10 2h4"/>
+            </svg>
+            <span class="tab-nav__label">Endurance</span>
+          </button>
+          <button class="tab-nav__btn tab-nav__btn--sub tab-nav__btn--active" data-tab="dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+            <span class="tab-nav__label">Cockpit</span>
+          </button>
+        </div>
+      </div>
     </nav>
 
     <!-- Contenu des onglets -->
