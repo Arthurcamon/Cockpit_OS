@@ -10,7 +10,7 @@ Protocole :
 
 import asyncio
 import json
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -124,185 +124,217 @@ async def handle_websocket(websocket: WebSocket) -> None:
         ws_manager.disconnect(websocket)
 
 
+async def _handle_media_command(websocket: WebSocket, data: dict) -> None:
+    """Commandes média Windows."""
+    from services.windows_media import windows_media_service
+    result = await windows_media_service.handle_command(data.get("command", ""), data)
+    await ws_manager.broadcast(result)
+
+
+async def _handle_game_action(websocket: WebSocket, data: dict) -> None:
+    """Commandes de jeu / simulation."""
+    action = data.get("action", "")
+    key = data.get("key", "")
+    logger.info(f"WS [game.action] -> action={action}, key={key}")
+    try:
+        import pyautogui
+        if action == "escape" or key == "Escape":
+            pyautogui.press('escape')
+        elif action == "exit":
+            pyautogui.hotkey('alt', 'f4')
+    except Exception as e:
+        logger.debug(f"pyautogui non disponible : {e}")
+
+    await ws_manager.send_to_client(websocket, {
+        "type": "game.action.ack",
+        "action": action,
+        "status": "ok"
+    })
+
+
+async def _handle_audio_command(websocket: WebSocket, data: dict) -> None:
+    """Commandes audio & Bluetooth Windows."""
+    from services.windows_audio import windows_audio_service
+    cmd = data.get("command", "")
+    result = await windows_audio_service.handle_command(data)
+    await ws_manager.broadcast(result)
+    if cmd not in ("audio.volume.set", "audio.app.volume.set"):
+        full_audio_state = await windows_audio_service.get_full_state()
+        await ws_manager.broadcast(full_audio_state)
+
+
+async def _handle_deezer_search(websocket: WebSocket, data: dict) -> None:
+    """Recherche Deezer."""
+    from services.deezer_api import deezer_api_service
+    results = await deezer_api_service.search(data.get("query", ""), data.get("filter", "track"))
+    await ws_manager.send_to_client(websocket, {
+        "type": "deezer.search.results",
+        "results": results,
+        "filter": data.get("filter", "track"),
+    })
+
+
+async def _handle_deezer_playlists(websocket: WebSocket, data: dict) -> None:
+    """Playlists Deezer."""
+    from services.deezer_api import deezer_api_service
+    playlists = await deezer_api_service.get_user_playlists()
+    await ws_manager.send_to_client(websocket, {
+        "type": "deezer.playlists.results",
+        "playlists": playlists,
+    })
+
+
+async def _handle_deezer_playlist_tracks(websocket: WebSocket, data: dict) -> None:
+    """Morceaux d'une playlist."""
+    from services.deezer_api import deezer_api_service
+    import asyncio
+    playlist_id = data.get("playlist_id")
+
+    # 1. Charger et envoyer TRÈS RAPIDEMENT les 100 premiers morceaux pour afficher l'interface instantanément
+    try:
+        tracks_fast, is_owner = await deezer_api_service.get_playlist_tracks(playlist_id, limit=100)
+        await ws_manager.send_to_client(websocket, {
+            "type": "deezer.playlist.tracks.results",
+            "tracks": tracks_fast,
+            "playlist_id": playlist_id,
+            "is_owner": is_owner,
+            "is_partial": True
+        })
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement rapide de la playlist : {e}")
+        tracks_fast, is_owner = [], False
+
+    # 2. Charger l'intégralité en tâche de fond pour ne pas bloquer l'interface
+    async def fetch_full_tracks_and_send():
+        try:
+            tracks_full, is_owner_full = await deezer_api_service.get_playlist_tracks(playlist_id, limit=2000)
+            await ws_manager.send_to_client(websocket, {
+                "type": "deezer.playlist.tracks.results",
+                "tracks": tracks_full,
+                "playlist_id": playlist_id,
+                "is_owner": is_owner_full,
+                "is_partial": False
+            })
+        except Exception as e:
+            logger.error(f"Erreur lors du chargement complet de la playlist en tâche de fond : {e}")
+
+    asyncio.create_task(fetch_full_tracks_and_send())
+
+
+async def _handle_deezer_play(websocket: WebSocket, data: dict) -> None:
+    """Lancer une piste Deezer."""
+    try:
+        from services.deezer_player import deezer_player_service
+        track_id = data.get("track_id")
+        title = data.get("title", "")
+        source = data.get("source")
+        playlist_id = data.get("playlist_id")
+        album_id = data.get("album_id")
+        index = data.get("index")
+        loved_tracks_id = data.get("loved_tracks_id")
+        queue_track_ids = data.get("queue_track_ids")
+
+        # Déduction de la source par rétro-compatibilité si non spécifiée
+        if not source:
+            if playlist_id:
+                source = "playlist"
+            elif album_id:
+                source = "album"
+            else:
+                source = "search"
+
+        logger.info(f"WS [deezer.play] -> track_id={track_id}, title={title!r}, source={source}, playlist_id={playlist_id}, album_id={album_id}, index={index}")
+
+        result = await deezer_player_service.play_track(
+            track_id=track_id,
+            title=title,
+            source=source,
+            playlist_id=playlist_id,
+            album_id=album_id,
+            index=index,
+            loved_tracks_id=loved_tracks_id,
+            queue_track_ids=queue_track_ids,
+        )
+        logger.info(f"WS [deezer.play] <- Résultat CDP : {result}")
+        await ws_manager.send_to_client(websocket, result)
+    except Exception as e:
+        logger.exception("WS [deezer.play] <- Exception fatale lors du lancement de la piste")
+        await ws_manager.send_to_client(websocket, {
+            "type": "deezer.player.error",
+            "track_id": data.get("track_id"),
+            "title": data.get("title", ""),
+            "message": f"Erreur interne du serveur : {str(e)}"
+        })
+
+
+async def _handle_media_state_request(websocket: WebSocket, data: dict) -> None:
+    """Demande de l'état média actuel."""
+    from services.windows_media import windows_media_service
+    state = await windows_media_service.get_current_state()
+    await ws_manager.send_to_client(websocket, state)
+
+
+async def _handle_audio_state_request(websocket: WebSocket, data: dict) -> None:
+    """Demande de l'état audio actuel."""
+    from services.windows_audio import windows_audio_service
+    state = await windows_audio_service.get_full_state()
+    await ws_manager.send_to_client(websocket, state)
+
+
+async def _handle_deezer_artist_albums(websocket: WebSocket, data: dict) -> None:
+    """Albums d'un artiste."""
+    from services.deezer_api import deezer_api_service
+    albums = await deezer_api_service.get_artist_albums(data.get("artist_id"))
+    await ws_manager.send_to_client(websocket, {
+        "type": "deezer.artist.albums.results",
+        "albums": albums,
+        "artist_id": data.get("artist_id"),
+    })
+
+
+async def _handle_deezer_album_tracks(websocket: WebSocket, data: dict) -> None:
+    """Morceaux d'un album."""
+    from services.deezer_api import deezer_api_service
+    tracks = await deezer_api_service.get_album_tracks(data.get("album_id"))
+    await ws_manager.send_to_client(websocket, {
+        "type": "deezer.album.tracks.results",
+        "tracks": tracks,
+        "album_id": data.get("album_id"),
+    })
+
+
+# Registre des handlers par type de message. "audio.command" et "bluetooth.command"
+# partagent le même handler (windows_audio_service route déjà sur data["command"]).
+_HANDLERS: dict[str, Callable[[WebSocket, dict], Awaitable[None]]] = {
+    "media.command": _handle_media_command,
+    "game.action": _handle_game_action,
+    "audio.command": _handle_audio_command,
+    "bluetooth.command": _handle_audio_command,
+    "deezer.search": _handle_deezer_search,
+    "deezer.playlists": _handle_deezer_playlists,
+    "deezer.playlist.tracks": _handle_deezer_playlist_tracks,
+    "deezer.play": _handle_deezer_play,
+    "media.state.request": _handle_media_state_request,
+    "audio.state.request": _handle_audio_state_request,
+    "deezer.artist.albums": _handle_deezer_artist_albums,
+    "deezer.album.tracks": _handle_deezer_album_tracks,
+}
+
+
 async def _dispatch_message(websocket: WebSocket, data: dict) -> None:
     """
-    Aiguille les messages entrants vers le bon service.
-    Importe les services ici pour éviter les imports circulaires.
+    Aiguille les messages entrants vers le bon service via le registre _HANDLERS.
     """
     msg_type = data.get("type", "")
     logger.debug(f"Message reçu : {msg_type}")
 
-    # --- Commandes média Windows ---
-    if msg_type == "media.command":
-        from services.windows_media import windows_media_service
-        result = await windows_media_service.handle_command(data.get("command", ""), data)
-        await ws_manager.broadcast(result)
-
-    # --- Commandes de jeu / simulation ---
-    elif msg_type == "game.action":
-        action = data.get("action", "")
-        key = data.get("key", "")
-        logger.info(f"WS [game.action] -> action={action}, key={key}")
-        try:
-            import pyautogui
-            if action == "escape" or key == "Escape":
-                pyautogui.press('escape')
-            elif action == "exit":
-                pyautogui.hotkey('alt', 'f4')
-        except Exception as e:
-            logger.debug(f"pyautogui non disponible : {e}")
-
-        await ws_manager.send_to_client(websocket, {
-            "type": "game.action.ack",
-            "action": action,
-            "status": "ok"
-        })
-
-    # --- Commandes audio & Bluetooth Windows ---
-    elif msg_type in ("audio.command", "bluetooth.command"):
-        from services.windows_audio import windows_audio_service
-        cmd = data.get("command", "")
-        result = await windows_audio_service.handle_command(data)
-        await ws_manager.broadcast(result)
-        if cmd not in ("audio.volume.set", "audio.app.volume.set"):
-            full_audio_state = await windows_audio_service.get_full_state()
-            await ws_manager.broadcast(full_audio_state)
-
-    # --- Recherche Deezer ---
-    elif msg_type == "deezer.search":
-        from services.deezer_api import deezer_api_service
-        results = await deezer_api_service.search(data.get("query", ""), data.get("filter", "track"))
-        await ws_manager.send_to_client(websocket, {
-            "type": "deezer.search.results",
-            "results": results,
-            "filter": data.get("filter", "track"),
-        })
-
-    # --- Playlists Deezer ---
-    elif msg_type == "deezer.playlists":
-        from services.deezer_api import deezer_api_service
-        playlists = await deezer_api_service.get_user_playlists()
-        await ws_manager.send_to_client(websocket, {
-            "type": "deezer.playlists.results",
-            "playlists": playlists,
-        })
-
-    # --- Morceaux d'une playlist ---
-    elif msg_type == "deezer.playlist.tracks":
-        from services.deezer_api import deezer_api_service
-        import asyncio
-        playlist_id = data.get("playlist_id")
-        
-        # 1. Charger et envoyer TRÈS RAPIDEMENT les 100 premiers morceaux pour afficher l'interface instantanément
-        try:
-            tracks_fast, is_owner = await deezer_api_service.get_playlist_tracks(playlist_id, limit=100)
-            await ws_manager.send_to_client(websocket, {
-                "type": "deezer.playlist.tracks.results",
-                "tracks": tracks_fast,
-                "playlist_id": playlist_id,
-                "is_owner": is_owner,
-                "is_partial": True
-            })
-        except Exception as e:
-            logger.error(f"Erreur lors du chargement rapide de la playlist : {e}")
-            tracks_fast, is_owner = [], False
-
-        # 2. Charger l'intégralité en tâche de fond pour ne pas bloquer l'interface
-        async def fetch_full_tracks_and_send():
-            try:
-                tracks_full, is_owner_full = await deezer_api_service.get_playlist_tracks(playlist_id, limit=2000)
-                await ws_manager.send_to_client(websocket, {
-                    "type": "deezer.playlist.tracks.results",
-                    "tracks": tracks_full,
-                    "playlist_id": playlist_id,
-                    "is_owner": is_owner_full,
-                    "is_partial": False
-                })
-            except Exception as e:
-                logger.error(f"Erreur lors du chargement complet de la playlist en tâche de fond : {e}")
-
-        asyncio.create_task(fetch_full_tracks_and_send())
-
-    # --- Lancer une piste Deezer ---
-    elif msg_type == "deezer.play":
-        try:
-            from services.deezer_player import deezer_player_service
-            track_id = data.get("track_id")
-            title = data.get("title", "")
-            source = data.get("source")
-            playlist_id = data.get("playlist_id")
-            album_id = data.get("album_id")
-            index = data.get("index")
-            loved_tracks_id = data.get("loved_tracks_id")
-            queue_track_ids = data.get("queue_track_ids")
-
-            # Déduction de la source par rétro-compatibilité si non spécifiée
-            if not source:
-                if playlist_id:
-                    source = "playlist"
-                elif album_id:
-                    source = "album"
-                else:
-                    source = "search"
-
-            logger.info(f"WS [deezer.play] -> track_id={track_id}, title={title!r}, source={source}, playlist_id={playlist_id}, album_id={album_id}, index={index}")
-            
-            result = await deezer_player_service.play_track(
-                track_id=track_id,
-                title=title,
-                source=source,
-                playlist_id=playlist_id,
-                album_id=album_id,
-                index=index,
-                loved_tracks_id=loved_tracks_id,
-                queue_track_ids=queue_track_ids,
-            )
-            logger.info(f"WS [deezer.play] <- Résultat CDP : {result}")
-            await ws_manager.send_to_client(websocket, result)
-        except Exception as e:
-            logger.exception("WS [deezer.play] <- Exception fatale lors du lancement de la piste")
-            await ws_manager.send_to_client(websocket, {
-                "type": "deezer.player.error",
-                "track_id": data.get("track_id"),
-                "title": data.get("title", ""),
-                "message": f"Erreur interne du serveur : {str(e)}"
-            })
-
-    # --- Demande de l'état média actuel ---
-    elif msg_type == "media.state.request":
-        from services.windows_media import windows_media_service
-        state = await windows_media_service.get_current_state()
-        await ws_manager.send_to_client(websocket, state)
-
-    # --- Demande de l'état audio actuel ---
-    elif msg_type == "audio.state.request":
-        from services.windows_audio import windows_audio_service
-        state = await windows_audio_service.get_full_state()
-        await ws_manager.send_to_client(websocket, state)
-
-    # --- Albums d'un artiste ---
-    elif msg_type == "deezer.artist.albums":
-        from services.deezer_api import deezer_api_service
-        albums = await deezer_api_service.get_artist_albums(data.get("artist_id"))
-        await ws_manager.send_to_client(websocket, {
-            "type": "deezer.artist.albums.results",
-            "albums": albums,
-            "artist_id": data.get("artist_id"),
-        })
-
-    # --- Morceaux d'un album ---
-    elif msg_type == "deezer.album.tracks":
-        from services.deezer_api import deezer_api_service
-        tracks = await deezer_api_service.get_album_tracks(data.get("album_id"))
-        await ws_manager.send_to_client(websocket, {
-            "type": "deezer.album.tracks.results",
-            "tracks": tracks,
-            "album_id": data.get("album_id"),
-        })
-
-    else:
+    handler = _HANDLERS.get(msg_type)
+    if handler is None:
         logger.warning(f"Type de message inconnu : {msg_type}")
         await ws_manager.send_to_client(websocket, {
             "type": "error",
             "message": f"Type de message non reconnu : {msg_type}",
         })
+        return
+
+    await handler(websocket, data)

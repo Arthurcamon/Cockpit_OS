@@ -8,39 +8,39 @@
   <link rel="stylesheet" href="/css/design-tokens.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/style.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/shortcuts.css?v=__APP_VERSION__" />
+  <link rel="stylesheet" href="/css/media.css?v=__APP_VERSION__" />
+  <link rel="stylesheet" href="/css/deezer.css?v=__APP_VERSION__" />
+  <link rel="stylesheet" href="/css/dashboard.css?v=__APP_VERSION__" />
+  <link rel="stylesheet" href="/css/endurance.css?v=__APP_VERSION__" />
+  <link rel="stylesheet" href="/css/automobile.css?v=__APP_VERSION__" />
 </head>
 <body>
-  <script>window.APP_VERSION = "__APP_VERSION__";</script>
+  <script>
+    window.APP_VERSION = "__APP_VERSION__";
+    window.AUTH_TOKEN = "__AUTH_TOKEN__";
+  </script>
 
-  <!-- ══ En-tête ══════════════════════════════════════════════════════════ -->
-  <header class="header">
-    <div class="header__logo">
-      <svg class="header__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <circle cx="12" cy="12" r="3"/>
-        <line x1="12" y1="2" x2="12" y2="5"/>
-        <line x1="12" y1="19" x2="12" y2="22"/>
-        <line x1="2" y1="12" x2="5" y2="12"/>
-        <line x1="19" y1="12" x2="22" y2="12"/>
-      </svg>
-      <span>Cockpit OS</span>
-    </div>
+  <!-- ══ Canevas 1920x1200 mis à l'échelle ═══════════════════════════════════
+       La maquette de référence est un fichier figé à 1920x1200px (unités
+       fixes, pas de %/vw) — n'a donc le même rendu que la maquette que
+       rendu exactement à cette résolution. #app-shell garde ce canevas
+       intact et un script (voir app.js:applyAppScale) lui applique un
+       transform:scale() calculé pour qu'il tienne, centré, dans n'importe
+       quelle fenêtre/écran réel — zoom uniforme, jamais de redistribution
+       des proportions. Sur la tablette cible (1920x1200 réel), scale=1 :
+       aucun effet, rendu pixel pour pixel. Voir journal de refonte v5+. -->
+  <div class="app-shell" id="app-shell">
 
-    <div class="header__status">
-      <span id="ws-status" class="status-badge status-badge--disconnected">
-        <span class="status-badge__dot"></span>
-        Connexion…
-      </span>
-    </div>
-
-    <div class="header__clock" id="clock">--:--</div>
-  </header>
-
-  <!-- ══ Corps : sidebar verticale + contenu ══════════════════════════════ -->
+  <!-- ══ Corps : sidebar pleine hauteur + colonne (header inséré + contenu) ══
+       Structure alignée sur la maquette de référence : .app = sidebar + main,
+       le header vit DANS la colonne de droite (.app-main), pas au-dessus de
+       toute la largeur — la sidebar occupe donc toute la hauteur de l'écran,
+       pas seulement l'espace sous le header. Voir Design_code/refonte-ui-2026.md. -->
   <div class="app-body">
 
-    <!-- Navigation verticale à gauche -->
+    <!-- Navigation verticale à gauche — pleine hauteur -->
     <nav class="tab-nav">
+      <div class="tab-nav__mark" aria-hidden="true">◆</div>
       <button class="tab-nav__btn" data-tab="shortcuts">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1.5"/>
@@ -67,73 +67,209 @@
         <span class="tab-nav__label">Deezer</span>
       </button>
 
-      <!-- Groupe "Automobile" : bouton dépliant → Endurance / Cockpit -->
-      <div class="tab-nav__group" id="nav-group-automobile">
-        <button type="button" class="tab-nav__btn tab-nav__btn--group tab-nav__btn--active" id="nav-toggle-automobile" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="13" r="8"/>
-            <path d="M12 9v4l2.5 2.5"/>
-            <path d="M12 2v3"/>
-            <path d="M10 2h4"/>
-          </svg>
-          <span class="tab-nav__label">Automobile</span>
-          <svg class="tab-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
+      <!-- Onglet "Automobile" : vrai onglet, ouvre un lanceur Cockpit / Endurance -->
+      <button class="tab-nav__btn" data-tab="automobile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/>
+          <path d="M12 9v4l2.5 2.5"/>
+          <path d="M12 2v3"/>
+          <path d="M10 2h4"/>
+        </svg>
+        <span class="tab-nav__label">Automobile</span>
+      </button>
+    </nav>
+
+    <!-- Colonne de droite : header inséré (pas de largeur pleine écran) + contenu -->
+    <div class="app-main">
+      <header class="header">
+        <div class="header__left">
+          <span class="header__app-name">Cockpit OS</span>
+          <span class="header__sep">/</span>
+          <span class="header__crumb" id="header-crumb">Raccourcis</span>
+        </div>
+
+        <!-- Notch — bouton composite musique/jeu, toujours visible, occupe
+             exactement 25% de la largeur du header (voir .header,
+             grid-template-columns). Split diagonal en 2 moitiés, chacune
+             pilotée indépendamment par ses propres classes d'état :
+             #notch-music (idle/paused/playing, UI.updateHeaderNotch) et
+             #notch-game (idle/launching/running, UI.updateHeaderGame) —
+             toutes deux dans app-ui-core.js. Le clic n'ouvre encore aucun
+             sur-menu (branché dans une passe séparée) : structure et zone
+             tactile prêtes, pas de gestionnaire pour l'instant. -->
+        <div class="notch notch--idle" id="header-notch">
+          <div class="notch__inner">
+            <div class="notch__half notch__half--music" id="notch-music" data-state="idle">
+              <span class="notch__thumb" id="notch-cover-placeholder">♪</span>
+              <img class="notch__cover" id="notch-cover" src="" alt="" style="display:none;" onerror="this.style.display='none'" />
+              <span class="notch__text">
+                <span class="notch__title" id="notch-title">Aucune lecture</span>
+                <span class="notch__sub" id="notch-sub">—</span>
+              </span>
+              <span class="notch__eq" id="notch-eq"><span></span><span></span><span></span><span></span></span>
+            </div>
+            <div class="notch__half notch__half--game" id="notch-game" data-state="idle">
+              <span class="notch__game-icon" id="notch-game-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9h12a4 4 0 0 1 4 4v3a3 3 0 0 1-3 3c-1 0-1.5-.5-2-1l-1.5-2h-7L7 18c-.5.5-1 1-2 1a3 3 0 0 1-3-3v-3a4 4 0 0 1 4-4Z"/><path d="M9 11.5v3M7.5 13h3"/><circle cx="17" cy="12" r=".9" fill="currentColor" stroke="none"/><circle cx="15" cy="14.2" r=".9" fill="currentColor" stroke="none"/></svg>
+              </span>
+              <span class="notch__text">
+                <span class="notch__title" id="notch-game-title">Aucun jeu</span>
+              </span>
+              <span class="notch__game-status" id="notch-game-status">
+                <span class="loading-ring notch__game-ring" id="notch-game-ring"></span>
+                <span class="notch__game-dot" id="notch-game-dot"></span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header__right">
+          <span id="ws-status" class="status-badge status-badge--disconnected">
+            <span class="status-badge__dot"></span>
+            Connexion…
+          </span>
+          <div class="header__clock">
+            <div class="header__time" id="clock">--:--</div>
+            <div class="header__date" id="header-date">—</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Sur-menu de la notch — étape 1 (structure statique) : colonne
+           musique alimentée par State.mediaState (mêmes commandes que le
+           mini-lecteur, voir MEDIA_WIDGET_CONFIGS.notchMenu, app-ui-core.js),
+           colonne jeu alimentée par State.steamRunning (mémoire optimiste
+           partagée avec l'onglet Raccourcis — pas de détection PC réelle).
+           Pas encore d'ouverture au tap ni d'animation (étapes 2 et 3) :
+           #notch-menu-scrim/#notch-menu restent masqués par défaut
+           (.is-open bascule l'affichage, sans transition pour l'instant). -->
+      <div class="notch-menu-scrim" id="notch-menu-scrim"></div>
+      <div class="notch-menu" id="notch-menu">
+        <button class="notch-menu__close" id="notch-menu-close" type="button" aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
-        <div class="tab-nav__submenu" id="nav-submenu-automobile">
-          <button class="tab-nav__btn tab-nav__btn--sub" data-tab="endurance">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="13" r="8"/>
-              <path d="M12 9v4l2.5 2.5"/>
-              <path d="M12 2v3"/>
-              <path d="M10 2h4"/>
-            </svg>
-            <span class="tab-nav__label">Endurance</span>
-          </button>
-          <button class="tab-nav__btn tab-nav__btn--sub tab-nav__btn--active" data-tab="dashboard">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-            </svg>
-            <span class="tab-nav__label">Cockpit</span>
+
+        <div class="notch-menu__col notch-menu__col--music">
+          <!-- Crossfade pochette/titre/artiste au changement de morceau
+               (étape 3) — .is-fading basculée par UI.updateHeaderNotch,
+               même mécanisme que .notch__text sur la notch fermée. -->
+          <div class="notch-menu__music-info" id="notchmenu-music-info">
+            <div class="notch-menu__cover" id="notchmenu-cover-placeholder">
+              <img class="notch-menu__cover-img" id="notchmenu-cover" alt="" style="display:none;" onerror="this.style.display='none'" />
+              <span class="notch-menu__cover-note">♪</span>
+            </div>
+            <div class="notch-menu__title" id="notchmenu-title">Aucune lecture en cours</div>
+            <div class="notch-menu__artist" id="notchmenu-artist">—</div>
+          </div>
+
+          <div class="notch-menu__progress">
+            <div class="notch-menu__progress-times">
+              <span id="notchmenu-pos">0:00</span>
+              <span id="notchmenu-dur">0:00</span>
+            </div>
+            <div class="notch-menu__progress-track" id="notchmenu-progress-bar">
+              <div class="notch-menu__progress-fill" id="notchmenu-progress-fill"></div>
+              <div class="notch-menu__progress-thumb" id="notchmenu-progress-thumb"></div>
+            </div>
+          </div>
+
+          <div class="notch-menu__transport">
+            <button class="notch-menu__t-btn" id="notchmenu-shuffle" type="button" aria-label="Aléatoire">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+            </button>
+            <button class="notch-menu__t-btn notch-menu__t-btn--main" id="notchmenu-prev" type="button" aria-label="Précédent">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="2" height="16"/></svg>
+            </button>
+            <button class="notch-menu__t-btn notch-menu__t-btn--play" id="notchmenu-play" type="button" aria-label="Lecture / Pause">
+              <svg viewBox="0 0 24 24" fill="currentColor" id="notchmenu-play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <button class="notch-menu__t-btn notch-menu__t-btn--main" id="notchmenu-next" type="button" aria-label="Suivant">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="17" y="4" width="2" height="16"/></svg>
+            </button>
+            <button class="notch-menu__t-btn" id="notchmenu-repeat" type="button" aria-label="Répéter">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="notchmenu-repeat-icon"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            </button>
+          </div>
+
+          <div class="notch-menu__volume">
+            <span class="notch-menu__vol-icon" id="notchmenu-mute" onclick="toggleAppMute('master')" role="button" aria-label="Muet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </span>
+            <input type="range" class="notch-menu__vol-slider" id="notchmenu-volume-slider" min="0" max="100" value="100" oninput="setAppVolume('master', this.value)" onchange="setAppVolumeCommit('master', this.value)" />
+          </div>
+        </div>
+
+        <div class="notch-menu__col notch-menu__col--game">
+          <div class="notch-menu__game-eyebrow" id="notchmenu-game-eyebrow">Jeu</div>
+          <div class="notch-menu__game-cover" id="notchmenu-game-cover">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9h12a4 4 0 0 1 4 4v3a3 3 0 0 1-3 3c-1 0-1.5-.5-2-1l-1.5-2h-7L7 18c-.5.5-1 1-2 1a3 3 0 0 1-3-3v-3a4 4 0 0 1 4-4Z"/><path d="M9 11.5v3M7.5 13h3"/><circle cx="17" cy="12" r=".9" fill="currentColor" stroke="none"/><circle cx="15" cy="14.2" r=".9" fill="currentColor" stroke="none"/></svg>
+          </div>
+          <div class="notch-menu__game-title" id="notchmenu-game-title">Aucun jeu lancé</div>
+          <div class="notch-menu__game-status">
+            <span class="notch-menu__game-dot" id="notchmenu-game-dot"></span>
+            <span class="notch-menu__game-status-txt" id="notchmenu-game-status-txt">Inactif</span>
+          </div>
+          <div class="notch-menu__game-stats">
+            <div class="notch-menu__stat-chip">
+              <div class="notch-menu__stat-v" id="notchmenu-game-session">—</div>
+              <div class="notch-menu__stat-l">Session</div>
+            </div>
+            <div class="notch-menu__stat-chip">
+              <div class="notch-menu__stat-v" id="notchmenu-game-total">—</div>
+              <div class="notch-menu__stat-l">Total</div>
+            </div>
+          </div>
+          <button class="notch-menu__quit-btn" id="notchmenu-quit-btn" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Fermer le jeu
           </button>
         </div>
       </div>
-    </nav>
 
-    <!-- Contenu des onglets -->
-    <main class="tab-content">
+      <!-- Contenu des onglets -->
+      <main class="tab-content">
 
-      <!-- Onglet Cockpit (Tableau de Bord) -->
-      <section id="tab-dashboard" class="tab-panel tab-panel--active">
-        <!-- Chargé depuis /tabs/dashboard.html -->
-      </section>
+        <!-- Onglet Raccourcis -->
+        <section id="tab-shortcuts" class="tab-panel tab-panel--active">
+          <!-- Chargé depuis /tabs/shortcuts.html -->
+        </section>
 
-      <!-- Onglet Deezer -->
-      <section id="tab-deezer" class="tab-panel">
-        <!-- Chargé depuis /tabs/deezer.html -->
-      </section>
+        <!-- Onglet Lecteur Media -->
+        <section id="tab-media" class="tab-panel">
+          <!-- Chargé depuis /tabs/media.html -->
+        </section>
 
-      <!-- Onglet Lecteur Media -->
-      <section id="tab-media" class="tab-panel">
-        <!-- Chargé depuis /tabs/media.html -->
-      </section>
+        <!-- Onglet Deezer -->
+        <section id="tab-deezer" class="tab-panel">
+          <!-- Chargé depuis /tabs/deezer.html -->
+        </section>
 
-      <!-- Onglet Endurance -->
-      <section id="tab-endurance" class="tab-panel">
-        <!-- Chargé depuis /tabs/endurance.html -->
-      </section>
+        <!-- Onglet Automobile : lanceur Cockpit / Endurance (plein écran) -->
+        <section id="tab-automobile" class="tab-panel">
+          <!-- Chargé depuis /tabs/automobile.html -->
+        </section>
 
-      <!-- Onglet Raccourcis -->
-      <section id="tab-shortcuts" class="tab-panel">
-        <!-- Chargé depuis /tabs/shortcuts.html -->
-      </section>
+        <!-- Onglet Cockpit (Tableau de Bord) — ouvert en plein écran depuis le lanceur Automobile -->
+        <section id="tab-dashboard" class="tab-panel">
+          <!-- Chargé depuis /tabs/dashboard.html -->
+        </section>
 
-    </main>
+        <!-- Onglet Endurance — ouvert en plein écran depuis le lanceur Automobile -->
+        <section id="tab-endurance" class="tab-panel">
+          <!-- Chargé depuis /tabs/endurance.html -->
+        </section>
+
+      </main>
+    </div>
   </div>
+
+  <!-- ══ Sortie du mode plein écran Automobile (Cockpit / Endurance) ═══════ -->
+  <button id="automobile-exit-btn" class="automobile-exit-btn" title="Quitter le plein écran" aria-label="Quitter le plein écran">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
 
   <!-- ══ Mini-lecteur persistant ══════════════════════════════════════════ -->
   <footer class="mini-player" id="mini-player" style="display: none !important;">
@@ -165,7 +301,17 @@
     </div>
   </footer>
 
+  </div><!-- /#app-shell -->
+
   <script src="/js/shortcuts.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-core.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-ws.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-commands.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-navigation.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-ui-core.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-ui-deezer.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-ui-audio.js?v=__APP_VERSION__"></script>
+  <script src="/js/notch-menu.js?v=__APP_VERSION__"></script>
   <script src="/js/app.js?v=__APP_VERSION__"></script>
 </body>
 </html>

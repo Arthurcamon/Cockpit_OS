@@ -4,7 +4,36 @@ Toutes les constantes et paramètres de l'application sont définis ici.
 """
 
 import os
-from dataclasses import dataclass
+import secrets
+from dataclasses import dataclass, field
+from pathlib import Path
+
+_TOKEN_FILE = Path(__file__).parent / ".cockpit_token"
+
+
+def _load_or_create_auth_token() -> str:
+    """
+    Résout le token d'accès à l'app.
+    Priorité : variable d'env COCKPIT_TOKEN > fichier local .cockpit_token
+    (créé au premier lancement, jamais commité) > génération à la volée.
+    Le fichier local garantit que le token reste stable entre redémarrages,
+    pour que le favori tablette (avec le token dans l'URL) reste valide.
+    """
+    env_token = os.environ.get("COCKPIT_TOKEN")
+    if env_token:
+        return env_token
+
+    if _TOKEN_FILE.exists():
+        existing = _TOKEN_FILE.read_text(encoding="utf-8").strip()
+        if existing:
+            return existing
+
+    new_token = secrets.token_urlsafe(24)
+    try:
+        _TOKEN_FILE.write_text(new_token, encoding="utf-8")
+    except OSError:
+        pass  # Répertoire en lecture seule ou autre — token valide pour cette session uniquement
+    return new_token
 
 
 @dataclass
@@ -13,6 +42,9 @@ class Settings:
     HOST: str = "0.0.0.0"
     PORT: int = int(os.environ.get("PORT", 8000))
     DEBUG: bool = os.environ.get("DEBUG", "false").lower() == "true"
+
+    # Authentification minimale (accès à la page, au WebSocket et aux routes /shortcuts)
+    AUTH_TOKEN: str = field(default_factory=_load_or_create_auth_token)
 
     # Deezer
     DEEZER_API_BASE: str = "https://api.deezer.com"

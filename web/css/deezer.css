@@ -1,0 +1,1567 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   COCKPIT OS — ONGLET DEEZER
+   Bibliothèque (playlists/albums/artistes), recherche, lecteur "Now Playing"
+   et bottom sheets (pistes / albums). Réutilise les tokens/composants de
+   design-tokens.css, chargé avant ce fichier dans index.html.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Layout pleine largeur + en-tête + recherche + grilles + sheets ────────── */
+#tab-deezer.tab-panel {
+  overflow: hidden ;
+  padding: 0 ;
+}
+
+.deezer-layout-container-modern {
+  display: flex ;
+  flex-direction: column ;
+  width: 100% ;
+  height: 100% ;
+  padding: 24px 32px 24px 32px ;
+  box-sizing: border-box ;
+  overflow: hidden ;
+}
+
+/* Header */
+.deezer-header-modern {
+  display: flex ;
+  align-items: center ;
+  justify-content: space-between ;
+  flex-shrink: 0 ;
+  margin-bottom: 16px ;
+}
+
+.deezer-title-modern {
+  font-size: clamp(22px, 3vh, 28px) ;
+  font-weight: 600 ;
+  color: var(--text, #f4f3f6) ;
+  margin: 0 ;
+  letter-spacing: -0.01em ;
+  font-family: var(--font, inherit) ;
+}
+
+.deezer-settings-btn-modern {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)) ;
+  border: none !important;
+  border-radius: 50% ;
+  width: 42px ;
+  height: 42px ;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62)) ;
+  cursor: pointer ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14) ;
+  transition: color 180ms ease, transform 180ms ease ;
+}
+
+.deezer-settings-btn-modern:hover {
+  color: #ffffff !important;
+  transform: rotate(35deg) !important;
+}
+
+.deezer-settings-btn-modern:active {
+  transform: scale(0.95) !important;
+}
+
+/* Panneau de recherche & filtres */
+.deezer-search-panel-modern {
+  background: none ;
+  border: none !important;
+  border-radius: 0 ;
+  padding: 0 ;
+  margin-bottom: 16px ;
+  display: flex ;
+  flex-direction: column ;
+  gap: 10px ;
+  flex-shrink: 0 ;
+  box-shadow: none ;
+}
+
+/* blur réduit de 20 à 16px : barre de recherche visible en permanence sur
+   toutes les vues Deezer, empilée avec .flow-btn-modern et les cards de la
+   grille — trop coûteux en cumulé pour le GPU Mali-G52 de la Tab A8. */
+.pill-glass-modern {
+  background: linear-gradient(160deg, var(--glass-a, rgba(255, 255, 255, 0.10)), var(--glass-b, rgba(255, 255, 255, 0.035))) !important;
+  backdrop-filter: blur(16px) saturate(160%) ;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: none !important;
+  border-radius: 999px ;
+  padding: 8px 16px ;
+  display: flex ;
+  align-items: center ;
+  gap: 12px ;
+  position: relative ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14) ;
+}
+
+.search-bar-icon-modern {
+  color: var(--text-faint, rgba(244, 243, 246, 0.36)) ;
+  width: 18px ;
+  height: 18px ;
+  flex-shrink: 0 ;
+}
+
+.search-bar-input-modern {
+  background: transparent ;
+  border: none !important;
+  color: var(--text, #f4f3f6) ;
+  font-family: var(--font, inherit) ;
+  font-size: 15px ;
+  flex: 1 ;
+  outline: none ;
+  padding: 0 ;
+  margin: 0 ;
+}
+
+.search-bar-input-modern::placeholder {
+  color: var(--text-faint, rgba(244, 243, 246, 0.36)) !important;
+  opacity: 1 !important;
+}
+
+/* Filtres de recherche modernisés — segmented control */
+.search-filters-modern {
+  display: flex ;
+  gap: 4px ;
+  flex-wrap: wrap ;
+  width: fit-content ;
+  padding: 5px ;
+  border-radius: 999px ;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)) ;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3) ;
+}
+
+.search-filters-modern .filter-btn {
+  padding: 6px 16px ;
+  min-height: 28px ;
+  border-radius: 999px ;
+  font-size: 12px ;
+  font-weight: 600 ;
+  color: var(--text-faint, rgba(244, 243, 246, 0.36)) ;
+  background: none ;
+  border: none !important;
+  cursor: pointer ;
+  transition: all 180ms ease ;
+}
+
+.search-filters-modern .filter-btn:hover {
+  color: #ffffff !important;
+}
+
+.search-filters-modern .filter-btn--active {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08)) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.30) ;
+}
+
+/* Zone de contenu défilable */
+.deezer-scrollable-content-modern {
+  flex: 1 ;
+  overflow: hidden ; /* No scroll at page level! */
+  display: flex !important;
+  flex-direction: column ;
+  gap: 20px ;
+  min-height: 0 ;
+}
+
+/* Bouton compact "Mon Flow" */
+.flow-banner-container-modern {
+  display: flex ;
+  justify-content: flex-start ;
+  flex-shrink: 0 ;
+}
+
+.flow-btn-modern {
+  display: flex ;
+  flex-direction: row ;
+  align-items: center ;
+  justify-content: space-between ;
+  padding: 12px 20px ;
+  background:
+    radial-gradient(120% 160% at 10% 0%, rgba(232, 196, 138, 0.35), transparent 55%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.035)) ;
+  backdrop-filter: blur(16px) saturate(160%) ;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: none !important;
+  border-radius: 999px ;
+  color: white ;
+  cursor: pointer ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20), 0 14px 30px -16px rgba(0, 0, 0, 0.6) ;
+  transition: transform 180ms ease, box-shadow 180ms ease ;
+  width: auto ;
+  min-width: 240px ;
+}
+
+.flow-btn-modern:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 18px 36px -16px rgba(0, 0, 0, 0.65) !important;
+}
+
+.flow-btn-modern:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+.flow-btn-content-modern {
+  display: flex ;
+  flex-direction: row ;
+  align-items: center ;
+  gap: 14px ;
+}
+
+.flow-btn-icon-modern {
+  font-size: 18px ;
+  background: linear-gradient(155deg, #f3e0b8, #dba86a) ;
+  width: 38px ;
+  height: 38px ;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  border-radius: 50% ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 8px 16px -8px #dba86a ;
+}
+
+.flow-btn-text-modern {
+  display: flex ;
+  flex-direction: column ;
+  align-items: flex-start ;
+}
+
+.flow-btn-title-modern {
+  font-size: 14px ;
+  font-weight: 700 ;
+  letter-spacing: -0.01em ;
+}
+
+.flow-btn-subtitle-modern {
+  font-size: 11px ;
+  color: rgba(255, 255, 255, 0.75) ;
+  margin-top: 1px ;
+}
+
+.flow-btn-play-modern {
+  background: rgba(255, 255, 255, 0.22) ;
+  border-radius: 50% ;
+  width: 28px ;
+  height: 28px ;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  margin-left: 20px ;
+  transition: all 180ms ease ;
+}
+
+.flow-btn-modern:hover .flow-btn-play-modern {
+  background: white !important;
+  color: #dba86a !important;
+}
+
+/* Sections */
+.section-container-modern {
+  display: flex ;
+  flex-direction: column ;
+  gap: 14px ;
+  width: 100% ;
+}
+
+.section-header-modern {
+  display: flex ;
+  align-items: center ;
+  justify-content: space-between ;
+}
+
+.section-title-modern {
+  font-size: 15px ;
+  font-weight: 600 ;
+  color: var(--text, #f4f3f6) ;
+  margin: 0 ;
+  font-family: var(--font, inherit) ;
+}
+
+.toggle-view-btn-modern {
+  background: none ;
+  border: none !important;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62)) ;
+  font-size: 12.5px ;
+  font-weight: 600 ;
+  cursor: pointer ;
+  padding: 4px 8px ;
+  transition: all 180ms ease ;
+}
+
+.toggle-view-btn-modern:hover {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+/* Grilles Modernes */
+.grid-playlists-modern {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+.grid-albums-modern {
+  display: grid ;
+  grid-template-columns: repeat(5, 1fr) ;
+  gap: 16px ;
+  width: 100% ;
+}
+
+@media (max-width: 1200px) {
+  .grid-playlists-modern {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+  }
+  .grid-albums-modern {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+/* Surcharge Cartes Modernes */
+.deezer-layout-container-modern .card {
+  background:
+    radial-gradient(120% 140% at 14% 10%, rgba(195, 174, 232, 0.14), transparent 60%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-radius: var(--r-md, 22px) !important;
+  padding: 14px !important;
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6) !important;
+  flex-shrink: 0 !important;
+  min-height: max-content !important;
+}
+
+/* Surcharge Playlist Cards (Bigger Title and Cover Art) */
+.grid-playlists-modern .card,
+#dz-playlists-grid .card {
+  background:
+    radial-gradient(120% 140% at 14% 10%, rgba(195, 174, 232, 0.16), transparent 60%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-radius: var(--r-lg, 28px) !important;
+  padding: 16px !important;
+  max-width: 290px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6) !important;
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms !important;
+  flex-shrink: 0 !important;
+  min-height: max-content !important;
+}
+
+.grid-playlists-modern .card:hover,
+#dz-playlists-grid .card:hover {
+  transform: translateY(-4px) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Amélioration visuelle pour l'état actif/presse tactile des cartes */
+.deezer-layout-container-modern .card:active,
+.grid-playlists-modern .card:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  transition: all 80ms ease !important;
+}
+
+/* Amélioration visuelle premium de survol et de sélection tactile des morceaux (Tracks) */
+.deezer-layout-container-modern .track-item,
+#tab-deezer .track-item {
+  position: relative ;
+  padding-left: 12px ;
+  padding-right: 12px ;
+  background: transparent ;
+  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1), background 180ms cubic-bezier(0.4, 0, 0.2, 1) ;
+}
+
+.deezer-layout-container-modern .track-item:hover,
+#tab-deezer .track-item:hover {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)) !important;
+  transform: translateX(2px) !important;
+}
+
+.deezer-layout-container-modern .track-item:active,
+#tab-deezer .track-item:active {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)) !important;
+  transform: translateX(0) scale(0.99) !important;
+}
+
+/* Style de sélection moderne pour le morceau actuellement sélectionné */
+.deezer-layout-container-modern .track-item.track-item--active,
+#tab-deezer .track-item.track-item--active {
+  background: linear-gradient(160deg, rgba(195, 174, 232, 0.20), rgba(195, 174, 232, 0.08)) !important;
+}
+
+.grid-playlists-modern .card__cover {
+  max-width: 258px !important;
+  max-height: 258px !important;
+  width: 100% !important;
+  aspect-ratio: 1/1 !important;
+  border-radius: var(--r-md, 18px) !important;
+  overflow: hidden !important;
+  margin: 0 auto !important;
+  flex-shrink: 0 !important;
+}
+
+.grid-playlists-modern .card__cover img {
+  border-radius: var(--r-md, 18px) !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.grid-playlists-modern .card__title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: var(--text, #f4f3f6) !important;
+  margin-top: 4px !important;
+  text-align: center !important;
+}
+
+.grid-playlists-modern .card__meta {
+  font-size: 12.5px !important;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62)) !important;
+  text-align: center !important;
+}
+
+/* Surcharge Discover Cards (Smaller and compact) */
+.grid-albums-modern .card {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 10px !important;
+  gap: 8px !important;
+  max-width: 130px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.grid-albums-modern .card__cover {
+  border-radius: 12px !important;
+  max-width: 110px !important;
+  max-height: 110px !important;
+  width: 100% !important;
+  aspect-ratio: 1/1 !important;
+  margin: 0 auto !important;
+}
+
+.grid-albums-modern .card__cover img {
+  border-radius: 12px !important;
+}
+
+.grid-albums-modern .card__title {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--text, #f4f3f6) !important;
+}
+
+.grid-albums-modern .card__meta {
+  font-size: 11.5px !important;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62)) !important;
+}
+
+.deezer-layout-container-modern .card:hover {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65) !important;
+  transform: translateY(-4px) !important;
+}
+
+.deezer-layout-container-modern .card__cover {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  aspect-ratio: 1/1 !important;
+  position: relative !important;
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.6) !important;
+  background: linear-gradient(155deg, #c9c2f2, #8577d9) !important;
+  flex-shrink: 0 !important;
+}
+
+.deezer-layout-container-modern .card__cover img {
+  border-radius: 16px !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.deezer-layout-container-modern .card:hover .card__cover img {
+  transform: scale(1.05) !important;
+}
+
+.deezer-layout-container-modern .card__play-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(8, 8, 10, 0.45) !important;
+  backdrop-filter: blur(2px) !important;
+  opacity: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: opacity 180ms ease !important;
+}
+
+.deezer-layout-container-modern .card:hover .card__play-overlay {
+  opacity: 1 !important;
+}
+
+.deezer-layout-container-modern .card__play-btn {
+  background: linear-gradient(155deg, #c9c2f2, #8577d9) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 10px 24px -8px #8577d9 !important;
+}
+
+.deezer-layout-container-modern .card__info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  padding: 0 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.deezer-layout-container-modern .card__title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--text, #f4f3f6) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin: 0 !important;
+}
+
+.deezer-layout-container-modern .card__meta {
+  font-size: 12px !important;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62)) !important;
+  margin: 0 !important;
+}
+
+/* --- Internal Views Flex Scroll Management --- */
+.deezer-layout-container-modern .deezer-view,
+#tab-deezer .deezer-view {
+  display: none;
+  flex-direction: column;
+  height: 100% ;
+  min-height: 0 ;
+  overflow: hidden ;
+}
+
+.deezer-layout-container-modern .deezer-view--active,
+#tab-deezer .deezer-view--active {
+  display: flex ;
+}
+
+.deezer-layout-container-modern #view-playlists.deezer-view--active,
+#tab-deezer #view-playlists.deezer-view--active {
+  display: flex ;
+  flex-direction: column ;
+  height: 100% ;
+  min-height: 0 ;
+  overflow: hidden ;
+  gap: 16px ;
+}
+
+.deezer-layout-container-modern #view-playlists .flow-banner-container-modern,
+#tab-deezer #view-playlists .flow-banner-container-modern {
+  flex-shrink: 0 ;
+}
+
+.deezer-layout-container-modern #view-playlists .section-container-modern,
+#tab-deezer #view-playlists .section-container-modern {
+  flex: 1 ;
+  min-height: 0 ;
+  display: flex ;
+  flex-direction: column ;
+  overflow: hidden ;
+}
+
+.deezer-layout-container-modern #dz-playlists-grid,
+#tab-deezer #dz-playlists-grid {
+  flex: 1 ;
+  min-height: 250px ;
+  max-height: none ;
+  overflow-y: auto ;
+  padding-bottom: 24px ;
+  padding-right: 6px ;
+}
+
+.deezer-layout-container-modern .results-list,
+#tab-deezer .results-list,
+.deezer-layout-container-modern .tracks-list,
+#tab-deezer .tracks-list,
+.deezer-layout-container-modern #dz-albums-grid,
+#tab-deezer #dz-albums-grid {
+  flex: 1 ;
+  min-height: 0 ;
+  overflow-y: auto ;
+  padding-right: 6px ;
+  padding-bottom: 24px ;
+}
+
+/* Custom Webkit scrollbars for internal containers */
+.deezer-layout-container-modern .results-list::-webkit-scrollbar,
+#tab-deezer .results-list::-webkit-scrollbar,
+.deezer-layout-container-modern .tracks-list::-webkit-scrollbar,
+#tab-deezer .tracks-list::-webkit-scrollbar,
+.deezer-layout-container-modern #dz-albums-grid::-webkit-scrollbar,
+#tab-deezer #dz-albums-grid::-webkit-scrollbar,
+.deezer-layout-container-modern #dz-playlists-grid::-webkit-scrollbar,
+#tab-deezer #dz-playlists-grid::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.deezer-layout-container-modern .results-list::-webkit-scrollbar-track,
+#tab-deezer .results-list::-webkit-scrollbar-track,
+.deezer-layout-container-modern .tracks-list::-webkit-scrollbar-track,
+#tab-deezer .tracks-list::-webkit-scrollbar-track,
+.deezer-layout-container-modern #dz-albums-grid::-webkit-scrollbar-track,
+#tab-deezer #dz-albums-grid::-webkit-scrollbar-track,
+.deezer-layout-container-modern #dz-playlists-grid::-webkit-scrollbar-track,
+#tab-deezer #dz-playlists-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-radius: 4px !important;
+}
+
+.deezer-layout-container-modern .results-list::-webkit-scrollbar-thumb,
+#tab-deezer .results-list::-webkit-scrollbar-thumb,
+.deezer-layout-container-modern .tracks-list::-webkit-scrollbar-thumb,
+#tab-deezer .tracks-list::-webkit-scrollbar-thumb,
+.deezer-layout-container-modern #dz-albums-grid::-webkit-scrollbar-thumb,
+#tab-deezer #dz-albums-grid::-webkit-scrollbar-thumb,
+.deezer-layout-container-modern #dz-playlists-grid::-webkit-scrollbar-thumb,
+#tab-deezer #dz-playlists-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 4px !important;
+}
+
+.deezer-layout-container-modern .results-list::-webkit-scrollbar-thumb:hover,
+#tab-deezer .results-list::-webkit-scrollbar-thumb:hover,
+.deezer-layout-container-modern .tracks-list::-webkit-scrollbar-thumb:hover,
+#tab-deezer .tracks-list::-webkit-scrollbar-thumb:hover,
+.deezer-layout-container-modern #dz-albums-grid::-webkit-scrollbar-thumb:hover,
+#tab-deezer #dz-albums-grid::-webkit-scrollbar-thumb:hover,
+.deezer-layout-container-modern #dz-playlists-grid::-webkit-scrollbar-thumb:hover,
+#tab-deezer #dz-playlists-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 108, 246, 0.6) !important;
+}
+
+/* Fil d'ariane (Breadcrumb) modernisé */
+.navigation-bar-modern {
+  display: none;
+  align-items: center ;
+  gap: 16px ;
+  background: none ;
+  border: none !important;
+  border-radius: 0 ;
+  padding: 0 ;
+  margin-bottom: 16px ;
+  flex-shrink: 0 ;
+}
+
+.navigation-bar-modern .back-btn {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)) ;
+  border: none !important;
+  border-radius: 999px ;
+  padding: 7px 14px ;
+  font-size: 13px ;
+  font-weight: 600 ;
+  color: #ffffff ;
+  cursor: pointer ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14) ;
+  transition: transform 180ms ease ;
+  display: none;
+  align-items: center ;
+  gap: 6px ;
+}
+
+.navigation-bar-modern .back-btn:hover {
+  transform: translateY(-1px) !important;
+}
+
+.navigation-bar-modern .breadcrumb {
+  display: flex ;
+  align-items: center ;
+  gap: 8px ;
+}
+
+.navigation-bar-modern .breadcrumb__item {
+  background: transparent ;
+  border: none !important;
+  color: var(--text-faint, rgba(244, 243, 246, 0.36)) ;
+  font-size: 13px ;
+  font-weight: 500 ;
+  cursor: pointer ;
+  padding: 0 ;
+  transition: color 180ms ease ;
+}
+
+.navigation-bar-modern .breadcrumb__item:hover {
+  color: #ffffff !important;
+}
+
+.navigation-bar-modern .breadcrumb__item--active {
+  color: #c9c2f2 !important;
+  font-weight: 700 !important;
+}
+
+/* Vue Morceaux modernisée */
+.playlist-hero-modern {
+  display: flex ;
+  flex-direction: row ;
+  gap: 24px ;
+  align-items: center ;
+  background: linear-gradient(160deg, var(--glass-a, rgba(255, 255, 255, 0.10)), var(--glass-b, rgba(255, 255, 255, 0.035))) !important;
+  backdrop-filter: blur(16px) saturate(160%) ;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: none !important;
+  border-radius: var(--r-lg, 28px) !important;
+  padding: 20px ;
+  margin-bottom: 20px ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 14px 30px -20px rgba(0, 0, 0, 0.6) ;
+}
+
+.playlist-hero-modern .playlist-hero__img-wrapper {
+  width: clamp(100px, 15vh, 150px) ;
+  height: clamp(100px, 15vh, 150px) ;
+  border-radius: var(--r-md, 18px) !important;
+  overflow: hidden ;
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.6) ;
+}
+
+.playlist-hero-modern .playlist-hero__img {
+  width: 100% ;
+  height: 100% ;
+  object-fit: cover ;
+}
+
+.playlist-hero-modern .playlist-hero__info {
+  display: flex ;
+  flex-direction: column ;
+  align-items: flex-start ;
+  gap: 6px ;
+  flex: 1 ;
+}
+
+.playlist-hero-modern .playlist-hero__title {
+  font-size: clamp(18px, 2.5vh, 24px) ;
+  font-weight: 600 ;
+  color: var(--text, #f4f3f6) ;
+  margin: 0 ;
+  letter-spacing: -0.01em ;
+}
+
+.playlist-hero-modern .playlist-hero__meta {
+  font-size: 13px ;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62)) ;
+  margin: 0 ;
+}
+
+.btn-play-all-modern {
+  background: linear-gradient(155deg, #c9c2f2, #8577d9) ;
+  color: #ffffff ;
+  border: none !important;
+  border-radius: 999px ;
+  padding: 10px 20px ;
+  font-size: 14px ;
+  font-weight: 600 ;
+  display: flex ;
+  align-items: center ;
+  gap: 8px ;
+  cursor: pointer ;
+  transition: transform 180ms ease, box-shadow 180ms ease ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 24px -10px #8577d9 ;
+}
+
+.btn-play-all-modern:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 14px 30px -10px #8577d9 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEEZER BOTTOM SHEET SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.deezer-layout-container-modern .deezer-sheet,
+#tab-deezer .deezer-sheet {
+  display: flex ;
+  flex-direction: column ;
+  visibility: hidden ;
+  position: fixed ;
+  bottom: 0 ;
+  left: 0 ;
+  right: 0 ;
+  height: 85% !important;
+  width: 100% ;
+  background:
+    radial-gradient(120% 70% at 90% 0%, rgba(195, 174, 232, 0.10), transparent 60%),
+    linear-gradient(160deg, #1c1a24, #101015) ;
+  backdrop-filter: blur(30px) saturate(160%) ;
+  -webkit-backdrop-filter: blur(30px) saturate(160%) !important;
+  border-top-left-radius: 44px ;
+  border-top-right-radius: 44px ;
+  border: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 -20px 60px rgba(0, 0, 0, 0.5) ;
+  z-index: 1000 ;
+  transform: translate3d(0, 100%, 0) ;
+  will-change: transform;
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1), visibility 380ms ;
+  padding: 24px 32px ;
+  box-sizing: border-box ;
+  overflow: hidden ;
+}
+
+.deezer-layout-container-modern .deezer-sheet.deezer-view--active,
+#tab-deezer .deezer-sheet.deezer-view--active {
+  transform: translate3d(0, 0, 0) !important;
+  visibility: visible !important;
+}
+
+/* Poignée de glissement visuelle (drag handle) */
+.deezer-layout-container-modern .deezer-sheet-handle,
+#tab-deezer .deezer-sheet-handle {
+  width: 44px ;
+  height: 5px ;
+  background: rgba(255, 255, 255, 0.18) ;
+  border-radius: 999px ;
+  margin: -10px auto 20px auto ;
+  flex-shrink: 0 ;
+}
+
+/* Bouton Fermer dédié moderne en cercle */
+.deezer-layout-container-modern .deezer-sheet-close-btn,
+#tab-deezer .deezer-sheet-close-btn {
+  position: absolute ;
+  top: 18px ;
+  right: 24px ;
+  width: 40px ;
+  height: 40px ;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)) ;
+  border: none !important;
+  border-radius: 50% ;
+  color: rgba(255, 255, 255, 0.7) ;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  cursor: pointer ;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) ;
+  z-index: 1010 ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14) ;
+}
+
+.deezer-layout-container-modern .deezer-sheet-close-btn:hover,
+#tab-deezer .deezer-sheet-close-btn:hover {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05)) !important;
+  color: #ffffff !important;
+  transform: scale(1.06) !important;
+}
+
+.deezer-layout-container-modern .deezer-sheet-close-btn:active,
+#tab-deezer .deezer-sheet-close-btn:active {
+  transform: scale(0.94) !important;
+}
+
+/* Overlay semi-transparente */
+.deezer-layout-container-modern .deezer-sheet-overlay,
+#tab-deezer .deezer-sheet-overlay {
+  position: fixed ;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(8, 8, 10, 0.55) ;
+  backdrop-filter: blur(14px) ;
+  z-index: 999 ;
+  opacity: 0 ;
+  pointer-events: none ;
+  transition: opacity 300ms ease ;
+}
+
+.deezer-layout-container-modern .deezer-sheet-overlay.deezer-sheet-overlay--active,
+#tab-deezer .deezer-sheet-overlay.deezer-sheet-overlay--active {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Verrouillage du scroll d'arrière-plan */
+.deezer-content--no-scroll {
+  overflow: hidden !important;
+}
+
+/* Styles pour la mise en forme en liste des playlists (Tout afficher) */
+.list-playlists-modern {
+  display: flex ;
+  flex-direction: column ;
+  gap: 12px ;
+  width: 100% ;
+  margin-top: 10px ;
+}
+
+.playlist-row-item {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018)) ;
+  border: none !important;
+  border-radius: 999px ;
+  padding: 12px 18px ;
+  display: flex ;
+  align-items: center ;
+  justify-content: space-between ;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms ;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 10px 20px -14px rgba(0, 0, 0, 0.6) ;
+}
+
+.playlist-row-item:hover {
+  transform: translateX(4px) translateY(-1px) !important;
+}
+
+.playlist-row-item:active {
+  transform: translateX(2px) scale(0.99) !important;
+}
+
+.playlist-row-play-btn:hover {
+  transform: scale(1.08) !important;
+}
+
+.playlist-row-play-btn:active {
+  transform: scale(0.94) !important;
+}
+
+.playlist-row-open-btn:hover {
+  transform: translateY(-1px) !important;
+}
+
+.playlist-row-open-btn:active {
+  transform: scale(0.96) !important;
+}
+
+/* ── Cards (playlists / albums / discover) ─────────────────────────────────── */
+.card {
+  background: rgba(24, 30, 58, 0.55);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.card:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(124, 108, 246, 0.55);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.card:active { transform: scale(0.97); }
+
+.card__cover {
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  position: relative;
+  border-radius: 18px 18px 0 0;
+}
+
+.card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.card:hover .card__cover img { transform: scale(1.05); }
+
+.card__cover-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5b6284;
+  font-size: 40px;
+}
+
+.card__info { padding: 14px 16px; }
+.card__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f4f5fb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card__meta {
+  font-size: 13px;
+  color: #a29bd6;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Overlay play sur la card */
+.card__play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.45);
+  opacity: 0;
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover .card__play-overlay { opacity: 1; }
+
+.card__play-btn {
+  width: 44px;
+  height: 44px;
+  background: #7c6cf6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* ── Liste de pistes ────────────────────────────────────────────────────── */
+.tracks-list { display: flex; flex-direction: column; gap: 2px; }
+
+.track-item {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.track-item:hover { background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)); }
+.track-item:active { background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)); }
+
+.track-item__num {
+  font-size: 13px;
+  color: var(--text-faint, rgba(244, 243, 246, 0.36));
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.track-item__playing { color: #c9c2f2; }
+
+.track-item__info { overflow: hidden; }
+
+.track-item__title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text, #f4f3f6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-item__artist {
+  font-size: 12.5px;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-item__duration {
+  font-size: 12px;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62));
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Résultats de recherche ─────────────────────────────────────────────── */
+.results-list { display: flex; flex-direction: column; gap: 8px; }
+
+.result-item {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
+  border: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 10px 20px -14px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
+}
+
+.result-item:hover {
+  transform: translateY(-2px);
+}
+
+.result-item__img {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  object-fit: cover;
+  background: linear-gradient(155deg, #c9c2f2, #8577d9);
+}
+
+.result-item__info { overflow: hidden; }
+
+.result-item__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text, #f4f3f6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-item__sub {
+  font-size: 12.5px;
+  color: var(--text-soft, rgba(244, 243, 246, 0.62));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.result-item__play {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(155deg, #c9c2f2, #8577d9);
+  color: white;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -8px #8577d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.result-item:hover .result-item__play { opacity: 1; }
+
+/* ── Vues Deezer (une seule visible à la fois) ─────────────────────────────
+   Redéfinies plus bas, scopées #tab-deezer (section "NOUVEAU DESIGN DEEZER
+   PLEINE LARGEUR"), qui l'emporte en cascade — cette base reste le repli. */
+.deezer-view {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.deezer-view--active {
+  display: flex;
+}
+
+/* ── Barre de recherche ─────────────────────────────────────────────────── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
+  border: none;
+  border-radius: 999px;
+  padding: 0 18px;
+  gap: 12px;
+  min-height: 56px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-bar:focus-within {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 0 1px rgba(195, 174, 232, 0.4);
+}
+
+.search-bar__icon { width: 20px; height: 20px; color: var(--text-faint, rgba(244, 243, 246, 0.36)); flex-shrink: 0; }
+
+.search-bar__input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text, #f4f3f6);
+  padding: 16px 0;
+  font-size: 16px;
+}
+
+.search-bar__input::placeholder { color: var(--text-faint, rgba(244, 243, 246, 0.36)); }
+
+.search-bar__clear {
+  color: var(--text-faint, rgba(244, 243, 246, 0.36));
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  display: none;
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.search-bar__clear:hover { color: #ffffff; background: rgba(255, 255, 255, 0.08); }
+.search-bar__clear--visible { display: block; }
+
+/* Filtres de recherche */
+.filter-btn {
+  padding: 12px 22px;
+  min-height: 48px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-faint, rgba(244, 243, 246, 0.36));
+  background: none;
+  border: none;
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-btn:hover { background: rgba(255, 255, 255, 0.06); color: #ffffff; }
+.filter-btn--active {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.08));
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.breadcrumb__item {
+  font-size: 13px;
+  color: var(--text-faint, rgba(244, 243, 246, 0.36));
+  padding: 4px 8px;
+  border-radius: 999px;
+  transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.breadcrumb__item:not(:last-child)::after {
+  content: '›';
+  position: absolute;
+  right: -8px;
+  color: var(--text-faint, rgba(244, 243, 246, 0.36));
+}
+
+.breadcrumb__item:hover { color: #ffffff; background: rgba(255, 255, 255, 0.06); }
+.breadcrumb__item--active { color: #ffffff; font-weight: 600; }
+
+/* Hero playlist — le conteneur .playlist-hero (bare) est mort : deezer.html
+   utilise .playlist-hero-modern, mais réutilise ces sous-parties telles
+   quelles (voir section "NOUVEAU DESIGN" pour la définition de conteneur). */
+.playlist-hero__img {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.playlist-hero__info { flex: 1; min-width: 0; }
+.playlist-hero__title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.playlist-hero__meta { font-size: 13px; color: #9aa1c2; margin-bottom: 12px; }
+
+/* Hero artiste */
+.artist-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 8px;
+}
+
+.artist-hero__img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: linear-gradient(155deg, #c9c2f2, #8577d9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 14px 30px -14px rgba(0, 0, 0, 0.6);
+}
+
+.artist-hero__name { font-size: 22px; font-weight: 700; color: var(--text, #f4f3f6); letter-spacing: -0.01em; }
+
+/* ── Sélecteur de sessions (multi-source Deezer) ────────────────────────────
+   Rendu par app-ui-deezer.js dans #session-picker / #session-picker-list —
+   ces conteneurs n'existent plus dans deezer.html depuis sa restructuration
+   "-modern" : la fonction ne trouve rien à peupler et ne fait rien (même
+   situation que le sélecteur de périphériques audio de media.css). CSS
+   conservée intacte pour ne pas trancher à la place de l'utilisateur. */
+.session-picker {
+  width: 100%;
+  padding: 0 0 12px;
+}
+
+.session-picker__list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 4px;
+  scrollbar-width: none;
+}
+.session-picker__list::-webkit-scrollbar { display: none; }
+
+.session-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: #9aa1c2;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 180ms cubic-bezier(0.4, 0, 0.2, 1), color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+              background 180ms cubic-bezier(0.4, 0, 0.2, 1), transform 80ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.session-chip:active {
+  transform: scale(0.95);
+}
+
+.session-chip--active {
+  border-color: #7c6cf6;
+  background: rgba(166, 77, 255, 0.15);
+  color: #9d90ff;
+}
+
+.session-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5b6284;
+  flex-shrink: 0;
+  transition: background 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.session-chip__dot--playing {
+  background: #3dd68c;
+  box-shadow: 0 0 6px #3dd68c;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+.session-chip__name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Skeletons (chargement playlists/albums/pistes/recherche) ──────────────── */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.skeleton-card {
+  aspect-ratio: 1;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  border-radius: var(--r-md, 22px);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1;   }
+}
+
+/* ── Tri (playlists et pistes) ──────────────────────────────────────────── */
+.tracks-sort-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.sort-label {
+  font-size: 13px;
+  color: var(--text-faint, rgba(244, 243, 246, 0.36));
+  margin-right: 10px;
+}
+
+.sort-select {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  border: none;
+  border-radius: 999px;
+  color: var(--text, #f4f3f6);
+  font-size: 13px;
+  padding: 5px 14px;
+  outline: none;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.sort-select option {
+  background: #191a1e;
+  color: var(--text, #f4f3f6);
+}
+
+/* ── Bouton retour (bandeau navigation) ─────────────────────────────────── */
+.back-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+  border: none;
+  color: var(--text, #f4f3f6);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 40px;
+}
+
+.back-btn:hover {
+  transform: translateY(-1px);
+}
+
+.back-btn > svg {
+  margin-right: 6px;
+}
+
+/* ── Widget "Now Playing" (barre latérale) ──────────────────────────────────
+   Rendu par UI._renderMediaWidget (app-ui-core.js, config "deezer" : ids
+   dz-media-title/artist/cover/cover-placeholder/play-icon/progress) dans un
+   widget qui n'existe plus dans deezer.html depuis sa restructuration
+   "-modern" (aucun #dz-media-* ni .widget-now-playing dans le HTML actuel).
+   Fonctionnellement inerte aujourd'hui (mêmes garde-fous null que les autres
+   widgets média) ; CSS conservée intacte, à raccorder ou supprimer selon ce
+   que l'utilisateur décide pour ce widget. */
+.widget-now-playing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 480px !important;
+  background: var(--bg-player-card) !important; /* Tesla style dashboard gradient player */
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.dz-now-playing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 16px 0;
+  justify-content: center;
+}
+
+.dz-media-art-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.dz-media-cover-wrapper {
+  width: 180px;
+  height: 180px;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 20px rgba(59, 130, 246, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dz-media-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dz-media-cover-wrapper:hover .dz-media-cover {
+  transform: scale(1.05);
+}
+
+.dz-media-placeholder {
+  font-size: 64px;
+  font-weight: bold;
+  color: var(--text-muted);
+}
+
+.dz-media-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.dz-media-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.dz-media-artist {
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.dz-progress-section {
+  width: 100%;
+  padding: 0 8px;
+}
+
+.dz-progress-bar-container {
+  height: 8px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-radius: 4px !important;
+  overflow: hidden;
+  transition: background 0.18s ease;
+}
+
+.dz-progress-bar-container:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dz-progress-bar-fill {
+  background: var(--gradient-progress) !important; /* beautiful blue-to-purple progress */
+  border-radius: 4px !important;
+}
+
+.dz-controls-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}

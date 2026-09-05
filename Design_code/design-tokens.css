@@ -1,6 +1,11 @@
 /* ===================================================================
    Cockpit OS — Design tokens & composants "Soft Glass"
    Voir cockpit-os-design-system.md pour la doc complète.
+
+   Copie de référence pour briefer un agent — la source de vérité
+   RÉELLEMENT servie par l'app est web/css/design-tokens.css. Si les
+   deux divergent, c'est ce fichier-ci qui est périmé : le
+   resynchroniser depuis web/css/design-tokens.css, jamais l'inverse.
    =================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');

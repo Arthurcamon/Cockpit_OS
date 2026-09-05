@@ -1,7 +1,25 @@
 # Cockpit OS — Design System « Soft Glass »
 
-Ce document décrit le langage visuel à appliquer à l'ensemble des onglets de Cockpit OS.
-Référence visuelle vivante : `pc-raccourcis-glass-v2.html` (onglet Raccourcis, déjà dans ce style).
+Ce document décrit le langage visuel « Soft Glass », qui s'applique au **cœur de l'app**
+uniquement : les onglets **Raccourcis**, **Médias** et **Deezer**. Référence visuelle
+vivante : `pc-raccourcis-glass-v2.html` (onglet Raccourcis, déjà dans ce style).
+
+## 0. Périmètre — Soft Glass vs Automobile
+
+Cockpit OS a deux systèmes visuels distincts et volontairement séparés :
+
+- **Soft Glass** (ce document) — Raccourcis / Médias / Deezer. Le style « principal » de
+  l'app, celui décrit ci-dessous.
+- **Automobile** — Dashboard (`#tab-dashboard`, onglet « Cockpit ») + Endurance
+  (`#tab-endurance`). Extension de l'app avec sa propre charte, pensée comme un habitacle
+  de tableau de bord automobile plutôt que comme un OS tactile. N'hérite d'aucun token
+  Soft Glass et n'est pas documentée ici (tokens dédiés dans `style.css`, section
+  « Automotive Cockpit UI Theme », scopée à `#tab-dashboard` ; Endurance a sa propre
+  feuille de style embarquée dans `endurance.html`).
+
+**Règle** : ne jamais faire fuiter un token/composant Soft Glass dans Dashboard/Endurance,
+ni l'inverse. Un composant qui a besoin d'exister dans les deux univers doit être stylé
+deux fois, une par système — jamais partagé tel quel.
 
 ## 1. Direction artistique (résumé en une phrase)
 

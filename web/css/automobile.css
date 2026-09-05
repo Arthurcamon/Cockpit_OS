@@ -1,0 +1,159 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   COCKPIT OS — ONGLET AUTOMOBILE (lanceur Cockpit / Endurance)
+   Groupe "Automobile" (voir cockpit-os-design-system.md, section 0) : charte
+   propre, distincte de Soft Glass. Cet écran ne fait que lancer Cockpit ou
+   Endurance en plein écran — voir plus bas les règles de plein écran
+   partagées par les deux (masquage header + rail de nav) et le bouton de
+   sortie, communs à tout le groupe Automobile.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#tab-automobile {
+  background: #050508;
+  color: #F3F4F6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* display:flex uniquement quand l'onglet est réellement actif : un simple
+   "#tab-automobile { display: flex }" a une spécificité (ID) plus forte que
+   ".tab-panel { display: none }" (classe) et resterait affiché par-dessus
+   les autres onglets même une fois leur .tab-panel--active appliqué. */
+#tab-automobile.tab-panel--active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.automobile-launcher {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  text-align: center;
+}
+
+.automobile-launcher__head h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.automobile-launcher__head p {
+  font-size: 14px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+.automobile-launcher__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 640px), (orientation: portrait) {
+  .automobile-launcher__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.automobile-launch-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 36px 20px;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.automobile-launch-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.automobile-launch-card:active {
+  transform: scale(0.98);
+}
+
+.automobile-launch-card__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60A5FA;
+}
+
+.automobile-launch-card__icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.automobile-launch-card__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.automobile-launch-card__desc {
+  font-size: 12.5px;
+  color: #9CA3AF;
+  line-height: 1.4;
+}
+
+/* ── Mode plein écran (Cockpit / Endurance) ─────────────────────────────────
+   #tab-dashboard et #tab-endurance restent des .tab-panel classiques
+   (position absolute, flex:1 hérité de .tab-content) : masquer .header et
+   .tab-nav suffit, la mise en page se redistribue toute seule. */
+body.automobile-fullscreen .header,
+body.automobile-fullscreen .tab-nav {
+  display: none;
+}
+
+/* ── Bouton de sortie — fixe, coin haut-gauche, visible uniquement en plein
+   écran. Cible tactile 44px (plancher retenu lors de l'audit tactile). ──── */
+.automobile-exit-btn {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  cursor: pointer;
+  z-index: 2000;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.automobile-exit-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.automobile-exit-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.automobile-exit-btn:active {
+  transform: scale(0.92);
+}
+
+body.automobile-fullscreen .automobile-exit-btn {
+  display: flex;
+}

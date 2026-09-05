@@ -12,6 +12,7 @@ env/
 # Environment / secrets
 .env
 .env.*
+.cockpit_token
 
 # Visual Studio
 .vs/

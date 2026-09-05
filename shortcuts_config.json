@@ -1,0 +1,14 @@
+{
+  "_comment": "Édite ce fichier pour ajouter/retirer des apps, sans toucher au code. `command` est une commande shell Windows exécutée telle quelle (null = pas encore configuré, l'app apparaît mais son lancement renverra une erreur explicite). `process_names` liste le(s) nom(s) d'exécutable (ex: 'Discord.exe') utilisés pour détecter si l'app tourne déjà et mettre sa fenêtre au premier plan au lieu d'en relancer une instance — laisse [] si tu ne connais pas le nom exact, ça retombera simplement sur un lancement à chaque fois. Redémarre le serveur après modification. Les jeux Steam ne sont plus listés ici : ils sont détectés automatiquement depuis le menu Démarrer (voir _discover_steam_games dans core/shortcuts.py).",
+
+  "apps": [
+    { "id": "deezer",    "name": "Deezer",     "icon_class": "icon-music",    "category": "Média",       "command": "C:\\Users\\33658\\AppData\\Local\\Programs\\deezer-desktop\\Deezer.exe", "process_names": ["Deezer.exe"] },
+    { "id": "chrome",    "name": "Chrome",     "icon_class": "icon-browser",  "category": "Web",         "command": "start chrome",  "process_names": ["chrome.exe"] },
+    { "id": "fanatec",   "name": "Fanatec",    "icon_class": "icon-gauge",    "category": "Sim-Racing",  "command": null,            "process_names": [] },
+    { "id": "simhub",    "name": "SimHub",     "icon_class": "icon-gauge",    "category": "Sim-Racing",  "command": null,            "process_names": [] },
+    { "id": "steam",     "name": "Steam",      "icon_class": "icon-gamepad",  "category": "Jeux",        "command": "start steam",   "process_names": ["steam.exe"] },
+    { "id": "reglage",   "name": "Réglages",   "icon_class": "icon-settings", "category": "Système",     "command": "start ms-settings:", "process_names": [] },
+    { "id": "minecraft", "name": "Minecraft",  "icon_class": "icon-cube",     "category": "Jeux",        "command": null,            "process_names": [] },
+    { "id": "claude",    "name": "Claude",     "icon_class": "icon-spark",    "category": "Productivité", "command": null,           "process_names": ["Claude.exe"] }
+  ]
+}

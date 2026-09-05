@@ -1,293 +1,62 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    COCKPIT OS — ONGLET RACCOURCIS (SHORTCUTS TAB)
-   Design system : "Soft Glass" — voir Design_code/cockpit-os-design-system.md
-   Réutilise les tokens/composants de design-tokens.css (chargé dans index.html).
-   Grille 2 colonnes (gauche fixe / droite flexible), mêmes classes qu'avant :
-   seule la couche visuelle change, structure et logique JS intactes.
+   Grille fixe en 4 zones (pas de scroll) : Apps rapides / Macros / Steam /
+   Système. Palette et rayons repris des tokens partagés (design-tokens.css) ;
+   --notch-border/--notch-glow/--accent-2 sont réservés au notch média du
+   header, jamais utilisés ici. Refonte 2026-09-03 — voir
+   Design_code/refonte-ui-2026.md.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.shortcuts-tab-container {
+.rc-shell {
   width: 100%;
   height: 100%;
   color: var(--text);
   font-family: var(--font);
-  padding: 4px;
   box-sizing: border-box;
-  overflow: hidden;
   position: relative;
-}
-
-.shortcuts-grid-layout {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  gap: 18px;
-  grid-template-columns: 336px 1fr;
-  grid-template-rows: 1fr;
-  position: relative;
-  z-index: 2;
-}
-
-.shortcuts-col-left {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
   min-height: 0;
 }
 
-.shortcuts-col-left .shortcuts-zone--apps,
-.shortcuts-col-left .shortcuts-zone--system {
+.rc-grid {
   flex: 1;
-  box-sizing: border-box;
-  overflow: hidden;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+}
+
+.rc-panel {
+  background: var(--rc-surface-1);
+  border-radius: 16px;
+  box-shadow: var(--rc-shadow-panel);
+  padding: 26px 30px;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
-.shortcuts-col-right {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* ── Cartes en verre (zones gauche + widget MFD droite) ─────────────────── */
-.shortcuts-zone,
-.shortcuts-mfd-widget {
-  position: relative;
-  box-sizing: border-box;
-  overflow: hidden;
-  border-radius: var(--r-lg);
-  background: linear-gradient(160deg, var(--glass-a), var(--glass-b));
-  backdrop-filter: blur(26px) saturate(160%);
-  -webkit-backdrop-filter: blur(26px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -14px 30px -24px rgba(0, 0, 0, 0.5),
-    0 22px 48px -22px rgba(0, 0, 0, 0.55);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.shortcuts-mfd-widget {
-  position: relative;
-}
-.shortcuts-mfd-widget::before {
-  content: "";
-  position: absolute;
-  top: -40px; right: -40px;
-  width: 340px; height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(143, 208, 232, 0.16), transparent 70%);
-  filter: blur(10px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.shortcuts-zone-header {
+.rc-panel__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 0;
-  padding: 19px 20px 12px;
-  border-bottom: none;
+  margin-bottom: 20px;
   flex-shrink: 0;
-  position: relative;
-  z-index: 2;
 }
+.rc-panel__title { font-size: 14px; font-weight: 600; letter-spacing: 0.4px; color: var(--rc-text-secondary); }
 
-.shortcuts-zone-title {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-  letter-spacing: 0.01em;
-}
-
-.shortcuts-zone-title svg {
-  color: var(--text-soft);
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-}
-
-.shortcuts-zone-badge {
-  font-size: 10.5px;
-  font-weight: 500;
-  padding: 0;
-  border-radius: 0;
-  background: none;
-  border: none;
-  color: var(--text-faint);
-  letter-spacing: 0.02em;
-}
-
-.shortcuts-zone-body {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  position: relative;
-  z-index: 2;
-}
-
-/* ── Barre d'onglets du widget MFD — capsule "segmented" ─────────────────── */
-.shortcuts-mfd-tabs {
-  position: relative;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  width: fit-content;
-  height: auto;
-  margin: 19px 20px 15px;
-  padding: 5px;
-  border-radius: 999px;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.35);
-  border-bottom: none;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.shortcuts-mfd-tab-btn {
-  position: relative;
-  z-index: 2;
-  flex: none;
-  height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  border-radius: 999px;
-  padding: 9px 18px;
-  color: var(--text-faint);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  user-select: none;
-  touch-action: manipulation;
-  transition: color 0.25s ease;
-  box-sizing: border-box;
-  white-space: nowrap;
-}
-
-.shortcuts-mfd-tab-btn svg {
-  width: 15px;
-  height: 15px;
-  color: inherit;
-  transition: color 0.25s ease;
-}
-
-.shortcuts-mfd-tab-btn:hover {
-  color: var(--text-soft);
-}
-
-/* Le remplissage vient de #shortcuts-mfd-indicator (.seg-indicator) qui
-   glisse derrière le bouton actif — le bouton lui-même ne fait que changer
-   de couleur de texte, il n'a plus son propre fond. */
-.shortcuts-mfd-tab-btn.is-active {
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.shortcuts-mfd-tab-btn.is-active svg {
-  color: #ffffff;
-}
-
-/* ── Indicateur glissant (.seg-indicator, cf design-tokens.css) ─────────── */
-.shortcuts-mfd-tabs .seg-indicator {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  height: calc(100% - 10px);
-  width: 0;
-  border-radius: 999px;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.30), 0 6px 16px -6px rgba(0, 0, 0, 0.4);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* ── Contenu des panes MFD ────────────────────────────────────────────────*/
-.shortcuts-mfd-content {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
-  z-index: 2;
-}
-
-.shortcuts-mfd-pane {
-  display: none;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  padding: 0 20px 20px;
-}
-
-.shortcuts-mfd-pane.is-active {
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── Scrollbars discrètes, scopées à l'onglet ─────────────────────────────*/
-.shortcuts-scrollable-list::-webkit-scrollbar,
-.shortcuts-apps-grid::-webkit-scrollbar,
-.shortcuts-scenes-grid::-webkit-scrollbar,
-#shortcuts-steam-list::-webkit-scrollbar,
-#shortcuts-windows-list::-webkit-scrollbar {
-  width: 5px;
-}
-.shortcuts-scrollable-list::-webkit-scrollbar-track,
-.shortcuts-apps-grid::-webkit-scrollbar-track,
-.shortcuts-scenes-grid::-webkit-scrollbar-track,
-#shortcuts-steam-list::-webkit-scrollbar-track,
-#shortcuts-windows-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-.shortcuts-scrollable-list::-webkit-scrollbar-thumb,
-.shortcuts-apps-grid::-webkit-scrollbar-thumb,
-.shortcuts-scenes-grid::-webkit-scrollbar-thumb,
-#shortcuts-steam-list::-webkit-scrollbar-thumb,
-#shortcuts-windows-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.10);
-  border-radius: 3px;
-}
-
-/* Message vide / Chargement */
-.shortcuts-status-msg {
+/* Message vide / chargement — partagé par les 4 zones */
+.rc-status-msg {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
   width: 100%;
   text-align: center;
-  color: var(--text-faint);
-  font-size: 12px;
+  color: var(--rc-text-secondary);
+  font-size: 12.5px;
   font-weight: 500;
   gap: 12px;
   padding: 16px;
@@ -295,695 +64,379 @@
   grid-column: 1 / -1;
 }
 
-.shortcuts-spinner {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2.5px solid rgba(255, 255, 255, 0.12);
-  border-top-color: rgba(255, 255, 255, 0.7);
-  animation: shortcuts-spin 0.9s linear infinite;
+/* ───────────────────────────────────────────────────────────────────────────
+   APPS RAPIDES — grille 4x2, une couleur d'identité par app (--tile-color).
+   ─────────────────────────────────────────────────────────────────────────── */
+.rc-apps-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 14px;
 }
 
-@keyframes shortcuts-spin {
-  to { transform: rotate(360deg); }
+.rc-app-tile {
+  position: relative;
+  background: var(--rc-surface-2);
+  border-radius: 12px;
+  box-shadow: var(--rc-shadow-tile);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  color: var(--rc-text-primary);
+  font-family: var(--font);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  /* Feedback tactile — scale seul (pas de propriété à reflow), retour
+     immédiat au relâchement via :active. */
+  transition: transform 150ms ease;
 }
+.rc-app-tile:active { transform: scale(0.96); }
+.rc-app-tile.is-loading { opacity: 0.6; pointer-events: none; }
+
+/* Icône neutre, pas de badge coloré — la distinction entre apps se fait par
+   la forme du glyphe, pas par une couleur d'identité (voir maquette de
+   référence : dérogation sciemment actée au pattern --tile-*, cf. journal
+   de refonte v5). Point 4 (maquette finale) : l'icône doit dominer
+   visuellement la tuile — blanche et grande, le nom en dessous reste
+   secondaire (taille + couleur). */
+.rc-app-tile__icon {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rc-text-primary);
+}
+.rc-app-tile__icon svg { width: 32px; height: 32px; }
+
+.rc-app-tile__name { font-size: 14px; font-weight: 400; letter-spacing: 0.1px; color: var(--rc-text-secondary); }
+
+/* Point "app déjà lancée sur le PC" — visibilité pilotée par .is-running
+   (ShortcutsController.pollAppsStatus), fondu discret à l'apparition comme à
+   la disparition (groupe 2 des animations). */
+.rc-app-tile__running-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.rc-app-tile.is-running .rc-app-tile__running-dot { opacity: 1; }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   1. APPS RAPIDES — cartes "glow" avec pebble et lueur de teinte propre
+   MACROS — grille 2x2, grandes tuiles (le geste le plus fréquent de l'onglet).
    ─────────────────────────────────────────────────────────────────────────── */
-.shortcuts-apps-grid {
+.rc-macro-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
-  align-content: start;
-  padding: 2px 20px 20px;
-}
-
-.shortcuts-app-btn {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
+  grid-template-rows: repeat(2, 1fr);
   gap: 14px;
-  aspect-ratio: unset;
-  min-height: 100px;
-  border: none;
-  border-radius: var(--r-md);
-  padding: 14px 14px 12px;
-  box-sizing: border-box;
-  cursor: pointer;
-  user-select: none;
-  touch-action: manipulation;
-  text-align: left;
-  color: var(--text);
-  background:
-    radial-gradient(120% 140% at 14% 10%, var(--glow, rgba(180, 170, 230, 0.24)), transparent 60%),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6);
-  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
 }
 
-.shortcuts-app-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65);
-}
-
-.shortcuts-app-btn:active,
-.shortcuts-app-btn.is-pressed {
-  transform: translateY(-1px) scale(0.98);
-}
-
-.shortcuts-app-btn.is-loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* Six teintes cycliques (mêmes accents que le reste du design system) pour
-   distinguer les apps sans dépendre de données de couleur venant du backend. */
-.shortcuts-app-btn:nth-child(6n+1) { --glow: rgba(148, 163, 184, 0.26); }
-.shortcuts-app-btn:nth-child(6n+1) .shortcuts-app-icon { --pc1: #cbd5e0; --pc2: #64748b; }
-.shortcuts-app-btn:nth-child(6n+2) { --glow: rgba(133, 119, 217, 0.28); }
-.shortcuts-app-btn:nth-child(6n+2) .shortcuts-app-icon { --pc1: #c9c2f2; --pc2: #8577d9; }
-.shortcuts-app-btn:nth-child(6n+3) { --glow: rgba(219, 168, 106, 0.28); }
-.shortcuts-app-btn:nth-child(6n+3) .shortcuts-app-icon { --pc1: #f3e0b8; --pc2: #dba86a; }
-.shortcuts-app-btn:nth-child(6n+4) { --glow: rgba(217, 97, 74, 0.28); }
-.shortcuts-app-btn:nth-child(6n+4) .shortcuts-app-icon { --pc1: #f2b8b0; --pc2: #d9614a; }
-.shortcuts-app-btn:nth-child(6n+5) { --glow: rgba(79, 184, 171, 0.28); }
-.shortcuts-app-btn:nth-child(6n+5) .shortcuts-app-icon { --pc1: #b8e8e0; --pc2: #4fb8ab; }
-.shortcuts-app-btn:nth-child(6n+0) { --glow: rgba(92, 179, 126, 0.28); }
-.shortcuts-app-btn:nth-child(6n+0) .shortcuts-app-icon { --pc1: #c9ecd6; --pc2: #5cb37e; }
-
-.shortcuts-app-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 14px;
-  position: relative;
-  flex: 0 0 auto;
-  margin-bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  background: linear-gradient(155deg, var(--pc1, #c9c2f2), var(--pc2, #8577d9));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -8px var(--pc2, #8577d9);
-  transition: none;
-}
-.shortcuts-app-icon::after {
-  content: "";
-  position: absolute;
-  top: 12%; left: 14%;
-  width: 55%; height: 38%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent 70%);
-  pointer-events: none;
-}
-.shortcuts-app-icon svg {
-  position: relative;
-  z-index: 2;
-  width: 16px;
-  height: 16px;
-}
-
-.shortcuts-app-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-width: 100%;
-}
-
-.shortcuts-app-name {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.shortcuts-app-info {
-  font-size: 10.5px;
-  font-weight: 500;
-  color: var(--text-faint);
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
-   2. JEUX STEAM — cartes carrées, même famille visuelle que les apps
-   ─────────────────────────────────────────────────────────────────────────── */
-#shortcuts-steam-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
-  align-content: start;
-}
-
-.shortcuts-steam-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 12px;
-  aspect-ratio: 1 / 1;
-  padding: 12px;
-  border-radius: var(--r-md);
-  cursor: pointer;
-  user-select: none;
-  touch-action: manipulation;
-  box-sizing: border-box;
-  width: 100%;
-  color: var(--text);
-  background: var(--glow-bg, radial-gradient(120% 140% at 14% 100%, rgba(90, 127, 196, 0.22), transparent 65%)), linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6);
-  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
-}
-
-/* Six teintes cycliques, même principe que .shortcuts-app-btn, pour donner à
-   chaque tuile Steam une identité de couleur propre. */
-.shortcuts-steam-item:nth-child(6n+1) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(148, 163, 184, 0.26), transparent 65%); }
-.shortcuts-steam-item:nth-child(6n+1) .shortcuts-steam-icon { background: linear-gradient(155deg, #cbd5e0, #64748b); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #64748b; }
-.shortcuts-steam-item:nth-child(6n+2) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(133, 119, 217, 0.28), transparent 65%); }
-.shortcuts-steam-item:nth-child(6n+2) .shortcuts-steam-icon { background: linear-gradient(155deg, #c9c2f2, #8577d9); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #8577d9; }
-.shortcuts-steam-item:nth-child(6n+3) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(219, 168, 106, 0.28), transparent 65%); }
-.shortcuts-steam-item:nth-child(6n+3) .shortcuts-steam-icon { background: linear-gradient(155deg, #f3e0b8, #dba86a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #dba86a; }
-.shortcuts-steam-item:nth-child(6n+4) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(217, 97, 74, 0.28), transparent 65%); }
-.shortcuts-steam-item:nth-child(6n+4) .shortcuts-steam-icon { background: linear-gradient(155deg, #f2b8b0, #d9614a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #d9614a; }
-.shortcuts-steam-item:nth-child(6n+5) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(79, 184, 171, 0.28), transparent 65%); }
-.shortcuts-steam-item:nth-child(6n+5) .shortcuts-steam-icon { background: linear-gradient(155deg, #b8e8e0, #4fb8ab); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #4fb8ab; }
-.shortcuts-steam-item:nth-child(6n+0) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(92, 179, 126, 0.28), transparent 65%); }
-.shortcuts-steam-item:nth-child(6n+0) .shortcuts-steam-icon { background: linear-gradient(155deg, #c9ecd6, #5cb37e); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #5cb37e; }
-
-.shortcuts-steam-item:hover {
-  transform: translateY(-3px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65);
-}
-
-.shortcuts-steam-item:active,
-.shortcuts-steam-item.is-pressed {
-  transform: translateY(-1px) scale(0.97);
-}
-
-.shortcuts-steam-item.is-loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.shortcuts-steam-icon {
-  width: 34px;
-  height: 34px;
+/* Fond neutre --rc-surface-2, comme Apps rapides/Actions système (maquette
+   finale, point 1) — l'ancien lavis accent uniforme sur toute la tuile
+   (--accent-wash) est abandonné : seul un badge sur l'icône reste teinté
+   (point 2/4 à venir). Les Macros restent une seule collection d'actions,
+   pas une couleur d'identité par macro (--tile-*), qui reste réservée aux
+   collections qu'on distingue au coup d'œil (Apps rapides). */
+.rc-macro-tile {
+  background: var(--rc-surface-2);
+  /* Bordure transparente réservée (pas de bordure visible au repos, comme
+     la maquette) : garde 1px de largeur tout le temps pour que le passage
+     à .is-active anime juste la couleur, sans à-coup de largeur/layout. */
+  border: 1px solid transparent;
   border-radius: 12px;
-  position: relative;
-  flex-shrink: 0;
-  margin-bottom: 0;
+  box-shadow: var(--rc-shadow-tile);
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  background: linear-gradient(155deg, #b8d3f2, #5a7fc4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -8px #5a7fc4;
-}
-.shortcuts-steam-icon::after {
-  content: "";
-  position: absolute;
-  top: 12%; left: 14%;
-  width: 55%; height: 38%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
-  pointer-events: none;
-}
-.shortcuts-steam-icon svg { position: relative; z-index: 2; width: 15px; height: 15px; }
-
-.shortcuts-steam-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
-   3. ACTIONS SYSTÈME — capsules, froid = sûr / chaud = sensible
-   ─────────────────────────────────────────────────────────────────────────── */
-.shortcuts-system-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  width: 100%;
-  height: 100%;
-  justify-content: space-between;
-  box-sizing: border-box;
-  padding: 2px 20px 20px;
-}
-
-.shortcuts-sysbtn {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  padding: 8px 16px 8px 8px;
-  border-radius: 999px;
+  gap: 16px;
+  padding: 0 26px;
+  color: var(--rc-text-primary);
   font-family: var(--font);
-  font-size: 13px;
-  font-weight: 600;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  transition: transform 0.18s, box-shadow 0.25s;
-  box-sizing: border-box;
-  flex: 1;
-  border: none;
-  color: var(--text);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 10px 20px -14px rgba(0, 0, 0, 0.6);
+  /* Transition vers l'état actif (groupe 2 des animations) — fond/bordure
+     seulement, pas de propriété à reflow. Le retour à l'état neutre passe
+     par la même transition quand .is-active est retiré (macro incompatible
+     activée à sa place, cf. ShortcutsController.applyActiveScene). */
+  transition: background-color 260ms ease, border-color 260ms ease;
+}
+.rc-macro-tile.is-loading { opacity: 0.6; pointer-events: none; }
+.rc-macro-tile.is-active {
+  background: var(--rc-accent-soft);
+  border-color: var(--notch-blue);
 }
 
-.shortcuts-sysbtn::before {
-  content: "";
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  display: flex;
-}
-
-.shortcuts-sysbtn svg {
+/* Badge accent (point 4, maquette finale) — la teinte du repos et celle de
+   l'état actif (.rc-macro-tile.is-active) partagent la même valeur
+   --rc-accent-soft : à l'activation, le badge se fond dans le fond de la
+   tuile plutôt que de perdre son contraste dans l'autre sens, acceptable
+   puisque la tuile entière porte déjà la mise en avant à ce moment-là. */
+.rc-macro-tile__icon {
+  width: 46px;
+  height: 46px;
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  position: relative;
-  z-index: 2;
-}
-
-/* Icône ronde en pebble derrière le SVG (structure HTML inchangée : le SVG
-   est un enfant direct du bouton, on l'habille donc directement). */
-.shortcuts-sysbtn {
-  position: relative;
-}
-.shortcuts-sysbtn > svg {
-  width: 38px;
-  height: 38px;
-  padding: 11px;
-  box-sizing: border-box;
-  border-radius: 50%;
-  color: #ffffff;
-  background: linear-gradient(155deg, #bcdcf2, #5aa0d9);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px -6px #5aa0d9;
-}
-
-.shortcuts-sysbtn:hover { transform: translateY(-2px); }
-.shortcuts-sysbtn:active,
-.shortcuts-sysbtn.is-pressed { transform: translateY(0) scale(0.985); }
-
-.shortcuts-sysbtn--neutral { color: var(--text); }
-
-.shortcuts-sysbtn--warning {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 12px 28px -14px rgba(219, 168, 92, 0.4);
-  color: var(--text);
-}
-.shortcuts-sysbtn--warning > svg {
-  background: linear-gradient(155deg, #f2d9b8, #dba85c);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px -6px #dba85c;
-}
-
-.shortcuts-sysbtn--danger {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 12px 28px -14px rgba(217, 97, 74, 0.46);
-  color: var(--text);
-}
-.shortcuts-sysbtn--danger > svg {
-  background: linear-gradient(155deg, #f2b0a0, #d9614a);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px -6px #d9614a;
-}
-
-.shortcuts-sysbtn.is-loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
-   4. FENÊTRES OUVERTES — cartes carrées, icône + titre
-   ─────────────────────────────────────────────────────────────────────────── */
-#shortcuts-windows-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
-  align-content: start;
-}
-
-.shortcuts-window-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 12px;
-  aspect-ratio: 1 / 1;
-  padding: 12px;
-  border-radius: var(--r-md);
-  cursor: pointer;
-  user-select: none;
-  touch-action: manipulation;
-  box-sizing: border-box;
-  width: 100%;
-  color: var(--text);
-  background:
-    var(--glow-bg, radial-gradient(120% 140% at 14% 100%, rgba(169, 232, 207, 0.20), transparent 65%)),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 30px -20px rgba(0, 0, 0, 0.6);
-  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
-}
-
-/* Six teintes cycliques, même principe que .shortcuts-app-btn et
-   .shortcuts-steam-item, pour qu'aucune fenêtre ne soit identique à la
-   précédente. */
-.shortcuts-window-item:nth-child(6n+1) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(148, 163, 184, 0.26), transparent 65%); }
-.shortcuts-window-item:nth-child(6n+1) .shortcuts-window-icon { background: linear-gradient(155deg, #cbd5e0, #64748b); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #64748b; }
-.shortcuts-window-item:nth-child(6n+2) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(133, 119, 217, 0.28), transparent 65%); }
-.shortcuts-window-item:nth-child(6n+2) .shortcuts-window-icon { background: linear-gradient(155deg, #c9c2f2, #8577d9); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #8577d9; }
-.shortcuts-window-item:nth-child(6n+3) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(219, 168, 106, 0.28), transparent 65%); }
-.shortcuts-window-item:nth-child(6n+3) .shortcuts-window-icon { background: linear-gradient(155deg, #f3e0b8, #dba86a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #dba86a; }
-.shortcuts-window-item:nth-child(6n+4) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(217, 97, 74, 0.28), transparent 65%); }
-.shortcuts-window-item:nth-child(6n+4) .shortcuts-window-icon { background: linear-gradient(155deg, #f2b8b0, #d9614a); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #d9614a; }
-.shortcuts-window-item:nth-child(6n+5) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(79, 184, 171, 0.28), transparent 65%); }
-.shortcuts-window-item:nth-child(6n+5) .shortcuts-window-icon { background: linear-gradient(155deg, #b8e8e0, #4fb8ab); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #4fb8ab; }
-.shortcuts-window-item:nth-child(6n+0) { --glow-bg: radial-gradient(120% 140% at 14% 100%, rgba(92, 179, 126, 0.28), transparent 65%); }
-.shortcuts-window-item:nth-child(6n+0) .shortcuts-window-icon { background: linear-gradient(155deg, #c9ecd6, #5cb37e); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 16px -8px #5cb37e; }
-
-.shortcuts-window-item:hover {
-  transform: translateY(-3px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 36px -18px rgba(0, 0, 0, 0.65);
-}
-
-.shortcuts-window-item:active,
-.shortcuts-window-item.is-pressed {
-  transform: translateY(-1px) scale(0.97);
-}
-
-.shortcuts-window-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  position: relative;
-  flex-shrink: 0;
-  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  background: linear-gradient(155deg, #b8e8e0, #4fb8ab);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 16px -8px #4fb8ab;
-  transition: none;
+  color: var(--notch-blue);
+  background: var(--rc-accent-soft);
+  border-radius: 10px;
 }
-.shortcuts-window-icon::after {
-  content: "";
-  position: absolute;
-  top: 12%; left: 14%;
-  width: 55%; height: 38%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
-  pointer-events: none;
-}
-.shortcuts-window-icon svg { position: relative; z-index: 2; width: 15px; height: 15px; }
+.rc-macro-tile__icon svg { width: 26px; height: 26px; }
 
-.shortcuts-window-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  text-align: left;
+.rc-macro-tile__name { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   STEAM — 3 vignettes par page, pagination par points (.rc-pager). Couleur
+   de fond assignée par JS (paletteFor) en guise de vignette de substitution.
+   ─────────────────────────────────────────────────────────────────────────── */
+.rc-steam-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  /* Empêche le navigateur d'interpréter un swipe horizontal comme un geste
+     système (retour/scroll) — cette grille ne scrolle jamais (pas de
+     scroll dans l'app), donc aucun geste natif à préserver ici. Nécessaire
+     pour que le drag (initSteamSwipe, shortcuts.js) reçoive tous les
+     pointermove sans interruption sur tablette. */
+  touch-action: none;
+  /* Transition de page (groupe 4) — swap déjà fait en JS (renderSteamPage) ;
+     .is-sliding-* pré-positionne la nouvelle page hors-champ + invisible
+     (transition coupée le temps du positionnement), puis JS retire la
+     classe pour relâcher vers 0/1 avec l'easing ci-dessous. Pendant un
+     drag actif (.is-dragging), la transition est coupée pour suivre le
+     doigt 1:1 ; réactivée au relâchement (snap-back ou changement de page). */
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
+}
+.rc-steam-grid.is-sliding-next { transition: none; transform: translateX(28px); opacity: 0; }
+.rc-steam-grid.is-sliding-prev { transition: none; transform: translateX(-28px); opacity: 0; }
+.rc-steam-grid.is-dragging { transition: none; }
+
+.rc-game-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
+  min-height: 0;
+  box-shadow: var(--rc-shadow-game-card);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  /* Rendu sourd, valeurs littérales de la maquette. */
+  filter: saturate(0.55) brightness(0.85);
+}
+.rc-game-card.is-loading { opacity: 0.7; pointer-events: none; }
+
+/* Indicateur de chargement (groupe 4) — spinner ancré au centre, transform
+   seul (rotation), pendant que le jeu démarre côté PC. */
+@keyframes rc-spin { to { transform: rotate(360deg); } }
+.rc-game-card.is-loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  z-index: 2;
+  animation: rc-spin 700ms linear infinite;
+}
+
+/* Marqueur "jeu en cours d'exécution" (groupe 4) — pulsation discrète,
+   distincte du spinner de chargement (les deux classes ne se recouvrent
+   jamais dans le temps, voir ShortcutsController.launchSteamGame) et de
+   l'historique "joué il y a Xh" (pas de style dédié à ça pour l'instant).
+   Mémoire optimiste côté front — pas de détection de processus Steam
+   réelle, voir journal de refonte. */
+@keyframes rc-running-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); opacity: 1; }
+  50%      { box-shadow: 0 0 0 5px rgba(52, 211, 153, 0); opacity: 0.85; }
+}
+.rc-game-card.is-running::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  z-index: 2;
+  animation: rc-running-pulse 1800ms ease-in-out infinite;
+}
+
+.rc-game-card .name {
+  position: relative;
+  z-index: 1;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
 }
 
-/* ───────────────────────────────────────────────────────────────────────────
-   5. SCÈNES — lignes larges, halo qui pulse doucement quand une scène tourne
-   ─────────────────────────────────────────────────────────────────────────── */
-.shortcuts-scenes-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
+/* Voile sombre en pied de vignette — lisibilité du titre quelle que soit la
+   teinte pastel du dégradé (paletteFor, shortcuts.js). */
+.rc-game-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 65%);
+  z-index: 0;
 }
 
-.shortcuts-scene-btn {
+/* Pagination par points — partagée Apps rapides / Steam. Le bouton garde
+   une cible tactile généreuse (44x32, valeur maquette) autour d'un point
+   visuel de 7px — la taille "cliquable" et la taille "visible" sont
+   volontairement différentes ici, cf. maquette (.steam-dots .d/::after). */
+.rc-pager {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 14px 16px;
-  border-radius: 26px;
-  cursor: pointer;
-  user-select: none;
-  touch-action: manipulation;
-  transition: transform 0.18s, box-shadow 0.3s;
-  box-sizing: border-box;
-  position: relative;
-  width: 100%;
-  border: none;
-  color: var(--text);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.shortcuts-scene-btn:hover { transform: translateY(-2px); }
-
-.shortcuts-scene-btn:active,
-.shortcuts-scene-btn.is-pressed {
-  transform: translateY(-1px) scale(0.99);
-}
-
-.shortcuts-scene-btn.is-loading {
-  opacity: 0.75;
-  pointer-events: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 0 1px rgba(169, 232, 207, 0.35), 0 20px 44px -20px rgba(169, 232, 207, 0.5);
-  animation: shortcuts-scene-glow 1.4s ease-in-out infinite alternate;
-}
-@keyframes shortcuts-scene-glow {
-  from { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 0 1px rgba(169, 232, 207, 0.30), 0 16px 34px -20px rgba(169, 232, 207, 0.45); }
-  to   { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 0 1px rgba(169, 232, 207, 0.45), 0 24px 54px -18px rgba(169, 232, 207, 0.6); }
-}
-
-.shortcuts-scene-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 2px;
-  width: 100%;
-}
-
-.shortcuts-scene-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 18px;
+  margin-top: 14px;
   flex-shrink: 0;
-  padding: 12px;
-  box-sizing: border-box;
+}
+.rc-pager.is-hidden { display: none; }
+
+.rc-pager__dot {
+  width: 44px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  background: linear-gradient(155deg, #c9c2f2, #8577d9);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  transition: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
-
-.shortcuts-scene-btn:nth-of-type(4n+1) .shortcuts-scene-icon { background: linear-gradient(155deg, #b8e8e0, #4fb8ab); }
-.shortcuts-scene-btn:nth-of-type(4n+2) .shortcuts-scene-icon { background: linear-gradient(155deg, #f2b8b0, #d9614a); }
-.shortcuts-scene-btn:nth-of-type(4n+3) .shortcuts-scene-icon { background: linear-gradient(155deg, #c9c2f2, #8577d9); }
-.shortcuts-scene-btn:nth-of-type(4n+0) .shortcuts-scene-icon { background: linear-gradient(155deg, #bcdcf2, #5aa0d9); }
-
-.shortcuts-scene-name {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-  letter-spacing: 0.01em;
+.rc-pager__dot::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rc-text-tertiary);
+  transition: background 0.2s ease, width 0.2s ease, border-radius 0.2s ease;
 }
-
-.shortcuts-scene-desc {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-faint);
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.4;
-  width: 100%;
-  text-align: left;
-  padding-left: 54px;
-}
+.rc-pager__dot.is-active::after { background: var(--notch-blue); width: 20px; border-radius: 8px; }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   MODALE DE CONFIRMATION SÉCURISÉE (actions critiques)
+   SYSTÈME — grille de tuiles carrées, Éteindre en pleine largeur. Glyph coloré
+   par gravité (neutre/avertissement/danger), fond neutre — pas de couleur
+   d'identité ici (actions rares, jamais au gabarit "Macros" pour limiter les
+   taps accidentels).
    ─────────────────────────────────────────────────────────────────────────── */
-.shortcuts-modal-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(8, 8, 10, 0.55);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  z-index: 99999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.25s ease, visibility 0.25s;
-  box-sizing: border-box;
-  padding: 20px;
+.rc-actions-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr 1fr 0.85fr;
+  gap: 14px;
 }
 
-.shortcuts-modal-overlay.is-active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.shortcuts-modal-card {
-  width: 100%;
-  max-width: 360px;
-  border-radius: 44px;
-  padding: 34px 30px 28px;
-  box-sizing: border-box;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03));
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 40px 80px -24px rgba(0, 0, 0, 0.7);
+.rc-action-tile {
+  background: var(--rc-surface-2);
+  border-radius: 12px;
+  box-shadow: var(--rc-shadow-tile);
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  transform: scale(0.94);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  border: none;
-}
-
-.shortcuts-modal-overlay.is-active .shortcuts-modal-card {
-  transform: scale(1);
-}
-
-.shortcuts-modal-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  color: #ffffff;
-  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.5), #d9614a 70%);
-  box-shadow: 0 0 0 10px rgba(217, 97, 74, 0.10), 0 14px 30px -10px rgba(217, 97, 74, 0.5);
-  border: none;
+  gap: 12px;
+  color: var(--rc-text-primary);
+  font-family: var(--font);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  /* Feedback tactile — confirme la prise en compte du tap avant l'exécution
+     (actions neutres) ou avant l'ouverture de la modale (actions sensibles,
+     voir .modal-card--from-origin ci-dessous pour la suite du geste). */
+  transition: transform 150ms ease;
+}
+.rc-action-tile:active { transform: scale(0.96); }
+.rc-action-tile.is-loading { opacity: 0.6; pointer-events: none; }
+
+.rc-action-tile__icon { color: var(--rc-text-primary); display: flex; }
+.rc-action-tile__icon svg { width: 36px; height: 36px; }
+.rc-action-tile__name { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; color: var(--rc-text-secondary); }
+
+/* Hiérarchie de gravité — deux paliers, valeurs littérales de la maquette :
+   Fermer session/Redémarrer (avertissement, réversible) vs Éteindre (plus
+   marqué, seule action réellement destructrice) ; Verrouiller/Veille restent
+   neutres au-dessus (pas de classe, pas de teinte de fond). */
+.rc-action-tile--warm {
+  background: var(--rc-warn-soft);
+}
+.rc-action-tile--warm .rc-action-tile__icon { color: var(--rc-warn); }
+
+.rc-action-tile--danger {
+  background: var(--rc-danger-soft);
+}
+.rc-action-tile--danger .rc-action-tile__icon { color: var(--rc-danger); }
+
+.rc-action-tile--wide {
+  grid-column: 1 / span 2;
+  flex-direction: row;
+  gap: 18px;
+}
+.rc-action-tile--wide .rc-action-tile__icon svg { width: 32px; height: 32px; }
+.rc-action-tile--wide .rc-action-tile__name { font-size: 17px; letter-spacing: 0.1px; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   MODALE DE CONFIRMATION — texte du corps (icône/carte/boutons viennent de
+   .modal-* et .btn* dans design-tokens.css). .modal-card--from-origin
+   remplace la transition générique (slide-up centré) par un scale-up
+   depuis le bouton pressé — transform-origin posé dynamiquement par
+   ShortcutsController.confirmSystemAction (shortcuts.js) en % de la carte,
+   donc indépendant de l'échelle de #app-shell (voir applyAppScale,
+   app-core.js). Scopé ici plutôt que dans design-tokens.css : ce geste est
+   spécifique à cette modale, pas un comportement par défaut de .modal-card.
+   ─────────────────────────────────────────────────────────────────────────── */
+.modal-card--from-origin {
+  transform: scale(0.15);
+  opacity: 0;
+  transition: transform 280ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease;
+}
+.modal-overlay.is-open .modal-card--from-origin {
+  transform: scale(1);
+  opacity: 1;
 }
 
-.shortcuts-modal-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 9px;
-  letter-spacing: -0.01em;
-}
-
-.shortcuts-modal-subtitle {
-  font-size: 12.5px;
+.shortcuts-modal-text {
+  font-size: 13.5px;
   font-weight: 500;
-  color: var(--text-faint);
-  margin-bottom: 0;
+  color: var(--text-soft);
   line-height: 1.6;
 }
 
-.shortcuts-modal-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin-top: 24px;
-}
+/* Toast de notification : repose entièrement sur .toast (design-tokens.css) —
+   le HTML porte class="toast shortcuts-toast", aucune règle locale requise. */
 
-.shortcuts-modal-btn {
-  flex: 1;
-  padding: 13px 0;
-  border-radius: 999px;
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  user-select: none;
-  touch-action: manipulation;
-  transition: transform 0.15s;
-  box-sizing: border-box;
-  text-align: center;
-  border: none;
-}
-.shortcuts-modal-btn:hover { transform: translateY(-1px); }
-
-.shortcuts-modal-btn--cancel {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02));
-  color: var(--text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
-}
-
-.shortcuts-modal-btn--confirm {
-  background: linear-gradient(160deg, #f0a894, #d9614a);
-  color: #3a1710;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 14px 30px -12px rgba(217, 97, 74, 0.6);
-}
-.shortcuts-modal-btn--confirm:active { transform: scale(0.97); }
-
-/* Feedback toast discret */
-.shortcuts-toast {
-  position: absolute;
-  bottom: 26px;
-  left: 50%;
-  transform: translate(-50%, 16px);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  border-radius: 999px;
-  background: linear-gradient(160deg, rgba(40, 40, 46, 0.75), rgba(20, 20, 24, 0.75));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 20px 40px -14px rgba(0, 0, 0, 0.6);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text);
-  border: none !important;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
-  pointer-events: none;
-  z-index: 100;
-  white-space: nowrap;
-}
-
-.shortcuts-toast.is-visible {
-  opacity: 1;
-  visibility: visible;
-  transform: translate(-50%, 0);
+@media (max-width: 900px) {
+  .rc-grid { grid-template-columns: 1fr; grid-template-rows: repeat(4, minmax(220px, 1fr)); }
 }

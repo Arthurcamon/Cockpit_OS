@@ -1,0 +1,45 @@
+1. Sidebar de navigation
+
+Changement d'onglet actif : transition douce du fond (opacité + léger déplacement du surlignage) quand on tape un autre item — pas un simple switch instantané.
+Icône active : légère mise en couleur progressive (fade du gris vers l'accent bleu) au moment du tap, pas un changement brutal.
+
+2. Notch (média en cours)
+
+Apparition/disparition : slide-in depuis le haut ou fade+scale quand la lecture démarre ; fade-out quand elle s'arrête (condition : lecture_active == true/false).
+Égaliseur : anime réellement les barres en boucle tant que musique_en_lecture == true ; se fige (barres à hauteur basse et statiques) si en_pause == true.
+Changement de morceau : le titre/sous-texte fait un léger crossfade ou slide horizontal quand la piste change, plutôt qu'un remplacement instantané.
+Glow de la bordure : pulsation très subtile et lente (respiration, pas clignotement) uniquement quand un contenu est actif ; glow statique ou absent si rien ne joue.
+
+3. Apps Rapides
+
+Tap sur une tuile : léger scale-down (ex. 0.96) au press, puis retour à la normale au relâchement — feedback tactile immédiat.
+Lancement en cours : état transitoire (ex. icône remplacée par un spinner discret ou pulsation de l'icône) entre le tap et la confirmation que l'app est ouverte.
+Application déjà ouverte sur le PC : bordure ou point d'état qui apparaît en fondu sur la tuile correspondante (condition : app_status == "running").
+
+4. Macros
+
+Activation d'une macro : la tuile change progressivement de couleur neutre vers son état "actif" (ex. fond qui se teinte en fondu) — condition : macro_active == true.
+Icône : petite animation de confirmation au moment de l'activation (ex. léger bounce ou check qui apparaît brièvement) puis retour à un état stable "actif" sans animation permanente.
+Désactivation implicite d'une autre macro : si une macro incompatible était active, elle repasse en fondu à l'état neutre en même temps que la nouvelle s'active.
+
+5. Steam
+
+Défilement entre vignettes (pagination) : swipe horizontal fluide avec easing, pas un saut brut ; les points de pagination suivent avec une transition de largeur/couleur.
+Jeu en cours de lancement : état de chargement visible sur la vignette concernée (ex. léger assombrissement + indicateur de progression) — condition : steam_status == "launching".
+Jeu actuellement en cours (déjà lancé) : marqueur discret qui pulse doucement sur la vignette concernée (condition : steam_status == "running"), différent visuellement du simple historique "joué il y a Xh".
+
+6. Actions Système
+
+Tap sur une action non sensible (Verrouiller, Veille) : feedback bref (flash de la bordure ou scale) confirmant la prise en compte, avant l'exécution.
+Tap sur une action sensible (Fermer session, Redémarrer, Éteindre) : transition qui ouvre la modale de confirmation plein écran — fade + scale-up depuis la position du bouton pressé plutôt qu'une apparition brute, pour garder le lien visuel avec l'action déclenchée.
+Bouton "Confirmer" dans la modale : léger délai de désactivation après le tap (empêche le double-tap accidentel en contexte vibrations) — condition : action_type == "sensible".
+
+7. Header global
+
+Horloge : les minutes qui changent pourraient avoir une transition chiffre-par-chiffre douce plutôt qu'un remplacement instantané (détail raffiné, optionnel).
+Statut de connexion PC : transition de couleur du point (vert → gris/rouge) en fondu quand la connexion change d'état, jamais de changement brutal — condition : pc_status changes.
+
+
+8. Transitions entre onglets (Raccourcis ↔ Média ↔ Deezer ↔ Auto)
+
+Changement d'écran : cross-fade ou léger slide horizontal entre les contenus des différents onglets, pour éviter un changement instantané qui casserait la continuité visuelle en contexte de conduite.

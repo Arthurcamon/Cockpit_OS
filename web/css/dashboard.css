@@ -1,0 +1,624 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   COCKPIT OS — ONGLET DASHBOARD (COCKPIT / CARPLAY)
+   Groupe "Automobile", charte distincte de Soft Glass (voir
+   cockpit-os-design-system.md, section 0). Widget navigation GPS (mock SVG),
+   lecteur média compact, statistiques véhicule.
+
+   Note d'architecture : .widget-card / .widget-header / .widget-icon /
+   .widget-title / .widget-content sont la base partagée avec l'onglet Média
+   (#tab-media la surcharge dans media.css) — ce fichier en est le
+   propriétaire historique. Frontière Soft Glass / Automobile à corriger un
+   jour (voir audit du 2026-08-25), pas dans ce chantier de découpage.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tokens "Automotive Cockpit UI Theme" (scopés à #tab-dashboard) ────────── */
+#tab-dashboard {
+  /* High-fidelity variables overwrite */
+  --bg-base:        #050508; /* near-black background */
+  --bg-base-2:      #0a0a0f;
+  --bg-elevated:    rgba(255, 255, 255, 0.06); /* Translucent hover (6%) */
+
+  /* Tesla/Rivian style subtle player gradient */
+  --bg-player-card: linear-gradient(160deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+
+  /* Electric blue accents */
+  --accent:         #3B82F6;
+  --accent-light:   #60A5FA;
+  --accent-glow:    rgba(59, 130, 246, 0.35);
+
+  /* Highlight gradient (purple to pink) */
+  --gradient-highlight: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --gradient-progress: linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%);
+
+  /* Typography Colors */
+  --text-primary:   #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-muted:     #6B7280;
+
+  /* High-contrast border (1px border at ~8% white opacity) */
+  --border:         rgba(255, 255, 255, 0.08);
+
+  /* States */
+  --success:        #10B981; /* Green dot status */
+  --error:          #EF4444;
+
+  /* Rounding — dimensions (header-h/nav-w/footer-h volontairement absents :
+     #tab-dashboard n'est pas un ancêtre de .header/.tab-nav, ces tokens n'y
+     avaient donc jamais d'effet réel une fois correctement scopés) */
+  --radius:         22px; /* 20-24px radius on all widget cards */
+  --radius-sm:      14px;
+  --radius-pill:    9999px; /* fully rounded buttons */
+
+  /* Physics-based cubic-bezier transitions */
+  --transition:     220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Police/texte "Automotive" — scopé à #tab-dashboard : le reste de l'app
+   (Soft Glass) garde Manrope, hérité de html/body (design-tokens.css). */
+#tab-dashboard {
+  color: #F3F4F6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Conteneur racine ───────────────────────────────────────────────────── */
+.cockpit-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Widget de base (carte glass) — partagé avec Média, voir note en tête ───
+   blur réduit de 20 à 16px : 2-3 de ces cartes sont visibles simultanément
+   à l'écran en permanence (contrairement aux modales/sheets, affichées une
+   à la fois) — trop coûteux en cumulé pour le GPU Mali-G52 de la Tab A8
+   (même traitement que .shortcuts-dock/.shortcuts-zone dans shortcuts.css). */
+.widget-card {
+  background: rgba(255, 255, 255, 0.04) ;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07) ;
+  border-radius: var(--radius) !important;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: var(--transition);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  min-height: 240px;
+}
+
+.widget-card:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 12px;
+}
+
+.widget-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+.widget-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  color: var(--text-secondary);
+}
+
+.widget-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ── Typographie décorative ─────────────────────────────────────────────── */
+.font-extra-large {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  color: var(--text-primary);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+}
+
+.text-gradient-purple {
+  background: var(--gradient-highlight);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none ;
+}
+
+.text-gradient-blue {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARPLAY HIGH-FIDELITY DASHBOARD OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.carplay-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .carplay-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.carplay-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Navigation GPS widget */
+.widget-carplay-navigation {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.carplay-nav-content {
+  padding: 4px 0;
+}
+
+.carplay-map-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.carplay-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 800 / 420;
+}
+
+/* Turn guidance instruction card */
+.carplay-instruction-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(10, 10, 14, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100% - 32px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: slideInDown 0.4s ease-out;
+}
+
+.instruction-indicator {
+  width: 38px;
+  height: 38px;
+  background: rgba(59, 130, 246, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.instruction-arrow-icon {
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
+}
+
+.instruction-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.instruction-distance {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.instruction-road {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Arrival bar at bottom */
+.carplay-arrival-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 14, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 10;
+}
+
+.arrival-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.arrival-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.arrival-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.arrival-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-active-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 11px;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.nav-active-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 6px #3b82f6;
+  animation: pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+/* Media Player Compact */
+.widget-carplay-media {
+  display: flex;
+  flex-direction: column;
+}
+
+.carplay-media-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.media-player-compact-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-cover-container {
+  flex-shrink: 0;
+}
+
+.dash-cover-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dash-cover-placeholder {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text-muted);
+}
+
+.dash-media-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dash-title-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-artist-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Compact Progress */
+.dash-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.dash-progress-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 32px;
+}
+
+.dash-progress-bar-wrapper {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.dash-progress-bar-wrapper:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.dash-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, #3b82f6, #7c6cf6);
+  border-radius: 3px;
+  width: 0%;
+}
+
+/* Circular Buttons */
+.dash-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.dash-circular-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dash-circular-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.dash-circular-btn:active {
+  transform: scale(0.95);
+}
+
+.dash-circular-btn--play {
+  width: 46px;
+  height: 46px;
+}
+
+/* Stats sub-grid */
+.carplay-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.carplay-stat-card {
+  min-height: auto ;
+  padding: 16px 12px ;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.stat-card-num-group {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+}
+
+.stat-card-number {
+  font-size: 28px ;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-card-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.stat-card-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Overrides #tab-dashboard (ajustements de layout final) ─── */
+#tab-dashboard .cockpit-container {
+  height: 100% ;
+  width: 100% ;
+  display: flex ;
+  flex-direction: column ;
+  justify-content: stretch ;
+  overflow: hidden ;
+}
+
+#tab-dashboard .carplay-grid {
+  display: grid ;
+  grid-template-columns: 1.6fr 1fr ;
+  grid-template-rows: 1fr ;
+  gap: 16px ;
+  width: 100% ;
+  height: 100% ;
+  padding: 0 ;
+  align-items: stretch ;
+  overflow: hidden ;
+}
+
+#tab-dashboard #widget-gps-nav {
+  height: 100% ;
+  display: flex ;
+  flex-direction: column ;
+  min-height: 0 ;
+  padding: 16px ;
+}
+
+#tab-dashboard .carplay-nav-content {
+  flex: 1 ;
+  min-height: 0 ;
+  display: flex ;
+  flex-direction: column ;
+  padding: 0 ;
+}
+
+#tab-dashboard .carplay-map-wrapper {
+  flex: 1 ;
+  min-height: 0 ;
+  display: flex ;
+  flex-direction: column ;
+  position: relative ;
+  height: 100% ;
+  width: 100% ;
+}
+
+#tab-dashboard .carplay-map-svg {
+  width: 100% ;
+  height: 100% ;
+  display: block ;
+  object-fit: cover ;
+}
+
+#tab-dashboard .carplay-side-panel {
+  height: 100% ;
+  display: flex ;
+  flex-direction: column ;
+  gap: 16px ;
+  min-height: 0 ;
+}
+
+#tab-dashboard #widget-dashboard-media {
+  flex: 1.5 ;
+  min-height: 0 ;
+  display: flex ;
+  flex-direction: column ;
+  padding: 16px ;
+}
+
+#tab-dashboard .carplay-media-content {
+  flex: 1 ;
+  min-height: 0 ;
+  display: flex ;
+  flex-direction: column ;
+  justify-content: space-between ;
+  gap: 12px ;
+  padding: 0 ;
+}
+
+#tab-dashboard .carplay-stats-grid {
+  flex: 1 ;
+  min-height: 0 ;
+  display: grid ;
+  grid-template-columns: repeat(3, 1fr) ;
+  gap: 12px ;
+  height: 100% ;
+}
+
+#tab-dashboard .carplay-stat-card {
+  height: 100% ;
+  min-height: 0 ;
+  padding: 8px 6px !important;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+}

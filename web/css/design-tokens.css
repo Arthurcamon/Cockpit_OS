@@ -1,223 +1,380 @@
 /* ===================================================================
-   Cockpit OS — Design tokens & composants "Soft Glass"
-   Voir cockpit-os-design-system.md pour la doc complète.
+   Cockpit OS — Design tokens & composants partagés
+   Palette bleu-nuit calme, un seul accent bleu, cartes plates (pas de
+   blur/glow systématique — voir refonte du 2026-09-01). Ces tokens et
+   classes sont consommés par shortcuts.css, media.css et deezer.css ;
+   Dashboard / Endurance / Automobile ont leur propre système de tokens
+   ("Automotive") et ne dépendent pas de ce fichier.
+
+   SOURCE UNIQUE : ce fichier est désormais le seul point de définition des
+   tokens partagés — style.css (chrome applicatif : header/nav/tab-panel) ne
+   déclare plus son propre :root, il consomme directement ceux-ci. Avant le
+   2026-09-01 les deux fichiers dupliquaient les mêmes valeurs à la main
+   (risque de désynchronisation) ; fusionné pour n'avoir plus qu'un seul
+   endroit à modifier.
    =================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
-
 :root{
-  /* base */
-  --graphite-1:#191a1e;
-  --graphite-2:#101114;
-  --glass-a:rgba(255,255,255,0.10);
-  --glass-b:rgba(255,255,255,0.035);
-  --text:#f4f3f6;
-  --text-soft:rgba(244,243,246,0.62);
-  --text-faint:rgba(244,243,246,0.36);
-  --mint:#a9e8cf;
+  /* fond */
+  /* Alignée sur --rc-surface-0 (maquette finale Raccourcis, point 1,
+     2026-09-04) — demande explicite d'une teinte de fond uniforme partout,
+     pas seulement dans l'onglet Raccourcis. */
+  --bg-app:        #04050a;
+  --bg-surface:    #12172a;  /* carte niveau 1 */
+  --bg-surface-2:  #1a2036;  /* survol / imbriqué */
+  --bg-surface-3:  #232a45;  /* pressé / actif */
+  --bg-elevated:   rgba(255, 255, 255, 0.06); /* survol translucide sur fond non uni */
+
+  /* bordures */
+  --border:         rgba(255,255,255,0.08);
+  --border-strong:  rgba(255,255,255,0.16);
+
+  /* accent (un seul, utilisé pour les états actifs / actions principales) */
+  --accent:        #3b82f6;
+  --accent-strong: #60a5fa;
+  --accent-soft:   rgba(59,130,246,0.14);
+  --accent-glow:   rgba(59,130,246,0.18); /* drop-shadow ponctuel (Dashboard) */
+
+  /* texte */
+  --text-primary:   #f4f6fb;
+  --text-secondary: #a3acc2;
+  --text-muted:     #6d7690; /* réservé au texte ≥18px (contraste ~3.4:1) */
+
+  /* couleurs d'état uniquement (jamais décoratives) */
+  --success: #34d399;
+  --warning: #f2b84c;
+  --danger:  #f2726a;
+
+  /* palette d'identité — une couleur pleine distincte par élément (app du
+     dock, macro...), jamais pour signaler un état/une gravité (voir
+     --success/--warning/--danger ci-dessus pour ça). Choisie dans une plage
+     assez soutenue pour qu'une icône blanche reste lisible dessus. */
+  --tile-blue:   #2563eb;
+  --tile-violet: #7c3aed;
+  --tile-amber:  #d97706;
+  --tile-green:  #16a34a;
+  --tile-red:    #dc2626;
+  --tile-cyan:   #0891b2;
+  --tile-pink:   #db2777;
+  --tile-indigo: #4f46e5;
 
   /* rayons */
-  --r-xl:40px;
-  --r-lg:28px;
-  --r-md:22px;
+  --radius-lg:   20px;
+  --radius-md:   14px;
+  --radius-sm:   10px;
+  --radius-pill: 999px;
 
-  /* police */
-  --font:'Manrope',sans-serif;
+  /* ombre douce unique — pas de glow coloré */
+  --shadow-card: 0 10px 24px -12px rgba(0,0,0,0.5);
+
+  --transition: 160ms cubic-bezier(0.4,0,0.2,1);
+  --font: -apple-system, 'Segoe UI', system-ui, sans-serif;
+
+  /* dimensions du chrome applicatif (rail) — utilisées par style.css.
+     --header-h retiré le 2026-09-03 : le header n'a plus de hauteur fixe
+     depuis qu'il vit dans .app-main et se dimensionne par son propre padding
+     (36px 44px 0), comme dans la maquette de référence — voir .header,
+     style.css, et le journal de refonte. */
+  /* Header + rail agrandis par rapport à la maquette (demandes explicites du
+     2026-09-03, hors-maquette assumé) — deux facteurs séparés, réutilisés
+     dans toutes les valeurs de style.css scopées à leur composant via
+     calc(Npx * var(--xxx-scale)). Rien d'autre (panels, tuiles, grille)
+     n'est concerné : ces facteurs ne doivent pas se propager ailleurs.
+     --nav-scale : rail à +10% (une seule demande, jamais retouchée) — la
+     largeur du rail (--nav-w, mark, icônes) suit toujours ce facteur, pas
+     concernée par la maquette finale de Raccourcis (point 7, sidebar).
+     --header-scale : était à ×1,6 (quatre agrandissements successifs du
+     2026-09-03, avant la maquette finale) — remis à 1 (2026-09-04, retour
+     "taille exacte de la maquette" demandé après le point 8) : le header et
+     la notch (dimensions uniquement — sa bordure dégradée/son glow restent
+     des valeurs statiques, jamais concernées par ce facteur) reprennent
+     leurs tailles littérales. */
+  --nav-scale: 1.1;
+  --header-scale: 1;
+  --nav-w: calc(148px * var(--nav-scale)); /* base maquette : 148px */
+  --footer-h: 0px;
+
+  /* ── Onglet Raccourcis — palette littérale de la maquette de référence
+     ──────────────────────────────────────────────────────────────────────
+     Demande explicite "exactement le même que la maquette" : tout ce bloc
+     reprend les valeurs telles quelles plutôt que les tokens partagés de
+     l'app (--bg-surface/--border/--text-secondary/--accent...), qui ne
+     matchent pas exactement. Scopé à cet onglet + au chrome partagé qu'il a
+     fait évoluer (header, sidebar) — ne pas réutiliser ailleurs sans
+     revérifier contre la maquette propre à cet autre onglet.
+     2026-09-03 : maquette initiale (raccourcis-minimal.html, non versionnée).
+     2026-09-04 : maquette FINALE validée, Design_code/raccourcis-automotive-
+     minimal.html — voir "Point 1" ci-dessous pour la reprise en cours. */
+  --notch-blue: #6f97ff;      /* "--accent" de la maquette */
+  --accent-2: #a66fff;
+  --rc-hairline: rgba(255, 255, 255, 0.06);  /* point 8 : séparation header */
+  /* Sur-menu de la notch (notch-sur-menu-v2.html) — décalage en px du
+     clip-path diagonal entre colonne musique/jeu, identique des deux
+     côtés pour un raccord propre quelle que soit la largeur des colonnes. */
+  --notch-seam: 120px;
+
+  /* Point 1 (maquette finale raccourcis-automotive-minimal.html, validée
+     2026-09-04) — remplace l'ancien --rc-panel-bg/--rc-tile-bg (2 niveaux)
+     par 2 niveaux de surface (le 3ᵉ, --surface-0, est --bg-app ci-dessus —
+     demande explicite d'une teinte de fond uniforme dans toute l'app) +
+     suppression des bordures translucides blanches (voir usages dans
+     shortcuts.css : plus de `border` sur .rc-panel/.rc-app-tile/
+     .rc-macro-tile/.rc-action-tile/.rc-game-card). */
+  --rc-text-primary: #ffffff;
+  --rc-text-secondary: #a7b3cc;
+  --rc-text-tertiary: #626c85;
+  --rc-surface-1: #12172a;              /* panneaux (4 zones) */
+  --rc-surface-2: #232a44;              /* cartes/tuiles */
+  --rc-surface-2-hover: #2b3452;        /* état pressé, pas encore câblé */
+  --rc-connected-dot: #4ade95;
+
+  /* Point 6 (maquette finale) — une seule ombre par élément (pas d'empilement,
+     contrainte de perf Tab A8), remplace --shadow-card (app-wide, plus
+     prononcée) sur ces éléments précis. Les cartes Steam ont leur propre
+     valeur plus légère dans la maquette (déjà très chargées visuellement par
+     leur dégradé/filtre de fond), pas la même que les autres tuiles. */
+  --rc-shadow-panel: 0 8px 26px rgba(0, 0, 0, 0.45);
+  --rc-shadow-tile: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --rc-shadow-game-card: 0 3px 10px rgba(0, 0, 0, 0.28);
+
+  --notch-border: linear-gradient(120deg, var(--notch-blue), var(--accent-2), var(--notch-blue));
+  --notch-glow: 0 10px 34px rgba(111,151,255,0.22), 0 0 46px rgba(166,111,255,0.14);
+  --notch-bg: linear-gradient(135deg, rgba(20,26,46,0.97), rgba(15,19,34,0.97));
+  --notch-thumb-bg: linear-gradient(135deg, #3a3ea8, #1c1f52);
+
+  /* Point 2 (maquette finale, couleurs fonctionnelles) — badge/bordure
+     accent bleu (macros + états actifs). --notch-blue reste la valeur de
+     base (déjà #6f97ff, déjà utilisée comme accent ailleurs dans ce scope :
+     icône Macros, icône du rail actif, point de pagination actif...) ; ces
+     deux-ci sont les nouvelles variantes translucides exactes de la
+     maquette, remplacent les anciens --accent-wash/-border/-active. */
+  --rc-accent-soft: rgba(111, 151, 255, 0.16);
+  --rc-accent-border: rgba(111, 151, 255, 0.30);
+
+  /* Actions système — hiérarchie de gravité. Verrouiller/Veille restent
+     neutres (pas de token dédié, juste --rc-text-primary/--rc-surface-2) ;
+     ces deux paliers marquent une sévérité croissante (avertissement →
+     destructeur) — Éteindre doit rester visuellement plus marqué que
+     Fermer session/Redémarrer (opacité de fond plus haute + rouge plus
+     "chaud" perceptuellement que l'orange). Pas de bordure sur ces deux
+     paliers (ni sur Verrouiller/Veille) : seul le fond/l'icône changent. */
+  --rc-warn: #ffab5c;
+  --rc-warn-soft: rgba(255, 171, 92, 0.15);
+  --rc-danger: #ff7a6b;
+  --rc-danger-soft: rgba(255, 122, 107, 0.18);
+
+  /* ── anciens noms conservés en alias pour compat avec les fichiers pas
+     encore migrés vers les noms ci-dessus ────────────────────────────── */
+  --glass-a: var(--bg-surface);
+  --glass-b: var(--bg-surface);
+  --text:       var(--text-primary);
+  --text-soft:  var(--text-secondary);
+  --text-faint: var(--text-muted);
+  --r-xl: var(--radius-lg);
+  --r-lg: var(--radius-lg);
+  --r-md: var(--radius-md);
+  --radius: var(--radius-md);          /* legacy — utilisé par deezer.css */
+  --bg-player-card: var(--bg-surface); /* legacy — utilisé par deezer.css */
 }
 
 *{box-sizing:border-box;}
 
-body.cockpit-surface{
-  font-family:var(--font);
-  color:var(--text);
-  background:linear-gradient(155deg, var(--graphite-1), var(--graphite-2) 70%);
-}
-
 /* -------------------------------------------------------------------
-   Halos lumineux diffus (fond d'écran / d'onglet)
-   Usage : <div class="halo" style="top:-160px;left:40px;width:520px;height:420px;
-             background:radial-gradient(circle, rgba(232,196,138,0.28), transparent 70%);"></div>
-------------------------------------------------------------------- */
-.halo{
-  position:absolute;
-  border-radius:50%;
-  filter:blur(90px);
-  pointer-events:none;
-  z-index:0;
-}
-
-/* -------------------------------------------------------------------
-   Surface de verre — conteneur de base de tout widget
+   Surface de carte — conteneur de base de tout widget.
+   Plate, un seul bord discret, une seule ombre douce. Pas de
+   backdrop-filter (coût GPU inutile sur le Mali-G52 de la Tab A8).
 ------------------------------------------------------------------- */
 .glass{
   position:relative;
-  background:linear-gradient(160deg, var(--glass-a), var(--glass-b));
-  backdrop-filter:blur(26px) saturate(160%);
-  -webkit-backdrop-filter:blur(26px) saturate(160%);
-  border-radius:var(--r-lg);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.16),
-    inset 0 -14px 30px -24px rgba(0,0,0,0.5),
-    0 22px 48px -22px rgba(0,0,0,0.55);
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
   overflow:hidden;
 }
 
-/* Carte avec halo interne : la couleur "émane" d'un coin.
-   Définir --glow (rgba de la couleur signature) sur l'élément. */
+/* Carte "glow" — désormais une carte plate simple (halo décoratif retiré) */
 .glow-card{
   position:relative;
   overflow:hidden;
-  border:none;
-  border-radius:var(--r-md);
-  background:
-    radial-gradient(120% 140% at 14% 10%, var(--glow, transparent), transparent 60%),
-    linear-gradient(160deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 14px 30px -20px rgba(0,0,0,0.6);
-  transition:transform .18s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  background:var(--bg-surface);
+  box-shadow:var(--shadow-card);
+  transition:transform .18s cubic-bezier(.4,0,.2,1);
 }
-.glow-card:hover{transform:translateY(-3px);}
-.glow-card:active{transform:translateY(-1px) scale(.98);}
+.glow-card:active{transform:scale(.98);}
 
 /* -------------------------------------------------------------------
-   Icône "pebble" — pour une app, une action, une fenêtre, une scène.
-   Définir --pc1 (clair) et --pc2 (foncé) sur l'élément.
-   Tailles usuelles : 38–52px (grande), 26–36px (petite, inline).
+   Icône "pebble" — pour une app, une action, une scène.
+   Neutre par défaut ; la couleur n'intervient que pour représenter un
+   état (actif = accent, danger = rouge…), jamais en décoration pure.
+   --pc1/--pc2 (anciennes teintes pastel par élément) ne sont plus lues.
 ------------------------------------------------------------------- */
 .pebble{
   position:relative;
   display:flex;align-items:center;justify-content:center;
-  color:#fff;
-  border-radius:35%; /* squircle approximatif */
-  background:linear-gradient(155deg, var(--pc1), var(--pc2));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 16px -8px var(--pc2);
-}
-.pebble::after{
-  content:"";
-  position:absolute;top:12%;left:14%;width:55%;height:38%;border-radius:50%;
-  background:radial-gradient(circle, rgba(255,255,255,0.6), transparent 70%);
-  pointer-events:none;
+  color:var(--text-secondary);
+  border-radius:var(--radius-sm);
+  background:var(--bg-surface-2);
 }
 .pebble.round{border-radius:50%;}
+.pebble.is-active{color:var(--accent);background:var(--accent-soft);}
 
 /* -------------------------------------------------------------------
-   Bouton capsule — toute action (système, liste, CTA secondaire)
+   Bouton capsule / pilule — action secondaire, tag, badge
 ------------------------------------------------------------------- */
 .capsule-btn{
   display:flex;align-items:center;gap:12px;
-  background:linear-gradient(160deg, rgba(255,255,255,0.065), rgba(255,255,255,0.018));
-  border-radius:999px;
+  background:var(--bg-surface-2);
+  border-radius:var(--radius-pill);
   padding:8px 16px 8px 8px;
-  border:none;cursor:pointer;color:var(--text);text-align:left;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 20px -14px rgba(0,0,0,0.6);
-  transition:transform .18s, box-shadow .25s;
+  border:1px solid var(--border);cursor:pointer;color:var(--text-primary);text-align:left;
+  transition:transform .15s ease, background .15s ease;
   font-family:var(--font);
 }
-.capsule-btn:hover{transform:translateY(-2px);}
-.capsule-btn:active{transform:translateY(0) scale(.985);}
+.capsule-btn:active{transform:scale(.97); background:var(--bg-surface-3);}
+.capsule-btn.warm{border-color:var(--warning);}
 
-/* variante "chaude" pour les actions sensibles — définir --warm-glow */
-.capsule-btn.warm{
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 12px 28px -14px var(--warm-glow, rgba(217,97,74,0.4));
-}
-
-/* pilule pleine, texte seul (tag, badge, bouton "Activer") */
 .pill-btn{
   font-family:var(--font);
-  font-size:11.5px;font-weight:600;color:#fff;
-  padding:9px 18px;border-radius:999px;border:none;cursor:pointer;
-  background:linear-gradient(160deg, rgba(255,255,255,0.20), rgba(255,255,255,0.06));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.30);
-  transition:transform .15s;
+  font-size:11.5px;font-weight:600;color:var(--text-primary);
+  padding:9px 18px;border-radius:var(--radius-pill);border:1px solid var(--border);cursor:pointer;
+  background:var(--bg-surface-2);
+  transition:transform .15s ease;
 }
-.pill-btn:hover{transform:scale(1.04);}
 .pill-btn:active{transform:scale(.96);}
 
 /* -------------------------------------------------------------------
-   Onglets internes glissants (segmented control)
+   Boutons génériques
+------------------------------------------------------------------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:48px;padding:0 20px;
+  border-radius:var(--radius-md);
+  background:var(--bg-surface-2);
+  color:var(--text-primary);
+  font-family:var(--font);font-size:14px;font-weight:600;
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:transform .15s ease, background .15s ease;
+}
+.btn:active{transform:scale(.97);background:var(--bg-surface-3);}
+.btn--primary{background:var(--accent);border-color:var(--accent);color:#ffffff;}
+.btn--primary:active{background:var(--accent-strong);}
+.btn--danger{background:var(--danger);border-color:var(--danger);color:#2a0f0c;}
+.btn--ghost{background:transparent;}
+.btn--block{width:100%;}
+
+/* -------------------------------------------------------------------
+   Onglets internes (segmented control)
 ------------------------------------------------------------------- */
 .segmented{
-  position:relative;display:inline-flex;padding:5px;border-radius:999px;
-  background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015));
-  box-shadow:inset 0 1px 4px rgba(0,0,0,0.35);
+  position:relative;display:inline-flex;padding:4px;border-radius:var(--radius-pill);
+  background:var(--bg-surface-2);
 }
 .seg-indicator{
-  position:absolute;top:5px;left:5px;height:calc(100% - 10px);border-radius:999px;
-  background:linear-gradient(160deg, rgba(255,255,255,0.26), rgba(255,255,255,0.08));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.30), 0 6px 16px -6px rgba(0,0,0,0.4);
-  transition:transform .4s cubic-bezier(.4,0,.2,1), width .4s cubic-bezier(.4,0,.2,1);
+  position:absolute;top:4px;left:4px;height:calc(100% - 8px);border-radius:var(--radius-pill);
+  background:var(--bg-surface-3);
+  transition:transform .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1);
   z-index:1;
 }
 .seg-btn{
-  position:relative;z-index:2;background:none;border:none;padding:9px 18px;border-radius:999px;
-  font-family:var(--font);font-size:12px;font-weight:600;color:var(--text-faint);
-  cursor:pointer;transition:color .25s;white-space:nowrap;
+  position:relative;z-index:2;background:none;border:none;padding:9px 18px;border-radius:var(--radius-pill);
+  font-family:var(--font);font-size:12px;font-weight:600;color:var(--text-muted);
+  cursor:pointer;transition:color .2s ease;white-space:nowrap;
 }
-.seg-btn.active{color:#fff;}
-/* JS : positionner .seg-indicator en largeur/translateX sur le bouton actif au clic + au chargement */
+.seg-btn.active{color:var(--text-primary);}
 
 /* -------------------------------------------------------------------
    Toast — notification discrète
 ------------------------------------------------------------------- */
 .toast{
   position:absolute;left:50%;bottom:26px;transform:translate(-50%,16px);z-index:40;
-  display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;
-  background:linear-gradient(160deg, rgba(40,40,46,0.75), rgba(20,20,24,0.75));
-  backdrop-filter:blur(20px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14), 0 20px 40px -14px rgba(0,0,0,0.6);
-  font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--text);
-  opacity:0;pointer-events:none;transition:opacity .3s, transform .3s;
+  display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:var(--radius-pill);
+  background:var(--bg-surface-3);
+  border:1px solid var(--border-strong);
+  font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--text-primary);
+  opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
 }
-.toast.show{opacity:1;transform:translate(-50%,0);}
+.toast.is-visible{opacity:1;transform:translate(-50%,0);}
 
 /* -------------------------------------------------------------------
-   Modale de confirmation — actions irréversibles
+   Modale générique — un seul composant pour toute l'app : confirmation
+   d'action, détail (Jeux, Système…). Scrim léger (blur uniquement sur
+   le scrim, jamais sur la carte), carte plate, header/body/footer.
 ------------------------------------------------------------------- */
-.confirm-overlay{
-  position:absolute;inset:0;background:rgba(8,8,10,0.55);backdrop-filter:blur(14px);
-  display:none;align-items:center;justify-content:center;z-index:50;
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(5,8,16,0.62);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  /* Toujours au-dessus de tout le reste, y compris le sur-menu de la notch
+     (.notch-menu, z-index:301, style.css) : une confirmation d'action
+     sensible ne doit jamais pouvoir se retrouver masquée par un autre
+     panneau ouvert. */
+  z-index:500;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .2s ease, visibility .2s ease;
 }
-.confirm-overlay.open{display:flex;}
-.confirm-card{
-  width:360px;padding:34px 30px 28px;border-radius:44px;text-align:center;
-  font-family:var(--font);
-  background:linear-gradient(160deg, rgba(255,255,255,0.11), rgba(255,255,255,0.03));
-  backdrop-filter:blur(30px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.18), 0 40px 80px -24px rgba(0,0,0,0.7);
-}
-.confirm-icon{
-  width:64px;height:64px;border-radius:50%;margin:0 auto 18px;
-  display:flex;align-items:center;justify-content:center;color:#fff;
-  background:radial-gradient(circle at 32% 28%, rgba(255,255,255,0.5), #d9614a 70%);
-  box-shadow:0 0 0 10px rgba(217,97,74,0.10), 0 14px 30px -10px rgba(217,97,74,0.5);
-}
-.confirm-actions{display:flex;gap:10px;margin-top:24px;}
-.confirm-actions button{
-  flex:1;padding:13px 0;border-radius:999px;font-size:13px;font-weight:600;
-  border:none;cursor:pointer;font-family:var(--font);transition:transform .15s;
-}
-.confirm-actions button:hover{transform:translateY(-1px);}
-.btn-cancel{background:linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);}
-.btn-confirm{background:linear-gradient(160deg, #f0a894, #d9614a);color:#3a1710;box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 14px 30px -12px rgba(217,97,74,0.6);}
+.modal-overlay.is-open{opacity:1;visibility:visible;pointer-events:auto;}
 
-/* -------------------------------------------------------------------
-   État actif / live — halo qui pulse doucement (scène active, appareil allumé…)
-   Définir --sg2 (couleur signature) sur l'élément.
-------------------------------------------------------------------- */
-.glow-pulse{
-  animation:glowPulse 2.6s ease-in-out infinite alternate;
+.modal-card{
+  width:100%;max-width:440px;max-height:85vh;
+  display:flex;flex-direction:column;
+  background:var(--bg-surface);
+  border:1px solid var(--border-strong);
+  border-radius:var(--radius-lg);
+  box-shadow:0 24px 60px -20px rgba(0,0,0,0.65);
+  overflow:hidden;
+  transform:translateY(12px) scale(.98);
+  transition:transform .22s cubic-bezier(.2,0,0,1);
 }
-@keyframes glowPulse{
-  from{box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px var(--sg2), 0 16px 34px -20px var(--sg2);}
-  to{box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px var(--sg2), 0 24px 54px -18px var(--sg2);}
+.modal-card--wide{max-width:720px;}
+.modal-overlay.is-open .modal-card{transform:translateY(0) scale(1);}
+
+.modal-card__header{
+  display:flex;align-items:center;gap:14px;
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--border);
+  flex:0 0 auto;
+}
+.modal-card__icon{
+  width:40px;height:40px;border-radius:var(--radius-sm);
+  background:var(--bg-surface-2);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--accent);
+  flex-shrink:0;
+}
+.modal-card__icon svg{width:20px;height:20px;}
+.modal-card__heading{min-width:0;}
+.modal-card__title{font-size:16px;font-weight:600;color:var(--text-primary);}
+.modal-card__subtitle{font-size:12.5px;color:var(--text-secondary);margin-top:2px;}
+.modal-card__close{
+  margin-left:auto;flex-shrink:0;
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg-surface-2);color:var(--text-secondary);
+  transition:transform .15s ease;
+}
+.modal-card__close svg{width:16px;height:16px;}
+.modal-card__close:active{transform:scale(.9);}
+.modal-card__body{
+  padding:20px;overflow-y:auto;flex:1;min-height:0;
+}
+.modal-card__footer{
+  display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--border);flex:0 0 auto;
 }
 
 /* -------------------------------------------------------------------
    Spinner de chargement
 ------------------------------------------------------------------- */
 .loading-ring{
-  width:34px;height:34px;border-radius:50%;
-  border:2.5px solid rgba(255,255,255,0.12);
-  border-top-color:rgba(255,255,255,0.7);
+  width:28px;height:28px;border-radius:50%;
+  border:2.5px solid var(--bg-surface-3);
+  border-top-color:var(--accent);
   animation:spin .9s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -225,5 +382,5 @@ body.cockpit-surface{
 /* -------------------------------------------------------------------
    Scrollbars discrètes
 ------------------------------------------------------------------- */
-.cockpit-surface ::-webkit-scrollbar{width:5px;}
-.cockpit-surface ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.10);border-radius:3px;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}

@@ -10,9 +10,9 @@ import asyncio
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.logger import get_logger
@@ -129,6 +129,9 @@ def create_app() -> FastAPI:
     @app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket):
         """Point d'entrée unique pour toutes les connexions WebSocket."""
+        if websocket.query_params.get("token") != settings.AUTH_TOKEN:
+            await websocket.close(code=1008)
+            return
         await handle_websocket(websocket)
 
     # ── Fichiers statiques frontend ────────────────────────────────────────────
@@ -144,18 +147,31 @@ def create_app() -> FastAPI:
         app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
     @app.get("/")
-    async def serve_index():
+    async def serve_index(request: Request):
         """
         Sert la page principale de l'interface, en injectant APP_VERSION
         pour forcer le rechargement du CSS/JS/fragments HTML à chaque
-        redémarrage du serveur (contourne les caches tablette récalcitrants).
+        redémarrage du serveur (contourne les caches tablette récalcitrants),
+        et AUTH_TOKEN pour que le frontend puisse s'authentifier sur le
+        WebSocket et les routes /shortcuts.
+
+        Nécessite ?token=<AUTH_TOKEN> en query param — c'est la seule barrière
+        d'accès à l'app (voir settings.AUTH_TOKEN dans config.py).
         """
+        if request.query_params.get("token") != settings.AUTH_TOKEN:
+            return PlainTextResponse(
+                "Accès refusé — utilisez le lien complet avec le token "
+                "(affiché dans les logs au démarrage du serveur).",
+                status_code=403,
+            )
+
         index_path = WEB_DIR / "index.html"
         if not index_path.exists():
             return JSONResponse({"error": "Frontend non trouvé"}, status_code=404)
 
         html = index_path.read_text(encoding="utf-8")
         html = html.replace("__APP_VERSION__", APP_VERSION)
+        html = html.replace("__AUTH_TOKEN__", settings.AUTH_TOKEN)
         return HTMLResponse(
             content=html,
             headers={

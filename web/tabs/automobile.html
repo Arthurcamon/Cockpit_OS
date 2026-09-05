@@ -1,0 +1,43 @@
+<!-- ══ Onglet Automobile — lanceur Cockpit / Endurance ═══════════════════════
+     Groupe "Automobile" : choisir un tableau de bord à ouvrir en plein écran
+     (masque header + rail de nav). Charte propre, distincte de Soft Glass —
+     voir cockpit-os-design-system.md, section 0.
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<div class="automobile-launcher">
+
+  <div class="automobile-launcher__head">
+    <h1>Automobile</h1>
+    <p>Choisissez un tableau de bord — il s'ouvre en plein écran.</p>
+  </div>
+
+  <div class="automobile-launcher__grid">
+
+    <button class="automobile-launch-card" data-launch="dashboard">
+      <span class="automobile-launch-card__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </span>
+      <span class="automobile-launch-card__title">Cockpit</span>
+      <span class="automobile-launch-card__desc">Navigation, lecture en cours, statistiques</span>
+    </button>
+
+    <button class="automobile-launch-card" data-launch="endurance">
+      <span class="automobile-launch-card__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/>
+          <path d="M12 9v4l2.5 2.5"/>
+          <path d="M12 2v3"/>
+          <path d="M10 2h4"/>
+        </svg>
+      </span>
+      <span class="automobile-launch-card__title">Endurance</span>
+      <span class="automobile-launch-card__desc">Tableau de bord SimHub temps réel</span>
+    </button>
+
+  </div>
+</div>

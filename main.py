@@ -32,6 +32,8 @@ def main():
     logger.info("  Cockpit OS — Démarrage")
     logger.info(f"  Serveur : http://{settings.HOST}:{settings.PORT}")
     logger.info(f"  Mode debug : {settings.DEBUG}")
+    logger.info("  Lien d'accès (à mettre en favori sur la tablette) :")
+    logger.info(f"    http://<ip-de-ce-pc>:{settings.PORT}/?token={settings.AUTH_TOKEN}")
     logger.info("=" * 50)
 
     # Création de l'application FastAPI
