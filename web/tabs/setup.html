@@ -1,0 +1,329 @@
+<!-- ══ Onglet Setup — supervision et contrôle système du PC ═══════════════════
+     Système (sparklines + %) : étape 2, réel (services/system_monitor.py).
+     Applications ouvertes (grille + pagination + fermeture) : étape 3, réel
+       (services/process_monitor.py + core/setup.py) — le contenu de
+       #app-grid ci-dessous est un exemple de secours affiché avant la
+       première réponse serveur, remplacé dès le premier message apps.state
+       (voir UI.updateAppsGrid, app-ui-system.js). Débit réseau par
+       application non disponible via psutil sur Windows, affiché "—".
+     Mixeur de volume (branché sur audio.state, déjà réel ailleurs) : étape 4.
+     Réseau (cartes + sur-menu Wi-Fi/Bluetooth) : étape 5.
+     Vue détaillée d'un composant : étape 6.
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<div class="setup-shell">
+  <div class="setup-title">Setup</div>
+
+  <div class="setup-content">
+
+    <!-- Colonne gauche : Système -->
+    <div class="setup-col-system">
+      <div class="setup-panel">
+        <div class="setup-panel__head"><span class="setup-panel__title">Système</span></div>
+        <div class="sys-list" id="sys-list">
+
+          <div class="sys-row">
+            <div class="sys-graph"><svg viewBox="0 0 100 58" preserveAspectRatio="none"><polyline points="0,46 12,40 24,44 36,26 48,32 60,14 72,29 84,20 100,25" fill="none" stroke="#5ce1e6" stroke-width="2.5"/></svg></div>
+            <div class="sys-body">
+              <div class="sys-name">Processeur</div>
+              <div class="sys-sub">4% · 3,99 GHz</div>
+              <div class="sys-bar"><div class="sys-bar-fill" style="width:4%; background:#5ce1e6;"></div></div>
+            </div>
+            <div class="sys-chevron">›</div>
+          </div>
+
+          <div class="sys-row">
+            <div class="sys-graph"><svg viewBox="0 0 100 58" preserveAspectRatio="none"><polyline points="0,34 12,31 24,32 36,28 48,30 60,27 72,29 84,26 100,27" fill="none" stroke="#6f97ff" stroke-width="2.5"/></svg></div>
+            <div class="sys-body">
+              <div class="sys-name">Mémoire</div>
+              <div class="sys-sub">10,7 / 15,7 Go (68%)</div>
+              <div class="sys-bar"><div class="sys-bar-fill" style="width:68%; background:#6f97ff;"></div></div>
+            </div>
+            <div class="sys-chevron">›</div>
+          </div>
+
+          <div class="sys-row">
+            <div class="sys-graph"><svg viewBox="0 0 100 58" preserveAspectRatio="none"><polyline points="0,52 12,51 24,49 36,52 48,29 60,48 72,51 84,49 100,52" fill="none" stroke="#4ade95" stroke-width="2.5"/></svg></div>
+            <div class="sys-body">
+              <div class="sys-name">Disque 0 (C:)</div>
+              <div class="sys-sub">SSD NVMe · 4%</div>
+              <div class="sys-bar"><div class="sys-bar-fill" style="width:4%; background:#4ade95;"></div></div>
+            </div>
+            <div class="sys-chevron">›</div>
+          </div>
+
+          <div class="sys-row">
+            <div class="sys-graph"><svg viewBox="0 0 100 58" preserveAspectRatio="none"><polyline points="0,54 12,54 24,53 36,54 48,54 60,52 72,54 84,51 100,54" fill="none" stroke="#4ade95" stroke-width="2.5"/></svg></div>
+            <div class="sys-body">
+              <div class="sys-name">Disque 1 (D:)</div>
+              <div class="sys-sub">SSD NVMe · 2%</div>
+              <div class="sys-bar"><div class="sys-bar-fill" style="width:2%; background:#4ade95;"></div></div>
+            </div>
+            <div class="sys-chevron">›</div>
+          </div>
+
+          <div class="sys-row">
+            <div class="sys-graph"><svg viewBox="0 0 100 58" preserveAspectRatio="none"><polyline points="0,49 12,15 24,46 36,47 48,46 60,6 72,46 84,47 100,46" fill="none" stroke="#ff7ab8" stroke-width="2.5"/></svg></div>
+            <div class="sys-body">
+              <div class="sys-name">Wi-Fi</div>
+              <div class="sys-sub">↓ 0,1 · ↑ 4,4 Mbit/s</div>
+              <div class="sys-bar"><div class="sys-bar-fill" style="width:4.5%; background:#ff7ab8;"></div></div>
+            </div>
+            <div class="sys-chevron">›</div>
+          </div>
+
+          <div class="sys-row">
+            <div class="sys-graph"><svg viewBox="0 0 100 58" preserveAspectRatio="none"><polyline points="0,55 12,55 24,54 36,55 48,53 60,55 72,54 84,55 100,54" fill="none" stroke="#a66fff" stroke-width="2.5"/></svg></div>
+            <div class="sys-body">
+              <div class="sys-name">GPU 0</div>
+              <div class="sys-sub">Intel Iris Xe · 1%</div>
+              <div class="sys-bar"><div class="sys-bar-fill" style="width:1%; background:#a66fff;"></div></div>
+            </div>
+            <div class="sys-chevron">›</div>
+          </div>
+
+          <div class="sys-row">
+            <div class="sys-graph"><svg viewBox="0 0 100 58" preserveAspectRatio="none"><polyline points="0,40 12,29 24,35 36,20 48,26 60,32 72,17 84,23 100,14" fill="none" stroke="#a66fff" stroke-width="2.5"/></svg></div>
+            <div class="sys-body">
+              <div class="sys-name">GPU 1</div>
+              <div class="sys-sub">RTX 4070 · 18% (62°C)</div>
+              <div class="sys-bar"><div class="sys-bar-fill" style="width:18%; background:#a66fff;"></div></div>
+            </div>
+            <div class="sys-chevron">›</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite -->
+    <div class="setup-col-main">
+
+      <!-- Vue détaillée d'un composant Système (tap sur une ligne du panneau
+           Système, colonne de gauche) — sur-menu qui ne recouvre que cette
+           colonne droite : Système, header et rail de navigation restent
+           visibles et utilisables (on peut taper une autre ligne Système
+           sans revenir en arrière). Un seul graphique agrégé (mêmes données
+           que la ligne compacte du panneau Système) pour tous les
+           composants, y compris le Processeur — une grille par cœur logique
+           a été essayée puis abandonnée (trop brouillonne, difficile à
+           lire). Pas de specs matérielles au-delà de ce que fournit déjà
+           system_monitor.py (uniquement le Processeur pour l'instant) — à
+           étendre ensemble si utile. Rendu dans web/js/app-ui-system.js. -->
+      <div class="setup-detail" id="setup-detail">
+        <div class="detail-back" id="detail-back">‹ Retour</div>
+        <div class="detail-header">
+          <div class="detail-title" id="detail-title"></div>
+          <div class="detail-model" id="detail-model"></div>
+        </div>
+        <div class="detail-axis"><span>% Utilisation sur 30 secondes</span><span>100 %</span></div>
+        <div class="detail-graph" id="detail-graph"></div>
+        <div class="detail-footer">
+          <div class="detail-block" id="detail-stats"></div>
+          <div class="spec-list" id="detail-specs"></div>
+        </div>
+      </div>
+
+      <div class="setup-panel setup-panel--apps">
+        <div class="setup-panel__head"><span class="setup-panel__title">Applications ouvertes</span></div>
+        <div class="app-grid" id="app-grid">
+          <div class="app-card">
+            <div class="app-card-left"><span class="ic">🌐</span><span class="name">Google Chrome</span></div>
+            <div class="app-card-right">
+              <div class="app-table">
+                <div class="app-stat"><span class="lbl">CPU</span><span class="val">0,1%</span></div>
+                <div class="app-stat"><span class="lbl">RAM</span><span class="val">908 Mo</span></div>
+                <div class="app-stat"><span class="lbl">Disque</span><span class="val">0,1 Mo/s</span></div>
+                <div class="app-stat"><span class="lbl">Réseau</span><span class="val">0 Mb/s</span></div>
+              </div>
+              <div class="close-badge">✕ Fermer l'app</div>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-left"><span class="ic">🎮</span><span class="name">Steam</span></div>
+            <div class="app-card-right">
+              <div class="app-table">
+                <div class="app-stat"><span class="lbl">CPU</span><span class="val">1,2%</span></div>
+                <div class="app-stat"><span class="lbl">RAM</span><span class="val">565 Mo</span></div>
+                <div class="app-stat"><span class="lbl">Disque</span><span class="val">0,4 Mo/s</span></div>
+                <div class="app-stat"><span class="lbl">Réseau</span><span class="val">7 Mb/s</span></div>
+              </div>
+              <div class="close-badge">✕ Fermer l'app</div>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-left"><span class="ic">💬</span><span class="name">Discord</span></div>
+            <div class="app-card-right">
+              <div class="app-table">
+                <div class="app-stat"><span class="lbl">CPU</span><span class="val">0%</span></div>
+                <div class="app-stat"><span class="lbl">RAM</span><span class="val">529 Mo</span></div>
+                <div class="app-stat"><span class="lbl">Disque</span><span class="val">0,1 Mo/s</span></div>
+                <div class="app-stat"><span class="lbl">Réseau</span><span class="val">0 Mb/s</span></div>
+              </div>
+              <div class="close-badge">✕ Fermer l'app</div>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-left"><span class="ic">🎬</span><span class="name">OBS Studio</span></div>
+            <div class="app-card-right">
+              <div class="app-table">
+                <div class="app-stat"><span class="lbl">CPU</span><span class="val">3,4%</span></div>
+                <div class="app-stat"><span class="lbl">RAM</span><span class="val">742 Mo</span></div>
+                <div class="app-stat"><span class="lbl">Disque</span><span class="val">1,2 Mo/s</span></div>
+                <div class="app-stat"><span class="lbl">Réseau</span><span class="val">3 Mb/s</span></div>
+              </div>
+              <div class="close-badge">✕ Fermer l'app</div>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-left"><span class="ic">🎵</span><span class="name">Deezer Desktop</span></div>
+            <div class="app-card-right">
+              <div class="app-table">
+                <div class="app-stat"><span class="lbl">CPU</span><span class="val">0%</span></div>
+                <div class="app-stat"><span class="lbl">RAM</span><span class="val">357 Mo</span></div>
+                <div class="app-stat"><span class="lbl">Disque</span><span class="val">0 Mo/s</span></div>
+                <div class="app-stat"><span class="lbl">Réseau</span><span class="val">0,2 Mb/s</span></div>
+              </div>
+              <div class="close-badge">✕ Fermer l'app</div>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-left"><span class="ic">🖥</span><span class="name">SimHub</span></div>
+            <div class="app-card-right">
+              <div class="app-table">
+                <div class="app-stat"><span class="lbl">CPU</span><span class="val">2,1%</span></div>
+                <div class="app-stat"><span class="lbl">RAM</span><span class="val">118 Mo</span></div>
+                <div class="app-stat"><span class="lbl">Disque</span><span class="val">0 Mo/s</span></div>
+                <div class="app-stat"><span class="lbl">Réseau</span><span class="val">0 Mb/s</span></div>
+              </div>
+              <div class="close-badge">✕ Fermer l'app</div>
+            </div>
+          </div>
+        </div>
+        <div class="app-dots" id="app-dots">
+          <div class="d active"></div><div class="d"></div>
+        </div>
+      </div>
+
+      <div class="setup-row-bottom">
+        <div class="setup-panel setup-panel--mixeur">
+          <div class="setup-panel__head"><span class="setup-panel__title">Mixeur de volume</span></div>
+          <div class="apps-volume-content" id="audio-apps-list">
+            <div class="audio-app-item-modern">
+              <div class="app-item-info">
+                <button class="sim-mixer-icon-btn audio-app-mute-btn" title="Mute/Démute"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
+                <span class="app-item-icon">🎵</span>
+                <span class="audio-app-name-modern">Deezer</span>
+              </div>
+              <div class="app-item-slider-wrapper">
+                <input type="range" class="audio-app-slider-modern" min="0" max="100" value="70" />
+                <span class="audio-app-value-modern">70%</span>
+              </div>
+            </div>
+            <div class="audio-app-item-modern">
+              <div class="app-item-info">
+                <button class="sim-mixer-icon-btn audio-app-mute-btn" title="Mute/Démute"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
+                <span class="app-item-icon">💬</span>
+                <span class="audio-app-name-modern">Discord</span>
+              </div>
+              <div class="app-item-slider-wrapper">
+                <input type="range" class="audio-app-slider-modern" min="0" max="100" value="45" />
+                <span class="audio-app-value-modern">45%</span>
+              </div>
+            </div>
+            <div class="audio-app-item-modern">
+              <div class="app-item-info">
+                <button class="sim-mixer-icon-btn audio-app-mute-btn" title="Mute/Démute"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
+                <span class="app-item-icon">🌐</span>
+                <span class="audio-app-name-modern">Chrome</span>
+              </div>
+              <div class="app-item-slider-wrapper">
+                <input type="range" class="audio-app-slider-modern" min="0" max="100" value="30" />
+                <span class="audio-app-value-modern">30%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-panel setup-panel--reseau">
+          <div class="setup-panel__head">
+            <span class="setup-panel__title">Réseau <span class="setup-panel__hint">· appui long pour plus</span></span>
+          </div>
+          <div class="net-cards" id="net-cards">
+            <div class="net-card on" id="net-card-wifi">
+              <div class="ic">📶</div>
+              <div class="t">Wi-Fi</div>
+              <div class="s">Freebox-8A2C</div>
+              <div class="state">Activé</div>
+            </div>
+            <div class="net-card on" id="net-card-bluetooth">
+              <div class="ic">⚡</div>
+              <div class="t">Bluetooth</div>
+              <div class="s">2 appareils</div>
+              <div class="state">Activé</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Sur-menu réseau étendu (appui long sur une carte Wi-Fi/Bluetooth) —
+       Bluetooth branché sur de vraies données (audio.state.bluetooth, déjà
+       réel ailleurs), Wi-Fi branché sur wifi.state (services/wifi_service.py,
+       étape 5). Rendu dans web/js/app-ui-network.js. -->
+  <div class="net-overlay" id="net-overlay">
+    <div class="net-overlay-panel">
+      <button class="net-overlay-close" id="net-overlay-close" aria-label="Fermer">✕</button>
+
+      <div class="net-overlay-col">
+        <div class="net-overlay-head">
+          <div class="net-overlay-head__left"><span class="ic">📶</span><span class="net-overlay-title">Wi-Fi</span></div>
+          <div class="net-switch" id="net-switch-wifi"><div class="net-switch__knob"></div></div>
+        </div>
+        <div class="net-list" id="net-list-wifi"></div>
+      </div>
+
+      <div class="net-overlay-col">
+        <div class="net-overlay-head">
+          <div class="net-overlay-head__left"><span class="ic">⚡</span><span class="net-overlay-title">Bluetooth</span></div>
+          <div class="net-switch" id="net-switch-bluetooth"><div class="net-switch__knob"></div></div>
+        </div>
+        <div class="net-list" id="net-list-bluetooth"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale de confirmation avant fermeture réelle d'une application — même
+     composant visuel que la confirmation des actions système de l'onglet
+     Raccourcis (.modal-overlay/.modal-card, design-tokens.css), dupliquée
+     ici (IDs propres) plutôt que partagée : le DOM de l'onglet Raccourcis
+     est invisible (display:none) tant que Setup est actif, donc une modale
+     qui y vivrait ne pourrait jamais s'afficher depuis cet onglet. -->
+<div class="modal-overlay" id="setup-confirm-modal" onclick="if(event.target===this) UI.closeSetupModal()">
+  <div class="modal-card">
+    <div class="modal-card__header">
+      <span class="modal-card__icon" style="color:var(--danger);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </span>
+      <div class="modal-card__heading">
+        <div class="modal-card__title" id="setup-modal-title">Fermer l'application ?</div>
+      </div>
+      <button class="modal-card__close" onclick="UI.closeSetupModal()" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-card__body">
+      <p class="shortcuts-modal-text" id="setup-modal-subtitle">
+        Toute donnée non enregistrée dans cette application sera perdue.
+      </p>
+    </div>
+    <div class="modal-card__footer">
+      <button class="btn btn--block" onclick="UI.closeSetupModal()">Annuler</button>
+      <button class="btn btn--primary btn--block" id="setup-modal-confirm-btn">Fermer l'app</button>
+    </div>
+  </div>
+</div>

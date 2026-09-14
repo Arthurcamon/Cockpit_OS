@@ -1,0 +1,313 @@
+COCKPIT OS — RESUME COMPLET DE L'APPLICATION
+==============================================
+Dernière mise à jour de ce document : 09/09/2026
+
+
+1. QU'EST-CE QUE COCKPIT OS ?
+------------------------------
+Cockpit OS est une interface tactile locale, en français, conçue pour une
+tablette Windows fixée en cockpit (bureau / setup sim-racing). Elle tourne
+comme un mini serveur web sur le PC principal (FastAPI + WebSocket) et sert
+une page HTML/CSS/JS à la tablette, connectée sur le même réseau local.
+L'idée générale : la tablette devient un "second écran de contrôle" pour
+piloter et superviser le PC — musique, applications, système, réseau,
+raccourcis, télémétrie de simulation automobile — sans jamais quitter son
+canapé/siège baquet pour toucher le clavier/écran principal.
+
+Toutes les données affichées sont RÉELLES (lues en direct sur le PC via
+psutil, WMI/PowerShell, pycaw, Windows Media Session, Deezer API, SimHub…).
+Aucune valeur n'est inventée : quand une donnée n'est pas disponible
+(dépendance manquante, permission refusée, service absent), l'interface
+affiche un état "indisponible" / "—" explicite plutôt qu'une fausse valeur.
+
+Maquette de référence : canevas fixe 1920x1200px, mis à l'échelle
+(transform:scale, letterboxing) pour s'adapter à n'importe quelle fenêtre
+ou écran réel — pixel pour pixel sur la tablette cible.
+
+
+2. STACK TECHNIQUE
+-------------------
+Backend  : Python 3, FastAPI + Uvicorn (serveur ASGI), WebSocket natif.
+Frontend : HTML/CSS/JS "vanilla" (aucun framework, aucune étape de build,
+           compatible vieux WebView/Safari 9 — polyfills inclus).
+Intégrations Windows (toutes optionnelles, dégradation propre si absentes) :
+  - winsdk (WinRT)   : Windows Media Session (contrôle lecteur multimédia),
+                        bascule radio Bluetooth.
+  - pycaw + comtypes : volume Windows (maître + par application).
+  - psutil           : CPU/RAM/disques/réseau/processus.
+  - PowerShell/WMI    : modèle CPU, caches, GPU, adaptateurs Wi-Fi, Bluetooth
+                        appairés (toujours forcé en UTF-8 pour les libellés
+                        français accentués).
+  - netsh wlan        : réseaux Wi-Fi visibles, connexion à un réseau connu.
+  - Tâche planifiée Windows dédiée (schtasks, RunLevel Highest) : actions
+    nécessitant une élévation (bascule adaptateur Wi-Fi, action Bluetooth)
+    sans redemander l'UAC à chaque fois.
+Communication PC↔tablette : un unique WebSocket bidirectionnel (/ws) — le
+frontend n'appelle JAMAIS un service Python directement, tout passe par des
+messages JSON typés {"type": "...", ...}.
+Racing / SimHub : un second WebSocket dédié (/ws/telemetry) + endpoint HTTP
+POST (/telemetry/ingest) reçoit ~12x/seconde la télémétrie d'un jeu de
+course (vitesse, régime moteur, pneus, essence, classement, etc.) via un
+plugin SimHub côté PC, et la redistribue en direct aux tableaux de bord
+Cockpit/Endurance.
+
+
+3. ARBORESCENCE DU PROJET
+--------------------------
+cockpit-os_2.0/
+├── main.py                    Point d'entrée : lance Uvicorn/FastAPI
+├── config.py                  Réglages centraux (port, token, intervalles)
+├── requirements.txt           Dépendances Python
+├── shortcuts_config.json      Config éditable des "Apps rapides" (Raccourcis)
+├── .cockpit_token             Token d'accès généré au 1er lancement (non commité)
+│
+├── core/                      Couche serveur (routes + WebSocket)
+│   ├── app.py                 Création FastAPI, fichiers statiques, tâches
+│   │                          de fond (polling), routes /api/*
+│   ├── websocket.py           Registre des handlers WebSocket (dispatch par
+│   │                          "type" de message) — le cœur du protocole
+│   ├── shortcuts.py           Endpoints REST /shortcuts/* (lancer une app,
+│   │                          un jeu Steam, une action système, etc.)
+│   ├── setup.py                Endpoint REST /setup/* (fermer une app — PID)
+│   ├── telemetry.py            Endpoints télémétrie SimHub (ingestion + WS)
+│   └── logger.py               Logger partagé (format uniforme)
+│
+├── services/                   Couche métier (accès réel au PC / au web)
+│   ├── windows_media.py        Contrôle lecteur multimédia Windows (winsdk)
+│   ├── windows_audio.py        Volume Windows + Bluetooth (pycaw + winsdk)
+│   ├── deezer_api.py            Accès API publique Deezer (recherche, playlists…)
+│   ├── deezer_player.py         Lance une piste dans Deezer Desktop via CDP
+│   │                             (Chrome DevTools Protocol, port 9222)
+│   ├── system_monitor.py        CPU/RAM/disques/réseau/GPU (onglet Setup)
+│   ├── process_monitor.py       Applications ouvertes + fermeture (onglet Setup)
+│   └── wifi_service.py          État Wi-Fi, réseaux visibles, connexion,
+│                                  bascule adaptateur (onglet Setup)
+│
+├── scripts/                     Scripts d'élévation Windows
+│   ├── setup_admin_task.ps1/.bat  Enregistre la tâche planifiée une fois
+│   └── bt_elevated_action.ps1     Exécuté en admin (Bluetooth + Wi-Fi toggle)
+│
+├── Design_code/                 Système de design (maquettes, tokens CSS)
+├── Note/                        Notes de travail (ce dossier)
+│
+└── web/                         Frontend statique servi tel quel
+    ├── index.html                Coquille de page (nav, header, notch, mini-player)
+    ├── css/
+    │   ├── design-tokens.css     Variables de thème (couleurs, ombres…)
+    │   ├── style.css              Styles globaux / structure
+    │   ├── shortcuts.css, setup.css, deezer.css, dashboard.css,
+    │   │   endurance.css, automobile.css   Styles par onglet
+    ├── js/
+    │   ├── app-core.js            Fondations : State, config, mise à l'échelle,
+    │   │                          table de noms d'apps, polyfills
+    │   ├── app-ws.js               Connexion WebSocket + reconnexion auto
+    │   ├── app-commands.js         Envoi des commandes (Media.command, etc.)
+    │   ├── app-navigation.js       Navigation "sheets" Deezer, tri
+    │   ├── app-ui-core.js          Rendu UI générique (notch, mini-player…)
+    │   ├── app-ui-deezer.js        Rendu UI onglet Deezer
+    │   ├── app-ui-audio.js         Rendu UI mixeur de volume (onglet Setup)
+    │   ├── app-ui-system.js        Rendu UI panneau Système + vue détaillée
+    │   ├── app-ui-network.js       Rendu UI cartes/sur-menu Wi-Fi/Bluetooth
+    │   ├── notch-menu.js           Sur-menu de la pastille musique/jeu (header)
+    │   ├── shortcuts.js             Logique complète de l'onglet Raccourcis
+    │   └── app.js                   Chargement des onglets, horloge, démarrage
+    └── tabs/                       Fragments HTML injectés dans <main> au chargement
+        ├── shortcuts.html, setup.html, deezer.html, automobile.html,
+        │   dashboard.html, endurance.html
+        └── media.html, fuel_design*.html   (fragments hérités, non référencés
+                                              dans la nav actuelle — voir §7)
+
+
+4. ARCHITECTURE — LOGIQUE DE FONCTIONNEMENT
+--------------------------------------------
+a) Démarrage serveur (main.py → core/app.py)
+   - Crée l'app FastAPI, monte /css /js /tabs /assets en fichiers statiques.
+   - Sert "/" avec le HTML dans lequel sont injectés à la volée un
+     APP_VERSION (timestamp, casse le cache navigateur/webview à chaque
+     redémarrage) et le AUTH_TOKEN.
+   - Accès protégé par un unique token partagé (settings.AUTH_TOKEN) : requis
+     en query param ?token=... pour la page et le WebSocket, et en header
+     "Authorization: Bearer ..." pour les routes REST /shortcuts et /setup.
+     Le token est stable entre redémarrages (fichier .cockpit_token) pour
+     qu'un favori tablette reste valide.
+   - Au démarrage, lance 5 tâches de fond asynchrones qui tournent en boucle
+     infinie et diffusent (broadcast) leur état à TOUS les clients WebSocket
+     connectés dès qu'un changement est détecté (ou à intervalle fixe) :
+       * polling média      (~1s, diff-check)
+       * polling audio       (~0.5s, diff-check)
+       * polling système     (~1s, toujours — historique change à chaque tick)
+       * polling applications (~2s, diff-check — énumération de fenêtres coûteuse)
+       * polling Wi-Fi        (~3s, diff-check — sous-processus netsh coûteux)
+
+b) Protocole WebSocket (core/websocket.py)
+   - Un seul point d'entrée /ws. Chaque message entrant est un JSON
+     {"type": "...", ...}. Un registre _HANDLERS associe chaque "type" à une
+     fonction async dédiée (media.command, audio.command, wifi.command,
+     deezer.search, deezer.play, *.state.request, etc.).
+   - Chaque message est traité isolément : une erreur de traitement envoie
+     un message d'erreur au client mais NE FERME PAS la connexion.
+   - Le frontend ne parle jamais directement à un service Python : tout
+     passe par ce dispatcher, qui appelle le service concerné puis diffuse
+     (broadcast) ou répond au client (send_to_client) selon le cas.
+
+c) Frontend (web/js/*.js, chargés dans un ordre de dépendance strict)
+   - Un objet global "State" (app-core.js) centralise tout l'état connu côté
+     client (dernier media.state, audio.state, system.state, etc.).
+   - Un objet global "UI" est étendu par assignation dans chaque fichier
+     app-ui-*.js (UI.updateXxx = function...) : chaque fichier ajoute ses
+     fonctions de rendu sans jamais redéfinir tout l'objet.
+   - Au chargement, app.js::loadTabs() récupère par XHR (pas fetch, pour
+     compat vieux WebView) le HTML de chaque onglet (/tabs/*.html) et
+     l'injecte dans son <section> — y compris les <script> qu'il contient,
+     réexécutés manuellement (innerHTML n'exécute pas les scripts).
+   - Comme cette injection est asynchrone, chaque module d'init UI utilise
+     un pattern idempotent : un flag (ex. UI._netCardsInited) vérifié/posé
+     une seule fois, mais la fonction d'init est réappelée à chaque nouveau
+     rendu périodique tant que les éléments DOM ciblés n'existent pas
+     encore — garantit un branchement des événements sans dépendre de
+     l'ordre de chargement.
+   - Le rendu privilégie la mise à jour incrémentale (on modifie les nœuds
+     DOM existants par id/attribut) plutôt que la reconstruction complète du
+     HTML à chaque message, pour rester fluide sur le SoC limité de la
+     tablette.
+   - app-ws.js gère la connexion WebSocket et sa reconnexion automatique
+     (backoff exponentiel + jitter) en cas de coupure.
+   - Un canevas figé 1920x1200 (#app-shell) est mis à l'échelle par
+     transform:scale() (app-core.js::applyAppScale) pour tenir dans
+     n'importe quelle fenêtre en conservant les proportions exactes de la
+     maquette — sur la tablette cible réelle, aucun effet (scale=1).
+
+d) Sécurité / robustesse
+   - Toute intégration Windows (winsdk, pycaw) est chargée dans un bloc
+     try/except au démarrage : absente ou en échec → un flag *_AVAILABLE
+     passe à False, un WARNING est loggé, et les fonctionnalités concernées
+     basculent en état "indisponible" honnête plutôt que de planter le
+     serveur ou d'inventer des données.
+   - Les appels winsdk (WinRT, bloquants malgré await) sont exécutés dans
+     asyncio.to_thread() pour ne jamais geler la boucle asyncio principale
+     (sinon : timeouts de ping WebSocket, contrôles qui ne répondent plus).
+   - Les actions sensibles (fermer une application, éteindre/verrouiller le
+     PC) sont déclenchées uniquement depuis le backend, après confirmation
+     explicite côté tablette (modale) — jamais d'action irréversible sans
+     confirmation visible.
+
+
+5. LES ONGLETS (NAVIGATION PRINCIPALE)
+----------------------------------------
+Rail de navigation vertical à gauche, 4 boutons :
+
+  1) RACCOURCIS (web/tabs/shortcuts.html, web/js/shortcuts.js)
+     - "Apps rapides" : grille configurable (shortcuts_config.json), lance une
+       app ou remet au premier plan sa fenêtre si déjà ouverte (détection
+       Win32 EnumWindows par nom de process).
+     - "Macros/Scènes" : encore simulées (MOCK_SCENES), système à construire.
+     - "Steam" : détection en direct des jeux installés (scan des raccourcis
+       .url que Steam dépose dans le menu Démarrer), lancement via le
+       protocole steam://rungameid/.
+     - "Actions système" réelles : verrouiller, veille, redémarrer, éteindre,
+       déconnecter (ctypes / commande shutdown), avec confirmation modale.
+     - Fenêtres ouvertes réelles (EnumWindows) avec mise au premier plan.
+
+  2) SETUP (web/tabs/setup.html, services/system_monitor.py,
+     services/process_monitor.py, services/wifi_service.py,
+     web/js/app-ui-system.js, app-ui-audio.js, app-ui-network.js)
+     Panneau de supervision/contrôle du PC, remplace l'ancien onglet "Médias".
+     Structure : colonne "Système" (30%) + colonne principale (70%) avec
+     3 widgets.
+       - SYSTÈME : liste de composants (Processeur, Mémoire, Disques, Wi-Fi,
+         GPU) avec sparkline temps réel et % d'utilisation. Un tap sur une
+         ligne ouvre un SUR-MENU dans la colonne principale (le header, le
+         rail et la colonne Système restent visibles) : un graphique unique
+         (aire + ligne, 30 dernières secondes) et des statistiques/specs
+         détaillées (modèle CPU, cœurs, cache, fréquence, uptime, etc. —
+         lues via WMI, mises en cache car figées). La ligne sélectionnée est
+         surlignée ; un nouveau tap sur la même ligne referme le sur-menu
+         (bascule), un tap sur une autre ligne bascule directement dessus.
+       - APPLICATIONS OUVERTES : grille paginée (3x2) des fenêtres visibles
+         avec CPU/RAM/disque/réseau par application, noms nettoyés pour
+         l'utilisateur (voir §6), fermeture réelle (avec confirmation) via
+         POST /setup/apps/close/{pid}. Navigation par points de pagination
+         ou balayage tactile (swipe), rendu confiné au cadre du panneau.
+       - MIXEUR DE VOLUME : volume maître + volume par application audio
+         active (pycaw), mute individuel, mêmes noms nettoyés.
+       - RÉSEAU : deux cartes compactes Wi-Fi/Bluetooth (tap court = bascule
+         activé/désactivé ; appui long = sur-menu étendu avec liste des
+         réseaux visibles / appareils appairés, connexion à un réseau connu).
+         Le Wi-Fi respecte la restriction Windows "Services de localisation"
+         (sans elle, netsh refuse de lister les réseaux — état honnête
+         affiché plutôt qu'une liste vide trompeuse).
+
+  3) DEEZER (web/tabs/deezer.html, services/deezer_api.py, deezer_player.py)
+     Bibliothèque Deezer complète : playlists, albums, artistes, recherche
+     (piste/artiste/album), tri. La lecture ne se fait PAS dans le
+     navigateur : une commande "deezer.play" injecte un appel
+     window.dzPlayer.play() dans Deezer Desktop via Chrome DevTools Protocol
+     (l'appli doit tourner avec --remote-debugging-port=9222).
+
+  4) AUTOMOBILE (web/tabs/automobile.html)
+     Lanceur plein écran (masque header + rail) vers deux tableaux de bord
+     alimentés par la télémétrie SimHub (core/telemetry.py, /ws/telemetry) :
+       - Cockpit (web/tabs/dashboard.html) : vue de conduite courante.
+       - Endurance (web/tabs/endurance.html) : tableau de bord orienté
+         course d'endurance (classement, écarts, stratégie carburant/pneus).
+     Un bouton dédié (#automobile-exit-btn) permet de sortir du plein écran.
+
+Un "notch" persistant dans le header (pastille musique/jeu, toujours
+visible quel que soit l'onglet) ouvre un sur-menu (web/js/notch-menu.js)
+avec les contrôles de lecture complets et l'état du jeu en cours.
+
+
+6. LOGIQUE DE NOMMAGE DES APPLICATIONS (Applications ouvertes + Mixeur)
+--------------------------------------------------------------------------
+Les noms de fenêtre/process bruts remontés par Windows ne sont pas toujours
+lisibles pour un utilisateur (ex: "ApplicationFrameHost", "EXCEL.EXE").
+Deux tables alignées assurent des noms propres et cohérents entre le widget
+"Applications ouvertes" et le "Mixeur de volume" :
+  - Backend : services/process_monitor.py::_APP_META (icône + nom convivial
+    pour les exécutables connus) + _friendly_name_for() qui, pour un exe
+    inconnu, éclate le PascalCase ("ApplicationFrameHost" → "Application
+    Frame Host") et normalise les noms tout en majuscules.
+  - Frontend : web/js/app-core.js::PROCESS_NAME_MAP, utilisée par le mixeur
+    de volume pour appliquer la même simplification côté client.
+
+
+7. FICHIERS HÉRITÉS / NON UTILISÉS ACTUELLEMENT
+--------------------------------------------------
+- web/tabs/media.html + web/css/media.css : ancien onglet "Médias" (lecteur
+  multimédia autonome), remplacé par l'onglet "Setup". Le fragment n'est
+  plus référencé dans la navigation (index.html) — code mort à supprimer si
+  confirmé inutile.
+- web/tabs/fuel_design.html / fuel_design_add.html : brouillons de maquette,
+  non chargés par app.js::loadTabs().
+- debug_media.py, create_deezer_shortcut.bat : scripts utilitaires ponctuels
+  à la racine, hors du flux principal de l'application.
+
+
+8. LANCEMENT / EXPLOITATION
+------------------------------
+  pip install -r requirements.txt
+  pip install winsdk pycaw comtypes      (obligatoire sur Windows pour le
+                                           contrôle réel média/audio/Bluetooth)
+  python main.py
+
+Le serveur écoute par défaut sur 0.0.0.0:8000 (configurable via la variable
+d'env PORT). Le lien à mettre en favori sur la tablette est affiché dans les
+logs au démarrage : http://<ip-du-pc>:<port>/?token=<token>.
+Fichier "Lancer Cockpit OS.bat" à la racine : raccourci de lancement rapide
+sous Windows.
+
+
+9. PRINCIPES DE CONCEPTION SUIVIS (À RESPECTER EN CAS DE MODIFICATION)
+---------------------------------------------------------------------------
+- Jamais de données simulées/inventées en façade : un état "indisponible"
+  honnête est toujours préférable à une fausse valeur qui a l'air réelle.
+- Le frontend ne parle jamais directement à un service : tout passe par le
+  protocole WebSocket typé (core/websocket.py) ou les routes REST protégées
+  par token.
+- Rendu incrémental (pas de reconstruction complète du DOM à chaque tick)
+  pour rester fluide sur le matériel tablette cible.
+- Initialisation UI idempotente (flags _xInitialized) car les fragments
+  d'onglets sont injectés de façon asynchrone.
+- Toute action irréversible ou sensible sur le PC (fermer une app, éteindre,
+  changer un réglage système) passe par une confirmation visible côté
+  tablette avant exécution côté backend.

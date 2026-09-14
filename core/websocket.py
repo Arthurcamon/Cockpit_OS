@@ -163,6 +163,25 @@ async def _handle_audio_command(websocket: WebSocket, data: dict) -> None:
         await ws_manager.broadcast(full_audio_state)
 
 
+async def _handle_wifi_command(websocket: WebSocket, data: dict) -> None:
+    """Commandes Wi-Fi (bascule adaptateur, connexion à un réseau)."""
+    from services.wifi_service import wifi_service
+    result = await wifi_service.handle_command(data)
+    await ws_manager.broadcast(result)
+    # Rafraîchit et rediffuse tout de suite (plutôt que d'attendre le prochain
+    # tick de _wifi_polling_task) pour un retour visuel rapide après une
+    # action explicite — cf. _handle_audio_command, même principe.
+    fresh_state = await wifi_service.refresh_state()
+    await ws_manager.broadcast(fresh_state)
+
+
+async def _handle_wifi_state_request(websocket: WebSocket, data: dict) -> None:
+    """Demande de l'état Wi-Fi actuel (onglet Setup)."""
+    from services.wifi_service import wifi_service
+    state = await wifi_service.get_current_state()
+    await ws_manager.send_to_client(websocket, state)
+
+
 async def _handle_deezer_search(websocket: WebSocket, data: dict) -> None:
     """Recherche Deezer."""
     from services.deezer_api import deezer_api_service
@@ -281,6 +300,20 @@ async def _handle_audio_state_request(websocket: WebSocket, data: dict) -> None:
     await ws_manager.send_to_client(websocket, state)
 
 
+async def _handle_system_state_request(websocket: WebSocket, data: dict) -> None:
+    """Demande de l'état système actuel (onglet Setup)."""
+    from services.system_monitor import system_monitor_service
+    state = await system_monitor_service.get_current_state()
+    await ws_manager.send_to_client(websocket, state)
+
+
+async def _handle_apps_state_request(websocket: WebSocket, data: dict) -> None:
+    """Demande de l'état des applications ouvertes actuel (onglet Setup)."""
+    from services.process_monitor import process_monitor_service
+    state = await process_monitor_service.get_current_state()
+    await ws_manager.send_to_client(websocket, state)
+
+
 async def _handle_deezer_artist_albums(websocket: WebSocket, data: dict) -> None:
     """Albums d'un artiste."""
     from services.deezer_api import deezer_api_service
@@ -310,12 +343,16 @@ _HANDLERS: dict[str, Callable[[WebSocket, dict], Awaitable[None]]] = {
     "game.action": _handle_game_action,
     "audio.command": _handle_audio_command,
     "bluetooth.command": _handle_audio_command,
+    "wifi.command": _handle_wifi_command,
+    "wifi.state.request": _handle_wifi_state_request,
     "deezer.search": _handle_deezer_search,
     "deezer.playlists": _handle_deezer_playlists,
     "deezer.playlist.tracks": _handle_deezer_playlist_tracks,
     "deezer.play": _handle_deezer_play,
     "media.state.request": _handle_media_state_request,
     "audio.state.request": _handle_audio_state_request,
+    "system.state.request": _handle_system_state_request,
+    "apps.state.request": _handle_apps_state_request,
     "deezer.artist.albums": _handle_deezer_artist_albums,
     "deezer.album.tracks": _handle_deezer_album_tracks,
 }

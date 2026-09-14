@@ -34,14 +34,14 @@
 }
 
 .automobile-launcher__head h1 {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 700;
   margin: 0 0 8px;
   letter-spacing: -0.01em;
 }
 
 .automobile-launcher__head p {
-  font-size: 14px;
+  font-size: 18px;
   color: #9CA3AF;
   margin: 0;
 }
@@ -101,13 +101,13 @@
 }
 
 .automobile-launch-card__title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   color: #ffffff;
 }
 
 .automobile-launch-card__desc {
-  font-size: 12.5px;
+  font-size: 16.5px;
   color: #9CA3AF;
   line-height: 1.4;
 }

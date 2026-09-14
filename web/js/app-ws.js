@@ -21,6 +21,9 @@ function connectWS() {
     // Demande de l'état initial au démarrage
     send({ type: 'media.state.request' });
     send({ type: 'audio.state.request' });
+    send({ type: 'system.state.request' });
+    send({ type: 'apps.state.request' });
+    send({ type: 'wifi.state.request' });
     send({ type: 'deezer.playlists' });
   };
 
@@ -284,6 +287,26 @@ function handleMessage(data) {
       UI.updateAudioApps(data);
       UI.updateAudioDevices(data);
       UI.updateBluetooth(data);
+      UI.updateSetupBluetooth(data);
+      break;
+
+    case 'system.state':
+      State.systemState = data;
+      UI.updateSystemPanel(data);
+      break;
+
+    case 'wifi.state':
+      State.wifiState = data;
+      UI.updateSetupWifi(data);
+      break;
+
+    case 'wifi.error':
+      if (data.message) UI.showToast(data.message, 'error');
+      break;
+
+    case 'apps.state':
+      State.appsState = data;
+      UI.updateAppsGrid(data);
       break;
 
     case 'deezer.playlists.results':

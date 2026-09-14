@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/css/design-tokens.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/style.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/shortcuts.css?v=__APP_VERSION__" />
-  <link rel="stylesheet" href="/css/media.css?v=__APP_VERSION__" />
+  <link rel="stylesheet" href="/css/setup.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/deezer.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/dashboard.css?v=__APP_VERSION__" />
   <link rel="stylesheet" href="/css/endurance.css?v=__APP_VERSION__" />
@@ -50,13 +50,12 @@
         </svg>
         <span class="tab-nav__label">Raccourcis</span>
       </button>
-      <button class="tab-nav__btn" data-tab="media">
+      <button class="tab-nav__btn" data-tab="setup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          <circle cx="12" cy="12" r="3.2"/>
+          <path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
         </svg>
-        <span class="tab-nav__label">Médias</span>
+        <span class="tab-nav__label">Setup</span>
       </button>
       <button class="tab-nav__btn" data-tab="deezer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -154,9 +153,9 @@
                (étape 3) — .is-fading basculée par UI.updateHeaderNotch,
                même mécanisme que .notch__text sur la notch fermée. -->
           <div class="notch-menu__music-info" id="notchmenu-music-info">
-            <div class="notch-menu__cover" id="notchmenu-cover-placeholder">
+            <div class="notch-menu__cover" id="notchmenu-cover-box">
               <img class="notch-menu__cover-img" id="notchmenu-cover" alt="" style="display:none;" onerror="this.style.display='none'" />
-              <span class="notch-menu__cover-note">♪</span>
+              <span class="notch-menu__cover-note" id="notchmenu-cover-placeholder">♪</span>
             </div>
             <div class="notch-menu__title" id="notchmenu-title">Aucune lecture en cours</div>
             <div class="notch-menu__artist" id="notchmenu-artist">—</div>
@@ -234,9 +233,9 @@
           <!-- Chargé depuis /tabs/shortcuts.html -->
         </section>
 
-        <!-- Onglet Lecteur Media -->
-        <section id="tab-media" class="tab-panel">
-          <!-- Chargé depuis /tabs/media.html -->
+        <!-- Onglet Setup (supervision système) -->
+        <section id="tab-setup" class="tab-panel">
+          <!-- Chargé depuis /tabs/setup.html -->
         </section>
 
         <!-- Onglet Deezer -->
@@ -311,6 +310,8 @@
   <script src="/js/app-ui-core.js?v=__APP_VERSION__"></script>
   <script src="/js/app-ui-deezer.js?v=__APP_VERSION__"></script>
   <script src="/js/app-ui-audio.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-ui-system.js?v=__APP_VERSION__"></script>
+  <script src="/js/app-ui-network.js?v=__APP_VERSION__"></script>
   <script src="/js/notch-menu.js?v=__APP_VERSION__"></script>
   <script src="/js/app.js?v=__APP_VERSION__"></script>
 </body>

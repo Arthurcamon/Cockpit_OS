@@ -19,6 +19,7 @@ from core.logger import get_logger
 from core.websocket import handle_websocket, ws_manager
 from core.shortcuts import router as shortcuts_router
 from core.telemetry import router as telemetry_router
+from core.setup import router as setup_router
 from config import settings
 
 logger = get_logger(__name__)
@@ -67,6 +68,7 @@ def create_app() -> FastAPI:
     # Enregistrer les routers API
     app.include_router(shortcuts_router)
     app.include_router(telemetry_router)
+    app.include_router(setup_router)
 
     # ── Routes API REST ────────────────────────────────────────────────────────
 
@@ -93,6 +95,19 @@ def create_app() -> FastAPI:
             "audio": audio_state,
             "ws_clients": ws_manager.client_count,
         }
+
+    @app.get("/api/debug/media-poll")
+    async def debug_media_poll():
+        """
+        Diagnostic de la tâche de fond de polling média (voir _media_poll_diag) —
+        tick_count doit augmenter à chaque appel successif (~1x/s) si la tâche
+        tourne. last_tick_at très ancien ou tick_count figé = tâche bloquée/morte.
+        """
+        diag = dict(_media_poll_diag)
+        now = time.time()
+        diag["seconds_since_last_tick"] = (now - diag["last_tick_at"]) if diag["last_tick_at"] else None
+        diag["seconds_since_last_broadcast"] = (now - diag["last_broadcast_at"]) if diag["last_broadcast_at"] else None
+        return diag
 
     @app.get("/api/debug/media")
     async def debug_media():
@@ -184,12 +199,32 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def start_background_polling():
-        """Démarre le polling périodique de l'état média et de l'état audio Windows."""
+        """Démarre le polling périodique de l'état média, audio et système Windows."""
         asyncio.create_task(_media_polling_task())
         asyncio.create_task(_audio_polling_task())
-        logger.info("Cockpit OS démarré — polling média & audio actif")
+        asyncio.create_task(_system_polling_task())
+        asyncio.create_task(_apps_polling_task())
+        asyncio.create_task(_wifi_polling_task())
+        logger.info("Cockpit OS démarré — polling média, audio, système, applications & Wi-Fi actif")
 
     return app
+
+
+#: Diagnostic en mémoire pour /api/debug/media-poll — permet de vérifier que
+#: la tâche de fond tourne réellement (tick_count doit augmenter chaque
+#: seconde) sans dépendre des logs console (non accessibles à distance).
+#: Ajouté le 2026-09-05 pour investiguer un bug signalé : la notch/l'onglet
+#: Médias ne se mettent pas à jour tout seuls après un changement de morceau
+#: (un rechargement de page retrouve toujours le bon état, donc la lecture
+#: à la demande fonctionne — seule la diffusion automatique semble en cause).
+_media_poll_diag = {
+    "tick_count": 0,
+    "last_tick_at": None,
+    "last_error": None,
+    "last_broadcast_at": None,
+    "last_broadcast_title": None,
+    "last_client_count": None,
+}
 
 
 async def _media_polling_task():
@@ -202,6 +237,9 @@ async def _media_polling_task():
     last_state: dict = {}
 
     while True:
+        _media_poll_diag["tick_count"] += 1
+        _media_poll_diag["last_tick_at"] = time.time()
+        _media_poll_diag["last_client_count"] = ws_manager.client_count
         try:
             if ws_manager.client_count > 0:
                 current_state = await windows_media_service.get_current_state()
@@ -210,9 +248,12 @@ async def _media_polling_task():
                 if current_state != last_state:
                     await ws_manager.broadcast(current_state)
                     last_state = current_state
+                    _media_poll_diag["last_broadcast_at"] = time.time()
+                    _media_poll_diag["last_broadcast_title"] = current_state.get("title")
 
         except Exception as e:
             logger.error(f"Erreur dans le polling média : {e}")
+            _media_poll_diag["last_error"] = f"{type(e).__name__}: {e}"
 
         await asyncio.sleep(settings.MEDIA_POLL_INTERVAL)
 
@@ -240,3 +281,79 @@ async def _audio_polling_task():
             logger.error(f"Erreur dans le polling audio : {e}")
 
         await asyncio.sleep(0.5)
+
+
+async def _system_polling_task():
+    """
+    Tâche de fond qui interroge régulièrement l'état système (CPU/RAM/
+    disques/réseau/GPU, onglet Setup) et diffuse l'état à tous les clients
+    connectés. Pas de diff-check ici : l'historique des sparklines change à
+    chaque tick par nature, donc quasiment toujours "différent".
+    """
+    from services.system_monitor import system_monitor_service
+
+    while True:
+        try:
+            if ws_manager.client_count > 0:
+                # refresh_state() (pas get_current_state()) : c'est la seule
+                # méthode qui doit déclencher une vraie lecture psutil, pour
+                # que psutil.cpu_percent() mesure toujours sur un intervalle
+                # d'~1s propre, jamais raccourci par une requête à la
+                # demande concurrente (voir services/system_monitor.py).
+                current_state = await system_monitor_service.refresh_state()
+                await ws_manager.broadcast(current_state)
+
+        except Exception as e:
+            logger.error(f"Erreur dans le polling système : {e}")
+
+        await asyncio.sleep(1.0)
+
+
+async def _apps_polling_task():
+    """
+    Tâche de fond qui interroge périodiquement les applications ouvertes
+    (fenêtres visibles + CPU/RAM/disque par processus, onglet Setup) et
+    diffuse l'état à tous les clients connectés. Intervalle plus long que le
+    polling système (2s vs 1s) : l'énumération de fenêtres + lecture par
+    processus est plus coûteuse, et une grille d'apps n'a pas besoin de la
+    même fraîcheur qu'un sparkline temps réel.
+    """
+    from services.process_monitor import process_monitor_service
+
+    while True:
+        try:
+            if ws_manager.client_count > 0:
+                current_state = await process_monitor_service.refresh_state()
+                await ws_manager.broadcast(current_state)
+
+        except Exception as e:
+            logger.error(f"Erreur dans le polling applications : {e}")
+
+        await asyncio.sleep(2.0)
+
+
+async def _wifi_polling_task():
+    """
+    Tâche de fond qui interroge périodiquement l'état Wi-Fi (adaptateur,
+    réseau connecté, réseaux visibles, onglet Setup) et diffuse l'état à
+    tous les clients connectés. Intervalle plus long que les autres polls :
+    chaque lecture lance un sous-processus netsh/PowerShell, plus coûteux
+    qu'une lecture psutil — et diff-check comme le polling audio, l'état
+    Wi-Fi ne change pas à chaque tick contrairement aux sparklines système.
+    """
+    from services.wifi_service import wifi_service
+
+    last_state: dict = {}
+
+    while True:
+        try:
+            if ws_manager.client_count > 0:
+                current_state = await wifi_service.refresh_state()
+                if current_state != last_state:
+                    await ws_manager.broadcast(current_state)
+                    last_state = current_state
+
+        except Exception as e:
+            logger.error(f"Erreur dans le polling Wi-Fi : {e}")
+
+        await asyncio.sleep(3.0)

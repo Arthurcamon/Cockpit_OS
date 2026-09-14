@@ -6,6 +6,15 @@
 
 'use strict';
 
+// Force une reconstruction complète du DOM au tout premier état audio réel
+// reçu, même si son nombre d'applications coïncide avec celui du contenu
+// d'exemple statique (setup.html) : ce contenu d'exemple n'a pas d'attribut
+// data-pid, donc la mise à jour "sur place" ci-dessous (basée sur ce sélecteur)
+// ne trouverait jamais rien à mettre à jour et le mixeur resterait figé sur
+// les valeurs de la maquette. Même principe que UI._systemPanelInitialized /
+// UI._appsGridInitialized (app-ui-system.js).
+UI._audioAppsInitialized = false;
+
 // ── Applications audio & Mixeur Volume ─────────────────────────────────────
 UI.updateAudioApps = function(state) {
   var container = el('audio-apps-list');
@@ -40,6 +49,18 @@ UI.updateAudioApps = function(state) {
   if (enduranceMasterText) {
     enduranceMasterText.textContent = masterVol + '%';
   }
+
+  // Toujours synchroniser le slider de volume du sur-menu de la notch —
+  // sinon il reste figé à sa valeur HTML par défaut (100%) et ne reflète
+  // jamais un changement fait ailleurs (Windows, autre onglet, autre
+  // slider) : c'était le bug rapporté ("pas synchro avec le PC").
+  var notchVolSlider = el('notchmenu-volume-slider');
+  if (notchVolSlider && activeEl !== notchVolSlider) {
+    notchVolSlider.value = masterVol;
+    notchVolSlider.style.setProperty('background', sliderFillBackground(masterVol), 'important');
+  }
+  var notchMuteIcon = el('notchmenu-mute');
+  if (notchMuteIcon) notchMuteIcon.classList.toggle('muted', masterMuted);
   if (typeof appVolumes !== 'undefined') {
     appVolumes['master'] = masterVol;
   }
@@ -94,8 +115,9 @@ UI.updateAudioApps = function(state) {
 
   var appItems = container.querySelectorAll('.audio-app-item-modern');
 
-  // Mettre à jour sur place si la structure DOM existe déjà
-  if (appItems.length === apps.length && appItems.length > 0) {
+  // Mettre à jour sur place si la structure DOM existe déjà (jamais lors du
+  // tout premier état reçu — voir UI._audioAppsInitialized ci-dessus)
+  if (UI._audioAppsInitialized && appItems.length === apps.length && appItems.length > 0) {
     apps.forEach(function(app) {
       var slider = container.querySelector('.audio-app-slider-modern[data-pid="' + app.pid + '"]');
       if (slider && activeEl !== slider) {
@@ -117,6 +139,7 @@ UI.updateAudioApps = function(state) {
   }
 
   container.innerHTML = '';
+  UI._audioAppsInitialized = true;
 
   // Fonctions d'envoi réseau limitées en fréquence (40ms) pour une glissière 100% fluide
   if (!window._sendMasterVolThrottled) {
@@ -150,6 +173,7 @@ UI.updateAudioApps = function(state) {
     div.className = 'audio-app-item-modern fade-in';
     var vol = Math.round((app.volume || 0) * 100);
 
+    var displayName = getDisplayNameForApp(app.name);
     var icon = '🔊';
     var nameLower = (app.name || '').toLowerCase();
     if (nameLower.indexOf('spotify') !== -1) icon = '🎵';
@@ -160,13 +184,13 @@ UI.updateAudioApps = function(state) {
 
     div.innerHTML =
       '<div class="app-item-info">' +
-        '<button class="sim-mixer-icon-btn audio-app-mute-btn ' + (app.muted ? 'muted' : '') + '" data-pid="' + app.pid + '" title="Mute/Démute ' + esc(app.name) + '" style="width:36px!important;height:36px!important;min-width:36px!important;border-radius:50%!important;padding:0;margin-right:6px;">' +
+        '<button class="sim-mixer-icon-btn audio-app-mute-btn ' + (app.muted ? 'muted' : '') + '" data-pid="' + app.pid + '" title="Mute/Démute ' + esc(displayName) + '" style="width:36px!important;height:36px!important;min-width:36px!important;border-radius:50%!important;padding:0;margin-right:6px;">' +
           '<svg viewBox="0 0 24 24" fill="currentColor" style="width:18px!important;height:18px!important;">' +
             '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>' +
           '</svg>' +
         '</button>' +
         '<span class="app-item-icon">' + icon + '</span>' +
-        '<span class="audio-app-name-modern">' + esc(getDisplayNameForApp(app.name)) + '</span>' +
+        '<span class="audio-app-name-modern">' + esc(displayName) + '</span>' +
       '</div>' +
       '<div class="app-item-slider-wrapper">' +
         '<input type="range" class="audio-app-slider-modern" data-pid="' + app.pid + '" min="0" max="100" value="' + vol + '" />' +
@@ -219,13 +243,13 @@ UI.updateAudioDevices = function(state) {
   if (outContainer) {
     outContainer.innerHTML = '';
     if (!outputs.length) {
-      outContainer.innerHTML = '<span class="empty-state" style="padding:4px;font-size:12px;">Aucun périphérique de sortie</span>';
+      outContainer.innerHTML = '<span class="empty-state" style="padding:4px;font-size:16px;">Aucun périphérique de sortie</span>';
     } else {
       outputs.forEach(function(dev) {
         var button = document.createElement('button');
         button.className = 'device-pill' + (dev.active ? ' device-pill--active' : '');
         button.setAttribute('data-id', dev.id);
-        button.innerHTML = (dev.icon || '🔊') + ' ' + esc(dev.name) + (dev.active ? ' <span class="active-badge" style="font-size:10px;opacity:0.8;margin-left:4px;">(Actif)</span>' : '');
+        button.innerHTML = (dev.icon || '🔊') + ' ' + esc(dev.name) + (dev.active ? ' <span class="active-badge" style="font-size:14px;opacity:0.8;margin-left:4px;">(Actif)</span>' : '');
         button.title = "Cliquer pour définir comme périphérique par défaut";
         button.addEventListener('click', function() {
           UI.selectAudioDevice(dev.id, 'output');
@@ -239,13 +263,13 @@ UI.updateAudioDevices = function(state) {
   if (inContainer) {
     inContainer.innerHTML = '';
     if (!inputs.length) {
-      inContainer.innerHTML = '<span class="empty-state" style="padding:4px;font-size:12px;">Aucun périphérique d\'entrée</span>';
+      inContainer.innerHTML = '<span class="empty-state" style="padding:4px;font-size:16px;">Aucun périphérique d\'entrée</span>';
     } else {
       inputs.forEach(function(dev) {
         var button = document.createElement('button');
         button.className = 'device-pill' + (dev.active ? ' device-pill--active' : '');
         button.setAttribute('data-id', dev.id);
-        button.innerHTML = (dev.icon || '🎙️') + ' ' + esc(dev.name) + (dev.active ? ' <span class="active-badge" style="font-size:10px;opacity:0.8;margin-left:4px;">(Actif)</span>' : '');
+        button.innerHTML = (dev.icon || '🎙️') + ' ' + esc(dev.name) + (dev.active ? ' <span class="active-badge" style="font-size:14px;opacity:0.8;margin-left:4px;">(Actif)</span>' : '');
         button.title = "Cliquer pour définir comme périphérique par défaut";
         button.addEventListener('click', function() {
           UI.selectAudioDevice(dev.id, 'input');
@@ -269,7 +293,7 @@ UI.selectAudioDevice = function(deviceId, direction) {
         if (!badge) {
           var bSpan = document.createElement('span');
           bSpan.className = 'active-badge';
-          bSpan.style.cssText = 'font-size:10px;opacity:0.8;margin-left:4px;';
+          bSpan.style.cssText = 'font-size:14px;opacity:0.8;margin-left:4px;';
           bSpan.textContent = '(Actif)';
           pill.appendChild(bSpan);
         }

@@ -36,7 +36,7 @@ function loadTabs() {
   var tabs = [
     { id: 'tab-dashboard',   url: '/tabs/dashboard.html?v=' + v },
     { id: 'tab-deezer',      url: '/tabs/deezer.html?v=' + v },
-    { id: 'tab-media',       url: '/tabs/media.html?v=' + v  },
+    { id: 'tab-setup',       url: '/tabs/setup.html?v=' + v  },
     { id: 'tab-endurance',   url: '/tabs/endurance.html?v=' + v },
     { id: 'tab-shortcuts',   url: '/tabs/shortcuts.html?v=' + v },
     { id: 'tab-automobile',  url: '/tabs/automobile.html?v=' + v }
@@ -89,7 +89,7 @@ function loadTabs() {
 // Automobile (qui active "dashboard"/"endurance" sans bouton de rail dédié).
 var TAB_CRUMB_LABELS = {
   shortcuts: 'Raccourcis',
-  media: 'Médias',
+  setup: 'Setup',
   deezer: 'Deezer',
   automobile: 'Automobile',
   dashboard: 'Cockpit',
@@ -135,16 +135,11 @@ function activateTab(tabName) {
 
   setText('header-crumb', TAB_CRUMB_LABELS[tabName] || tabName);
 
-  // Gérer la visibilité du mini-player pour l'onglet média
-  if (tabName === 'media') {
-    document.body.classList.add('media-tab-active');
-    // Rafraîchir les widgets de l'onglet média
-    if (State.audioState) {
-      UI.updateBluetooth(State.audioState);
-      UI.updateAudioDevices(State.audioState);
-    }
-  } else {
-    document.body.classList.remove('media-tab-active');
+  // Rafraîchir les widgets de l'onglet Setup (mixeur/réseau) à l'entrée,
+  // avec le dernier état déjà connu plutôt que d'attendre le prochain
+  // message poussé par le serveur.
+  if (tabName === 'setup' && State.audioState) {
+    UI.updateAudioApps(State.audioState);
   }
 
   // Masquer le mini-player pour tous les onglets
@@ -230,9 +225,11 @@ function initEvents() {
 
   // OPTIMISATION 5 : Consolidation des écouteurs 'click' et 'input' globaux
   document.addEventListener('click', function(e) {
-    // 1. Boutons de contrôle média
-    if (e.target.closest('#media-prev') || e.target.closest('#dash-media-prev') || e.target.closest('#dz-media-prev')) {
-      var btnEl = e.target.closest('#media-prev') || e.target.closest('#dash-media-prev') || e.target.closest('#dz-media-prev');
+    // 1. Boutons de contrôle média — l'onglet Médias (transport #media-*) a
+    // été remplacé par l'onglet Setup (supervision système, pas de lecteur) ;
+    // #dash-media-*/#dz-media-* restent (mini-lecteurs Dashboard/Deezer).
+    if (e.target.closest('#dash-media-prev') || e.target.closest('#dz-media-prev')) {
+      var btnEl = e.target.closest('#dash-media-prev') || e.target.closest('#dz-media-prev');
       var btnId = btnEl ? btnEl.id : 'unknown-prev';
       console.log("[Click Handler] Clic sur #" + btnId + " détecté. State.customQueueActive =", State.customQueueActive, "State.customQueueIndex =", State.customQueueIndex);
       if (State.customQueueActive) {
@@ -242,11 +239,11 @@ function initEvents() {
       }
       return;
     }
-    if (e.target.closest('#media-play') || e.target.closest('#dash-media-play') || e.target.closest('#dz-media-play')) {
+    if (e.target.closest('#dash-media-play') || e.target.closest('#dz-media-play')) {
       Media.command('toggle');
       return;
     }
-    if (e.target.closest('#media-next') || e.target.closest('#dash-media-next') || e.target.closest('#dz-media-next')) {
+    if (e.target.closest('#dash-media-next') || e.target.closest('#dz-media-next')) {
       if (State.customQueueActive) {
         playNextQueueTrack();
       } else {
@@ -254,14 +251,6 @@ function initEvents() {
       }
       return;
     }
-    // NOTE : #media-mute a déjà un onclick="toggleAppMute('master')" inline dans media.html,
-    // qui envoie une commande explicite avec la valeur cible calculée. Un ancien gestionnaire
-    // ici appelait EN PLUS Media.toggleMute() (bascule "à l'aveugle" sans valeur) sur le même
-    // clic — les deux commandes arrivaient presque en même temps et le serveur basculait le
-    // mute deux fois, s'annulant un coup sur deux. Supprimé : laisser le onclick inline gérer
-    // seul ce bouton.
-    if (e.target.closest('#media-shuffle')) { Media.command('shuffle.toggle'); return; }
-    if (e.target.closest('#media-repeat')) { Media.command('repeat.cycle'); return; }
     if (e.target.closest('#audio-refresh')) { send({ type: 'audio.state.request' }); return; }
     if (e.target.closest('#dz-refresh-playlists')) { Deezer.loadPlaylists(); return; }
 
@@ -290,7 +279,7 @@ function initEvents() {
     }
 
     // 5. Seek sur barre de progression
-    var bar = e.target.closest('#media-progress-bar') || e.target.closest('#dz-media-progress-bar') || e.target.closest('#dash-media-progress-bar');
+    var bar = e.target.closest('#dz-media-progress-bar') || e.target.closest('#dash-media-progress-bar');
     if (bar) {
       var rect = bar.getBoundingClientRect();
       var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));

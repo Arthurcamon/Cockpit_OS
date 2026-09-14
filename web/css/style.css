@@ -18,7 +18,7 @@ html, body {
   background: var(--bg-app);
   color: var(--text-primary);
   font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
-  font-size: 15px;
+  font-size: 19px;
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -112,7 +112,7 @@ body {
    sur ces 3 éléments) ; text-transform remplace la saisie en majuscules du
    texte de la maquette ("COCKPIT OS"), le HTML garde "Cockpit OS". */
 .header__app-name {
-  font-size: 17px;
+  font-size: 21px;
   font-weight: 600;
   letter-spacing: 0.3px;
   color: var(--rc-text-tertiary);
@@ -120,10 +120,10 @@ body {
   white-space: nowrap;
 }
 
-.header__sep { font-size: 20px; color: var(--rc-text-tertiary); font-weight: 300; opacity: 0.5; white-space: nowrap; }
+.header__sep { font-size: 24px; color: var(--rc-text-tertiary); font-weight: 300; opacity: 0.5; white-space: nowrap; }
 
 .header__crumb {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 400;
   letter-spacing: 0.1px;
   color: var(--rc-text-primary);
@@ -150,7 +150,7 @@ body {
 
 /* Point 8 (maquette finale) — tailles littérales (plus de --header-scale). */
 .header__time {
-  font-size: 38px;
+  font-size: 42px;
   font-weight: 300;
   letter-spacing: 0.5px;
   color: var(--rc-text-primary);
@@ -160,7 +160,7 @@ body {
 }
 
 .header__date {
-  font-size: 15px;
+  font-size: 19px;
   color: var(--rc-text-tertiary);
   font-weight: 400;
   margin-top: 2px;
@@ -289,7 +289,7 @@ body {
   background: var(--notch-thumb-bg);
   box-shadow: 0 0 0 3px rgba(111, 151, 255, 0.15);
   color: #fff;
-  font-size: 26px;
+  font-size: 30px;
   transition: background 320ms ease, color 320ms ease, box-shadow 320ms ease;
 }
 .notch__cover { object-fit: cover; }
@@ -312,7 +312,7 @@ body {
   transition: none;
 }
 .notch__title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
   color: var(--rc-text-primary);
   white-space: nowrap;
@@ -320,7 +320,7 @@ body {
   text-overflow: ellipsis;
 }
 .notch__sub {
-  font-size: 14.5px;
+  font-size: 18.5px;
   color: var(--rc-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -567,19 +567,29 @@ body {
 .notch-menu__cover-img { width: 100%; height: 100%; object-fit: cover; }
 .notch-menu__cover-note {
   position: absolute;
-  font-size: 56px;
+  font-size: 60px;
   color: rgba(255, 255, 255, 0.4);
 }
 
 .notch-menu__title {
-  font-size: 19px;
+  font-size: 23px;
   font-weight: 700;
   text-align: center;
   color: var(--rc-text-tertiary);
   transition: color 320ms ease;
 }
 .notch-menu__title.is-active { color: var(--rc-text-primary); }
-.notch-menu__artist { font-size: 13px; color: var(--rc-text-tertiary); margin-top: 6px; text-align: center; }
+.notch-menu__artist {
+  font-size: 19px;
+  color: var(--rc-text-tertiary);
+  margin-top: 6px;
+  text-align: center;
+  transition: color 320ms ease;
+}
+/* Reste dim (tertiary) tant qu'aucun morceau n'est chargé — même logique
+   que le titre, pour ne pas donner plus de présence à l'artiste qu'au
+   titre quand il n'y a rien à lire. */
+.notch-menu__artist.is-active { color: var(--rc-text-secondary); }
 
 /* Transport + volume visuellement désactivés tant qu'aucune lecture n'est
    chargée (contrôles réels branchés à l'étape 2 — ici, apparence seule). */
@@ -593,17 +603,17 @@ body {
   opacity: 0.4;
 }
 
-.notch-menu__progress { width: 100%; max-width: 380px; margin-top: 26px; }
+.notch-menu__progress { width: 100%; max-width: 420px; margin-top: 26px; }
 .notch-menu__progress-times {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 16.5px;
   color: var(--rc-text-tertiary);
   margin-bottom: 9px;
 }
 .notch-menu__progress-track {
-  height: 8px;
-  border-radius: 4px;
+  height: 10px;
+  border-radius: 5px;
   background: var(--rc-surface-2);
   position: relative;
   cursor: pointer;
@@ -611,50 +621,59 @@ body {
 .notch-menu__progress-fill {
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  border-radius: 4px;
+  border-radius: 5px;
   background: linear-gradient(90deg, var(--notch-blue), var(--accent-2));
 }
 .notch-menu__progress-thumb {
   position: absolute;
   top: 50%;
-  width: 16px; height: 16px;
+  width: 20px; height: 20px;
   border-radius: 50%;
   background: #fff;
   transform: translate(-50%, -50%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-.notch-menu__transport { display: flex; align-items: center; gap: 20px; margin-top: 34px; }
+/* Boutons agrandis pour rester lisibles/tapables sur tablette (retour
+   utilisateur : trop petits à la taille d'origine — 40/64/88px). */
+.notch-menu__transport { display: flex; align-items: center; gap: 26px; margin-top: 36px; }
 .notch-menu__t-btn {
-  width: 40px; height: 40px;
+  width: 54px; height: 54px;
   display: flex; align-items: center; justify-content: center;
   color: var(--rc-text-tertiary);
   cursor: pointer;
 }
-.notch-menu__t-btn svg { width: 18px; height: 18px; }
-.notch-menu__t-btn--main { width: 64px; height: 64px; color: var(--rc-text-primary); }
-.notch-menu__t-btn--main svg { width: 26px; height: 26px; }
+.notch-menu__t-btn svg { width: 24px; height: 24px; }
+.notch-menu__t-btn--main { width: 78px; height: 78px; color: var(--rc-text-primary); }
+.notch-menu__t-btn--main svg { width: 32px; height: 32px; }
 .notch-menu__t-btn--play {
-  width: 88px; height: 88px;
+  width: 108px; height: 108px;
   color: #fff;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--notch-blue), var(--accent-2));
   box-shadow: 0 14px 32px -10px rgba(111, 151, 255, 0.55);
 }
-.notch-menu__t-btn--play svg { width: 32px; height: 32px; }
+.notch-menu__t-btn--play svg { width: 40px; height: 40px; }
 .notch-menu__t-btn.active { color: var(--notch-blue); }
 
 .notch-menu__volume {
-  width: 100%; max-width: 380px;
-  margin-top: 32px;
-  display: flex; align-items: center; gap: 16px;
+  width: 100%; max-width: 420px;
+  margin-top: 34px;
+  display: flex; align-items: center; gap: 18px;
 }
-.notch-menu__vol-icon { color: var(--rc-text-tertiary); display: flex; cursor: pointer; }
-.notch-menu__vol-icon svg { width: 20px; height: 20px; }
+.notch-menu__vol-icon {
+  width: 44px; height: 44px;
+  color: var(--rc-text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.notch-menu__vol-icon svg { width: 26px; height: 26px; }
+.notch-menu__vol-icon.muted { color: var(--rc-danger); }
 .notch-menu__vol-slider {
   flex: 1;
-  height: 8px;
-  border-radius: 4px;
+  height: 10px;
+  border-radius: 5px;
   accent-color: var(--notch-blue);
   cursor: pointer;
 }
@@ -676,7 +695,7 @@ body {
 }
 
 .notch-menu__game-eyebrow {
-  font-size: 12px; font-weight: 600; letter-spacing: 0.6px;
+  font-size: 16px; font-weight: 600; letter-spacing: 0.6px;
   color: var(--rc-text-tertiary); text-transform: uppercase;
   margin-bottom: 18px;
 }
@@ -694,7 +713,7 @@ body {
   color: transparent;
 }
 
-.notch-menu__game-title { font-size: 18px; font-weight: 700; color: var(--rc-text-tertiary); }
+.notch-menu__game-title { font-size: 22px; font-weight: 700; color: var(--rc-text-tertiary); }
 .notch-menu__game-title.is-active { color: var(--rc-text-primary); }
 .notch-menu__game-status { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .notch-menu__game-dot {
@@ -705,12 +724,12 @@ body {
   background: var(--accent-2);
   box-shadow: 0 0 8px rgba(166, 111, 255, 0.6);
 }
-.notch-menu__game-status-txt { font-size: 12.5px; color: var(--rc-text-secondary); }
+.notch-menu__game-status-txt { font-size: 16.5px; color: var(--rc-text-secondary); }
 
 .notch-menu__game-stats { display: flex; gap: 10px; margin-top: 22px; }
 .notch-menu__stat-chip { background: var(--rc-surface-1); border-radius: 12px; padding: 12px 14px; flex: 1; }
-.notch-menu__stat-v { font-size: 16px; font-weight: 700; color: var(--rc-text-primary); }
-.notch-menu__stat-l { font-size: 10.5px; color: var(--rc-text-tertiary); margin-top: 2px; }
+.notch-menu__stat-v { font-size: 20px; font-weight: 700; color: var(--rc-text-primary); }
+.notch-menu__stat-l { font-size: 14.5px; color: var(--rc-text-tertiary); margin-top: 2px; }
 
 .notch-menu__quit-btn {
   margin-top: 24px;
@@ -719,7 +738,7 @@ body {
   border: 1px solid rgba(255, 122, 107, 0.32);
   border-radius: 14px;
   padding: 17px;
-  color: var(--rc-danger); font-size: 15px; font-weight: 600;
+  color: var(--rc-danger); font-size: 19px; font-weight: 600;
   cursor: pointer;
 }
 .notch-menu__quit-btn svg { width: 18px; height: 18px; }
@@ -733,7 +752,7 @@ body {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 500;
   color: var(--rc-text-tertiary);
   white-space: nowrap;
@@ -812,7 +831,7 @@ body {
      neutre --rc-surface-1 (comme les panneaux) au lieu de transparent. */
   background: var(--rc-surface-1);
   color: var(--rc-text-secondary);
-  font-size: calc(21px * var(--nav-scale));
+  font-size: calc(25px * var(--nav-scale));
   font-weight: 300;
   flex-shrink: 0;
 }
@@ -830,7 +849,7 @@ body {
   background: none;
   border: none;
   color: var(--rc-text-tertiary);
-  font-size: calc(14.5px * var(--nav-scale));
+  font-size: calc(18.5px * var(--nav-scale));
   font-weight: 500;
   letter-spacing: 0.2px;
   cursor: pointer;
@@ -853,7 +872,7 @@ body {
 
 .tab-nav__label {
   display: block;
-  font-size: calc(14.5px * var(--nav-scale));
+  font-size: calc(18.5px * var(--nav-scale));
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: 0.2px;
@@ -972,7 +991,7 @@ body {
   align-items: center;
   justify-content: center;
   color: #5b6284;
-  font-size: 20px;
+  font-size: 24px;
   flex-shrink: 0;
   position: relative;
 }
@@ -988,7 +1007,7 @@ body {
 .mini-player__info { overflow: hidden; min-width: 0; }
 
 .mini-player__title {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -996,7 +1015,7 @@ body {
 }
 
 .mini-player__artist {
-  font-size: 12px;
+  font-size: 16px;
   color: #9aa1c2;
   white-space: nowrap;
   overflow: hidden;
@@ -1100,7 +1119,7 @@ body {
 .empty-state {
   text-align: center;
   color: #5b6284;
-  font-size: 14px;
+  font-size: 18px;
   padding: 40px 20px;
 }
 
@@ -1156,7 +1175,7 @@ body {
 }
 
 .panel-card__title {
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 700;
 }
 
@@ -1190,10 +1209,10 @@ body {
   /* Pas d'override de largeur ici : la notch reste 25% du header (grid),
      le plancher min-height:64px suffit à la garder tactile. */
   .notch__thumb, .notch__cover { width: 40px; height: 40px; }
-  .notch__title { font-size: 14px; }
-  .notch__sub { font-size: 11px; }
-  .header__crumb { font-size: 20px; }
-  .header__time { font-size: 24px; }
+  .notch__title { font-size: 18px; }
+  .notch__sub { font-size: 15px; }
+  .header__crumb { font-size: 24px; }
+  .header__time { font-size: 28px; }
 
   /* --nav-w / taille icône / libellé du rail ne sont plus réduits ici (voir
      piège documenté le 2026-09-01 : cette media query couvre justement la
@@ -1210,9 +1229,9 @@ body {
   .player-card { padding: 16px; gap: 10px; }
   .media-cover { width: 160px; height: 160px; border-radius: 18px; }
 
-  .media-info__title { font-size: 17px; margin-bottom: 3px; }
-  .media-info__artist { font-size: 13px; }
-  .media-info__album, .media-info__player { font-size: 11px; margin-top: 0; }
+  .media-info__title { font-size: 21px; margin-bottom: 3px; }
+  .media-info__artist { font-size: 17px; }
+  .media-info__album, .media-info__player { font-size: 15px; margin-top: 0; }
 
   .media-controls { gap: 14px; }
   .ctrl-btn--play  { width: 56px; height: 56px; }
@@ -1224,7 +1243,7 @@ body {
   .dashboard-right { gap: 10px; }
   .dashboard-grid { gap: 14px; }
   .panel-card { padding: 12px 16px; gap: 8px; }
-  .panel-card__title { font-size: 14px; }
+  .panel-card__title { font-size: 18px; }
   .audio-apps { max-height: 140px; }
   .audio-app-item { padding: 8px 12px; min-height: 40px; }
   .bluetooth-item { padding: 6px 12px; min-height: 40px; }
@@ -1953,7 +1972,7 @@ html, body {
   border-bottom: 2px solid transparent !important;
   color: #77777a !important;
   padding: 8px 4px !important;
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 800 !important;
   letter-spacing: 0.05em !important;
   display: flex !important;
@@ -2026,7 +2045,7 @@ html, body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 32px !important;
+  font-size: 36px !important;
   color: #333338 !important;
   border-radius: 4px !important;
 }
@@ -2039,7 +2058,7 @@ html, body {
 #tab-endurance .sim-media-title {
   color: #ffffff !important;
   font-weight: 700 !important;
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-family: var(--font-mono), monospace !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -2048,7 +2067,7 @@ html, body {
 
 #tab-endurance .sim-media-artist {
   color: #88888c !important;
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-family: var(--font-mono), monospace !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -2064,7 +2083,7 @@ html, body {
 
 #tab-endurance .sim-time-text {
   color: #88888c !important;
-  font-size: 10px !important;
+  font-size: 14px !important;
 }
 
 #tab-endurance .sim-progress-bar {
@@ -2145,7 +2164,7 @@ html, body {
 }
 
 #tab-endurance .sim-setting-label {
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 800 !important;
   color: #66666c !important;
   letter-spacing: 0.04em !important;
@@ -2161,7 +2180,7 @@ html, body {
   background: #14141a !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #ffffff !important;
-  font-size: 14px !important;
+  font-size: 18px !important;
   font-weight: 800 !important;
   width: 24px !important;
   height: 24px !important;
@@ -2179,7 +2198,7 @@ html, body {
 }
 
 #tab-endurance .sim-setting-value {
-  font-size: 16px !important;
+  font-size: 20px !important;
   font-weight: 900 !important;
   color: #10b981 !important;
   font-family: var(--font-mono), monospace !important;
@@ -2226,14 +2245,14 @@ html, body {
 }
 
 #tab-endurance .sim-switch-title {
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 800 !important;
   color: #66666c !important;
   letter-spacing: 0.05em !important;
 }
 
 #tab-endurance .sim-switch-status {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
   font-family: var(--font-mono), monospace !important;
@@ -2271,7 +2290,7 @@ html, body {
   gap: 4px !important;
   color: #77777a !important;
   cursor: pointer !important;
-  font-size: 9px !important;
+  font-size: 13px !important;
   font-weight: 800 !important;
   letter-spacing: 0.02em !important;
   transition: all 120ms ease !important;
@@ -2309,7 +2328,7 @@ html, body {
 }
 
 #tab-endurance .sim-toggle-label {
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 800 !important;
   color: #66666c !important;
   letter-spacing: 0.05em !important;
@@ -2335,7 +2354,7 @@ html, body {
 }
 
 #tab-endurance .sim-box-title {
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   color: #44444a !important;
   letter-spacing: 0.08em !important;
@@ -2370,13 +2389,13 @@ html, body {
 }
 
 #tab-endurance .sim-tire-pos {
-  font-size: 9px !important;
+  font-size: 13px !important;
   font-weight: 900 !important;
   color: #555558 !important;
 }
 
 #tab-endurance .sim-tire-psi {
-  font-size: 9px !important;
+  font-size: 13px !important;
   font-weight: 800 !important;
   color: #88888c !important;
 }
@@ -2412,7 +2431,7 @@ html, body {
 }
 
 #tab-endurance .sim-readout-row {
-  font-size: 8px !important;
+  font-size: 12px !important;
   display: flex !important;
   gap: 2px !important;
 }
@@ -2427,7 +2446,7 @@ html, body {
 }
 
 #tab-endurance .sim-tire-main-temp {
-  font-size: 15px !important;
+  font-size: 19px !important;
   font-weight: 900 !important;
   text-align: center !important;
   line-height: 1.1 !important;
@@ -2459,7 +2478,7 @@ html, body {
 }
 
 #tab-endurance .sim-delta-label {
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   color: #55555c !important;
 }
@@ -2494,7 +2513,7 @@ html, body {
 #tab-endurance .sim-delta-fill.positive { background: #a855f7 !important; }
 
 #tab-endurance .sim-delta-value {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   min-width: 50px !important;
   text-align: right !important;
@@ -2569,14 +2588,14 @@ html, body {
 }
 
 #tab-endurance .sim-gear-label {
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 800 !important;
   color: #44444a !important;
   letter-spacing: 0.05em !important;
 }
 
 #tab-endurance .sim-gear-number {
-  font-size: clamp(38px, 6.5vh, 56px) !important;
+  font-size: clamp(42px, 6.5vh, 60px) !important;
   font-weight: 900 !important;
   color: #ffffff !important;
 }
@@ -2598,13 +2617,13 @@ html, body {
 }
 
 #tab-endurance .sim-speed-rpm-digits .val {
-  font-size: 14px !important;
+  font-size: 18px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
 }
 
 #tab-endurance .sim-speed-rpm-digits .lbl {
-  font-size: 7px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   color: #44444a !important;
 }
@@ -2639,7 +2658,7 @@ html, body {
 }
 
 #tab-endurance .cond-item {
-  font-size: 8px !important;
+  font-size: 12px !important;
   display: flex !important;
   align-items: center !important;
   gap: 3px !important;
@@ -2676,8 +2695,8 @@ html, body {
   align-items: center !important;
 }
 
-#tab-endurance .sim-info-row .lbl { font-size: 8px !important; color: #444448 !important; }
-#tab-endurance .sim-info-row .val { font-size: 11px !important; font-weight: 900; color: #ffffff !important; }
+#tab-endurance .sim-info-row .lbl { font-size: 12px !important; color: #444448 !important; }
+#tab-endurance .sim-info-row .val { font-size: 15px !important; font-weight: 900; color: #ffffff !important; }
 #tab-endurance .sim-info-row .val.highlighted { color: #f59e0b !important; }
 
 #tab-endurance .sim-lap-times-stack {
@@ -2698,8 +2717,8 @@ html, body {
   flex-direction: column !important;
 }
 
-#tab-endurance .lap-time-row .lbl { font-size: 7px !important; color: #444448 !important; }
-#tab-endurance .lap-time-row .val { font-size: 14px !important; font-weight: 900 !important; }
+#tab-endurance .lap-time-row .lbl { font-size: 11px !important; color: #444448 !important; }
+#tab-endurance .lap-time-row .val { font-size: 18px !important; font-weight: 900 !important; }
 #tab-endurance .lap-time-row .val.white { color: #ffffff !important; }
 #tab-endurance .lap-time-row .val.yellow { color: #f59e0b !important; }
 #tab-endurance .lap-time-row .val.purple { color: #a855f7 !important; }
@@ -2732,14 +2751,14 @@ html, body {
 }
 
 #tab-endurance .sim-bottom-cell .lbl {
-  font-size: 7px !important;
+  font-size: 11px !important;
   color: #444448 !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
 }
 
 #tab-endurance .sim-bottom-cell .val {
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-weight: 950 !important;
 }
 
@@ -2766,13 +2785,13 @@ html, body {
 }
 
 #tab-endurance .fuel-item .lbl {
-  font-size: 7px !important;
+  font-size: 11px !important;
   color: #444448 !important;
   font-weight: 900 !important;
 }
 
 #tab-endurance .fuel-item .val {
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
 }
@@ -2868,7 +2887,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 4px !important;
   padding: 6px 8px !important;
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   color: #3f3f46 !important; /* flat dark gray (clearly off) */
   text-transform: uppercase !important;
@@ -2956,7 +2975,7 @@ html, body {
   border: none !important;
   border-bottom: 3px solid transparent !important;
   color: #4b5563 !important; /* lower contrast inactive */
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 900 !important;
   cursor: pointer !important;
   transition: all 150ms ease !important;
@@ -3023,7 +3042,7 @@ html, body {
 }
 
 #tab-endurance .media-cover-placeholder {
-  font-size: 32px !important;
+  font-size: 36px !important;
   color: rgba(168, 85, 247, 0.4) !important;
   font-weight: bold !important;
 }
@@ -3034,7 +3053,7 @@ html, body {
 }
 
 #tab-endurance .media-source-name {
-  font-size: 7px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   color: #c084fc !important;
   text-transform: uppercase !important;
@@ -3042,7 +3061,7 @@ html, body {
 }
 
 #tab-endurance .media-title-text {
-  font-size: clamp(11px, 1.6vh, 14px) !important;
+  font-size: clamp(15px, 1.6vh, 18px) !important;
   font-weight: 800 !important;
   color: #ffffff !important;
   margin: 1px 0 !important;
@@ -3052,7 +3071,7 @@ html, body {
 }
 
 #tab-endurance .media-artist-text {
-  font-size: clamp(8px, 1.2vh, 10px) !important;
+  font-size: clamp(12px, 1.2vh, 14px) !important;
   color: #71717a !important;
   margin: 0 !important;
   white-space: nowrap !important;
@@ -3069,7 +3088,7 @@ html, body {
 
 #tab-endurance .media-time-label {
   font-family: var(--font-mono), monospace !important;
-  font-size: 8px !important;
+  font-size: 12px !important;
   color: #71717a !important;
   min-width: 24px !important;
 }
@@ -3194,7 +3213,7 @@ html, body {
 }
 
 #tab-endurance .sim-stepper-box .stepper-label {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   text-transform: uppercase !important;
@@ -3219,7 +3238,7 @@ html, body {
   color: #ffffff !important;
   width: 42px !important; /* guaranteed >= 40px contact surface */
   height: 42px !important; /* guaranteed >= 40px contact surface */
-  font-size: 18px !important;
+  font-size: 22px !important;
   font-weight: 900 !important;
   border-radius: 6px !important;
   cursor: pointer !important;
@@ -3238,7 +3257,7 @@ html, body {
 }
 
 #tab-endurance .sim-stepper-box .stepper-value {
-  font-size: 26px !important; /* increased from 15px */
+  font-size: 30px !important; /* increased from 15px */
   font-weight: 950 !important;
   min-width: 44px !important;
   text-align: center !important;
@@ -3265,7 +3284,7 @@ html, body {
   border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 6px !important;
   color: #3f3f46 !important; /* clearly off flat gray */
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
   text-align: center !important;
@@ -3410,14 +3429,14 @@ html, body {
 }
 
 #tab-endurance .sim-gear-block .gear-lbl {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   letter-spacing: 0.5px !important;
 }
 
 #tab-endurance .sim-gear-block .gear-val {
-  font-size: 110px !important; /* flat maximum fill */
+  font-size: 114px !important; /* flat maximum fill */
   font-weight: 950 !important;
   line-height: 1 !important;
   color: #ffffff !important;
@@ -3433,14 +3452,14 @@ html, body {
 }
 
 #tab-endurance .sim-speed-block .speed-val {
-  font-size: 72px !important; /* flat maximum fill */
+  font-size: 76px !important; /* flat maximum fill */
   font-weight: 950 !important;
   line-height: 1 !important;
   color: #ffffff !important;
 }
 
 #tab-endurance .sim-speed-block .speed-unit {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   letter-spacing: 0.5px !important;
@@ -3457,14 +3476,14 @@ html, body {
   display: flex !important;
   justify-content: space-between !important;
   align-items: baseline !important;
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   margin-bottom: 2px !important;
 }
 
 #tab-endurance .rpm-strip-label-row .rpm-val {
-  font-size: 56px !important; /* increased to 56px */
+  font-size: 60px !important; /* increased to 56px */
   font-weight: 950 !important;
   line-height: 1 !important;
   color: #ffffff !important;
@@ -3499,13 +3518,13 @@ html, body {
 }
 
 #tab-endurance .sim-delta-label {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   color: #71717a !important;
 }
 
 #tab-endurance .sim-delta-value {
-  font-size: 34px !important; /* increased to 34px */
+  font-size: 38px !important; /* increased to 34px */
   font-weight: 950 !important;
 }
 
@@ -3561,7 +3580,7 @@ html, body {
 }
 
 #tab-endurance .sim-sector-container .sector-lbl {
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 900 !important;
   color: #71717a !important;
 }
@@ -3577,7 +3596,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
   border-radius: 6px !important;
   text-align: center !important;
-  font-size: 15px !important;
+  font-size: 19px !important;
   font-weight: 900 !important;
   color: #3f3f46 !important;
   padding: 10px 0 !important;
@@ -3609,13 +3628,13 @@ html, body {
 }
 
 #tab-endurance .temp-box .lbl {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   color: #71717a !important;
 }
 
 #tab-endurance .temp-box .val {
-  font-size: 18px !important;
+  font-size: 22px !important;
   font-weight: 900 !important;
 }
 
@@ -3638,7 +3657,7 @@ html, body {
 }
 
 #tab-endurance .sim-dashboard-control-footer .sim-toggle-label {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 800 !important;
   color: #a1a1aa !important;
   letter-spacing: 0.5px !important;
@@ -3666,7 +3685,7 @@ html, body {
 }
 
 #tab-endurance .sim-session-info-widget .session-val {
-  font-size: 34px !important; /* increased to 34px */
+  font-size: 38px !important; /* increased to 34px */
   font-weight: 950 !important;
   color: #ffffff !important;
   line-height: 1.1 !important;
@@ -3722,13 +3741,13 @@ html, body {
 }
 
 #tab-endurance .sim-tire-pos {
-  font-size: 16px !important;
+  font-size: 20px !important;
   font-weight: 950 !important;
   color: #a1a1aa !important;
 }
 
 #tab-endurance .sim-tire-psi {
-  font-size: 18px !important;
+  font-size: 22px !important;
   font-weight: 950 !important;
   color: #ffffff !important;
 }
@@ -3744,7 +3763,7 @@ html, body {
 }
 
 #tab-endurance .sim-tire-main-temp {
-  font-size: 52px !important; /* 48-56px range, extremely glanceable */
+  font-size: 56px !important; /* 48-56px range, extremely glanceable */
   font-weight: 950 !important;
   line-height: 1 !important;
   text-align: left !important;
@@ -3775,7 +3794,7 @@ html, body {
   align-items: center !important;
   width: 100% !important;
   flex: 0 0 auto !important;
-  font-size: 10px !important;
+  font-size: 14px !important;
   color: #4b5563 !important;
 }
 
@@ -3850,20 +3869,20 @@ html, body {
 }
 
 #tab-endurance .sim-info-row .lbl {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   color: #71717a !important;
 }
 
 #tab-endurance .sim-info-row .val {
-  font-size: 34px !important; /* increased to 34px */
+  font-size: 38px !important; /* increased to 34px */
   font-weight: 950 !important;
   color: #ffffff !important;
 }
 
 #tab-endurance .sim-info-row .val.highlighted-emerald {
   color: #10b981 !important;
-  font-size: 34px !important; /* increased to 34px */
+  font-size: 38px !important; /* increased to 34px */
 }
 
 #tab-endurance .sim-gaps-block {
@@ -3880,7 +3899,7 @@ html, body {
   display: grid !important;
   grid-template-columns: 1fr 1.2fr 1fr !important;
   align-items: center !important;
-  font-size: 10px !important; /* increased size for glanceable readings */
+  font-size: 14px !important; /* increased size for glanceable readings */
 }
 
 #tab-endurance .gap-row .lbl {
@@ -3919,7 +3938,7 @@ html, body {
   background: #000000 !important; /* Pure black */
   padding: 4px 8px !important;
   border-radius: 4px !important;
-  font-size: 10px !important; /* increased size for glanceable readings */
+  font-size: 14px !important; /* increased size for glanceable readings */
   border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -3984,14 +4003,14 @@ html, body {
 }
 
 #tab-endurance .lap-time-row .lbl {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   letter-spacing: 0.3px !important;
 }
 
 #tab-endurance .lap-time-row .val {
-  font-size: 34px !important; /* increased to 34px */
+  font-size: 38px !important; /* increased to 34px */
   font-weight: 950 !important;
 }
 
@@ -4111,19 +4130,19 @@ html, body {
 
 #tab-endurance .battery-label,
 #tab-endurance .fuel-label {
-  font-size: 9px !important;
+  font-size: 13px !important;
   font-weight: 950 !important;
   color: #a1a1aa !important;
   letter-spacing: 0.5px !important;
 }
 
 #tab-endurance .trend-indicator {
-  font-size: 11px !important;
+  font-size: 15px !important;
   margin-left: auto !important;
 }
 
 #tab-endurance .battery-big-val {
-  font-size: 38px !important; /* increased to 38px */
+  font-size: 42px !important; /* increased to 38px */
   font-weight: 950 !important;
   line-height: 1 !important;
   color: #ffffff !important;
@@ -4131,13 +4150,13 @@ html, body {
 }
 
 #tab-endurance .battery-big-val .percent {
-  font-size: 18px !important; /* increased to 18px */
+  font-size: 22px !important; /* increased to 18px */
   font-weight: 900 !important;
   margin-left: 1px !important;
 }
 
 #tab-endurance .battery-details {
-  font-size: 9px !important; /* noticeably smaller */
+  font-size: 13px !important; /* noticeably smaller */
   font-weight: 900 !important;
   color: #71717a !important; /* dimmer / muted */
   text-shadow: 0 0 8px rgba(0, 0, 0, 0.8) !important;
@@ -4153,7 +4172,7 @@ html, body {
 
 /* Fuel Estimator Styles */
 #tab-endurance .fuel-rem-val {
-  font-size: 38px !important; /* increased to 38px */
+  font-size: 42px !important; /* increased to 38px */
   font-weight: 950 !important;
   line-height: 1 !important;
   color: #ffffff !important;
@@ -4161,7 +4180,7 @@ html, body {
 }
 
 #tab-endurance .fuel-stats-compact {
-  font-size: 9px !important; /* noticeably smaller */
+  font-size: 13px !important; /* noticeably smaller */
   font-weight: 900 !important;
   color: #71717a !important; /* dimmer / muted */
   text-shadow: 0 0 8px rgba(0, 0, 0, 0.8) !important;
@@ -4240,7 +4259,7 @@ html, body {
 }
 
 #tab-endurance .recap-box .lbl {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   text-transform: uppercase !important;
@@ -4248,7 +4267,7 @@ html, body {
 }
 
 #tab-endurance .recap-box .val {
-  font-size: 26px !important; /* increased to 26px stepper values */
+  font-size: 30px !important; /* increased to 26px stepper values */
   font-weight: 950 !important;
 }
 

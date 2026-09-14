@@ -95,10 +95,13 @@ UI.renderPlaylists = function(playlists) {
     console.warn('Erreur lors du tri des playlists :', e);
   }
 
-  // Gestion du nombre d'éléments à afficher (par défaut seuls 4)
+  // Gestion du nombre d'éléments à afficher (par défaut 2 lignes pleines —
+  // 5 colonnes, voir .grid-playlists-modern, deezer.css — pour remplir la
+  // hauteur disponible de la zone "Mes Playlists" plutôt que de laisser un
+  // grand vide sous une seule ligne, cf. retour utilisateur 2026-09-05)
   var playlistsToRender = playlists;
   if (!State.playlistsExpanded) {
-    playlistsToRender = playlists.slice(0, 4);
+    playlistsToRender = playlists.slice(0, 10);
   }
 
   console.log("[Deezer] Rendu des playlists : expanded =", State.playlistsExpanded, "nb_rendu =", playlistsToRender.length, "sur total =", playlists.length);
@@ -126,15 +129,15 @@ UI.renderPlaylists = function(playlists) {
         '<div class="playlist-row-left" style="display: flex; align-items: center; gap: 16px; flex: 1; cursor: pointer; min-width: 0;">' +
           '<img class="playlist-row-cover" src="' + esc(cover) + '" style="width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;" />' +
           '<div class="playlist-row-details" style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">' +
-            '<span class="playlist-row-title" style="font-size: 16px; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + esc(pl.title || 'Playlist') + '</span>' +
-            '<span class="playlist-row-meta" style="font-size: 13px; color: rgba(255,255,255,0.5);">' + esc(count) + '</span>' +
+            '<span class="playlist-row-title" style="font-size: 20px; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + esc(pl.title || 'Playlist') + '</span>' +
+            '<span class="playlist-row-meta" style="font-size: 17px; color: rgba(255,255,255,0.5);">' + esc(count) + '</span>' +
           '</div>' +
         '</div>' +
         '<div class="playlist-row-actions" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">' +
           '<button class="playlist-row-play-btn" title="Lire la playlist directement" style="background: var(--accent, #7c6cf6); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: all 0.2s; box-shadow: 0 4px 12px rgba(124, 108, 246, 0.3); outline: none;">' +
             '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="transform: translateX(1px);"><polygon points="5 3 19 12 5 21 5 3"/></svg>' +
           '</button>' +
-          '<button class="playlist-row-open-btn" title="Voir les morceaux" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 500; color: #ffffff; cursor: pointer; transition: all 0.2s; outline: none;">' +
+          '<button class="playlist-row-open-btn" title="Voir les morceaux" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px; font-size: 17px; font-weight: 500; color: #ffffff; cursor: pointer; transition: all 0.2s; outline: none;">' +
             'Ouvrir' +
           '</button>' +
         '</div>';
@@ -161,10 +164,14 @@ UI.renderPlaylists = function(playlists) {
     playlistsToRender.forEach(function(pl) {
       var cover = pl.picture_medium || pl.picture || '';
       var count = pl.nb_tracks ? pl.nb_tracks + ' pistes' : '';
+      // Pas de "meta" ici : le nombre de pistes n'est plus affiché sous la
+      // pochette dans la grille (retour utilisateur 2026-09-05) — l'espace
+      // gagné revient à la pochette (voir .grid-playlists-modern .card__cover,
+      // deezer.css). `count` reste calculé, toujours utilisé par le hero de
+      // la sheet coulissante une fois la playlist ouverte.
       var card = createCard({
         cover: cover,
         title: pl.title || 'Playlist',
-        meta: count,
         onClick: function() { Deezer.openPlaylist(pl.id, pl.title, cover, count); },
       });
       grid.appendChild(card);
@@ -177,7 +184,7 @@ UI.renderPlaylists = function(playlists) {
   // Synchroniser le bouton d'affichage (Tout afficher vs Afficher moins)
   var toggleBtn = el('dz-toggle-playlists');
   if (toggleBtn) {
-    if (playlists.length <= 4) {
+    if (playlists.length <= 10) {
       toggleBtn.style.display = 'none';
     } else {
       toggleBtn.style.display = 'block';
@@ -344,10 +351,20 @@ UI.renderTracksOnly = function(tracks, context) {
       }
 
       var artistName = (track.artist ? track.artist.name : null) || track.artist || '—';
+      // Reprend TEL QUEL le motif visuel de l'égaliseur de la notch
+      // (.notch__eq, style.css) à la place du numéro de piste — même
+      // classe, pas de composant dupliqué, pour une cohérence parfaite
+      // entre les deux endroits de l'app qui indiquent "ceci est en train
+      // de jouer". Reflète activeTrackId (morceau chargé), pas play/pause
+      // distinctement : approximatif pour cette passe (statique, pas
+      // d'état animé branché ici — cf. deezer-animations-spec.md).
+      var numOrEq = isActive
+        ? '<span class="track-item__eq"><span class="notch__eq"><span></span><span></span><span></span><span></span></span></span>'
+        : '<span class="track-item__num">' + (i + 1) + '</span>';
       item.innerHTML =
-        '<span class="track-item__num">' + (i + 1) + '</span>' +
+        numOrEq +
         '<div class="track-item__info">' +
-          '<p class="track-item__title">' + esc(track.title || '—') + '</p>' +
+          '<p class="track-item__title' + (isActive ? ' track-item__title--on' : '') + '">' + esc(track.title || '—') + '</p>' +
           '<p class="track-item__artist">' + esc(artistName) + '</p>' +
         '</div>' +
         '<span class="track-item__duration">' + formatTime(track.duration || 0) + '</span>';
@@ -579,7 +596,7 @@ function createResultItem(item, filter) {
   div.innerHTML =
     (cover
       ? '<img class="result-item__img" src="' + esc(cover) + '" alt="' + esc(title) + '" loading="lazy" />'
-      : '<div class="result-item__img" style="background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text-muted)">♪</div>'
+      : '<div class="result-item__img" style="background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--text-muted)">♪</div>'
     ) +
     '<div class="result-item__info">' +
       '<p class="result-item__title">' + esc(title) + '</p>' +

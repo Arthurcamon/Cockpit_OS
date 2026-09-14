@@ -3,6 +3,7 @@ uvicorn[standard]>=0.32.0   # inclut websockets (requis pour le CDP Deezer Playe
 httpx>=0.27.0
 python-multipart>=0.0.12
 certifi>=2024.0.0
+psutil>=6.0.0               # onglet Setup : CPU/RAM/disques/réseau (services/system_monitor.py)
 
 # --- Dépendances Windows (obligatoires sur Windows) ---
 # Installez-les avec :

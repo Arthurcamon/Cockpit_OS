@@ -312,7 +312,7 @@ window.ShortcutsController = (function() {
       .catch(function(err) {
         console.warn('[Shortcuts] Error fetching steam games:', err);
         container.innerHTML = '<div class="rc-status-msg"><span>Erreur de chargement des jeux</span>' +
-          '<button style="margin-top:4px;padding:6px 14px;border-radius:999px;border:none;background:rgba(255,255,255,0.10);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;" onclick="ShortcutsController.fetchSteamGames()">Réessayer</button></div>';
+          '<button style="margin-top:4px;padding:6px 14px;border-radius:999px;border:none;background:rgba(255,255,255,0.10);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;" onclick="ShortcutsController.fetchSteamGames()">Réessayer</button></div>';
       });
   }
 

@@ -276,10 +276,16 @@ var UI = {
     }
     var menuCol = document.querySelector('.notch-menu__col--music');
     if (menuCol) menuCol.setAttribute('data-state', musicState);
-    var menuCover = el('notchmenu-cover-placeholder');
-    if (menuCover) menuCover.classList.toggle('is-active', hasTrack);
+    // Boîte de pochette (220x220, toujours visible) — distincte du glyphe
+    // ♪ de substitution (#notchmenu-cover-placeholder, à l'intérieur) : ne
+    // JAMAIS masquer cette boîte elle-même, seul son fond change (is-active),
+    // sinon l'image réelle qu'elle contient disparaît avec elle.
+    var menuCoverBox = el('notchmenu-cover-box');
+    if (menuCoverBox) menuCoverBox.classList.toggle('is-active', hasTrack);
     var menuTitle = el('notchmenu-title');
     if (menuTitle) menuTitle.classList.toggle('is-active', hasTrack);
+    var menuArtist = el('notchmenu-artist');
+    if (menuArtist) menuArtist.classList.toggle('is-active', hasTrack);
 
     this._refreshNotchShell();
   },
@@ -421,7 +427,7 @@ UI.showToast = function(msg, type, duration) {
     toast.style.cssText =
       'position: fixed; bottom: calc(var(--footer-h) + 16px); left: 50%; ' +
       'background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-pill); ' +
-      'padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 9999; ' +
+      'padding: 10px 20px; font-size: 17px; font-weight: 500; z-index: 9999; ' +
       'box-shadow: 0 8px 32px rgba(0,0,0,0.5); ' +
       'opacity: 0; transform: translate(-50%, 14px); ' +
       'transition: opacity 220ms ease, transform 220ms ease;';

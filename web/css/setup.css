@@ -1,0 +1,414 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   COCKPIT OS — ONGLET SETUP
+   Supervision et contrôle système du PC (remplace l'ancien onglet Médias) :
+   Système (CPU/RAM/disques/réseau/GPU), Applications ouvertes, Mixeur de
+   volume, Réseau (Wi-Fi/Bluetooth). Référence visuelle :
+   design/mockups/setup-v4.html — tokens déjà alignés sur design-tokens.css
+   (mêmes valeurs que --rc-surface-1/2, --rc-text-*, --notch-blue, --accent-2).
+   Étape 1 (2026-09-05) : structure + apparence des 4 widgets avec des
+   données d'exemple de la maquette ; le branchement réel est fait étape par
+   étape ensuite (voir commentaires dans setup.html).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#tab-setup.tab-panel {
+  overflow: hidden;
+  padding: 0;
+}
+
+.setup-shell {
+  width: 100%;
+  height: 100%;
+  padding: 24px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.setup-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--rc-text-primary);
+  font-family: var(--font);
+}
+
+.setup-content {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  min-height: 0;
+}
+
+/* Panneau générique — même vocabulaire visuel que .rc-panel (Raccourcis) */
+.setup-panel {
+  background: var(--rc-surface-1);
+  border-radius: 16px;
+  box-shadow: var(--rc-shadow-panel);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.setup-panel__head { margin-bottom: 14px; flex-shrink: 0; }
+.setup-panel__title { font-size: 21px; font-weight: 600; color: var(--rc-text-secondary); }
+.setup-panel__hint { font-size: 16px; color: var(--rc-text-tertiary); font-weight: 400; }
+
+/* ── Colonne Système (30%) ─────────────────────────────────────────────── */
+.setup-col-system { width: 30%; min-height: 0; }
+.setup-col-system .setup-panel { height: 100%; }
+
+.sys-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.sys-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  /* Padding + marge négative égales : agrandit la zone de surbrillance sans
+     déplacer les lignes voisines (sys-list les répartit par leur taille
+     rendue, justify-content:space-evenly). */
+  padding: 8px 10px;
+  margin: -8px -10px;
+}
+.sys-row.is-selected {
+  background: var(--rc-accent-soft);
+  border-color: var(--rc-accent-border);
+}
+.sys-row.is-selected .sys-chevron { color: var(--notch-blue); }
+.sys-graph {
+  width: 84px;
+  height: 50px;
+  border-radius: 10px;
+  background: var(--rc-surface-2);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.sys-graph svg { width: 100%; height: 100%; display: block; }
+.sys-body { flex: 1; min-width: 0; }
+.sys-name { font-size: 20px; font-weight: 600; color: var(--rc-text-primary); }
+.sys-sub { font-size: 17px; color: var(--rc-text-tertiary); margin-top: 2px; }
+.sys-bar { height: 5px; border-radius: 3px; background: var(--rc-surface-2); margin-top: 8px; overflow: hidden; }
+.sys-bar-fill { height: 100%; border-radius: 3px; }
+.sys-chevron { color: var(--rc-text-tertiary); font-size: 19px; flex-shrink: 0; }
+
+/* ── Vue détaillée d'un composant Système (étape 6) ──────────────────────
+   Sur-menu qui ne recouvre QUE .setup-col-main (colonne droite) : Système,
+   header et rail de navigation restent visibles, cf. commentaire dans
+   setup.html. Même vocabulaire visuel que .setup-panel (surface + ombre). */
+.setup-col-main { position: relative; }
+
+.setup-detail {
+  position: absolute;
+  inset: 0;
+  background: var(--rc-surface-1);
+  border-radius: 16px;
+  box-shadow: var(--rc-shadow-panel);
+  padding: 24px 28px;
+  box-sizing: border-box;
+  display: none;
+  flex-direction: column;
+  min-height: 0;
+  z-index: 10;
+}
+.setup-detail.is-open { display: flex; }
+
+.detail-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--rc-text-tertiary);
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: fit-content;
+}
+.detail-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; flex-shrink: 0; gap: 20px; }
+.detail-title { font-size: 25px; font-weight: 700; color: var(--rc-text-primary); }
+.detail-model { font-size: 14.5px; color: var(--rc-text-tertiary); text-align: right; }
+
+.detail-axis { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--rc-text-tertiary); margin: 14px 0 8px; flex-shrink: 0; }
+
+/* Un seul graphique agrégé, propre (aire remplie + ligne), pour tous les
+   composants — pas de grille par sous-unité (essayée puis abandonnée :
+   trop brouillonne avec beaucoup de cœurs, difficile à lire). */
+.detail-graph {
+  flex: 1;
+  min-height: 0;
+  background: var(--rc-surface-2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.detail-graph svg { width: 100%; height: 100%; display: block; }
+
+.detail-footer { display: flex; gap: 60px; margin-top: 22px; flex-shrink: 0; flex-wrap: wrap; }
+.detail-block { display: flex; gap: 36px; flex-wrap: wrap; }
+.detail-stat .l { font-size: 12.5px; color: var(--rc-text-tertiary); margin-bottom: 4px; }
+.detail-stat .v { font-size: 22px; font-weight: 700; color: var(--rc-text-primary); }
+.spec-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 40px; flex: 1; }
+.spec-row { display: flex; justify-content: space-between; font-size: 13.5px; gap: 20px; }
+.spec-row .l { color: var(--rc-text-tertiary); }
+.spec-row .v { color: var(--rc-text-primary); font-weight: 500; }
+
+/* ── Colonne principale (70%) ──────────────────────────────────────────── */
+.setup-col-main { width: 70%; display: flex; flex-direction: column; gap: 20px; min-height: 0; }
+/* overflow: hidden — sans ça, .app-grid en translateX() pendant le swipe
+   (drag suit le doigt sans limite avant le seuil de page, cf. initAppsSwipe
+   dans app-ui-system.js) déborde visuellement du cadre arrondi du panneau. */
+.setup-panel--apps { flex: 0 0 65%; min-height: 0; overflow: hidden; }
+.setup-row-bottom { flex: 1; display: flex; gap: 20px; min-height: 0; }
+.setup-panel--mixeur { width: 50%; }
+.setup-panel--reseau { width: 50%; }
+
+/* ── Applications ouvertes ─────────────────────────────────────────────── */
+.app-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 12px;
+  /* Empêche le navigateur d'interpréter un swipe horizontal comme un geste
+     système — cette grille ne scrolle jamais, donc rien à préserver ici.
+     Nécessaire pour que le drag (initAppsSwipe, app-ui-system.js) reçoive
+     tous les pointermove sans interruption sur tablette. Même technique que
+     .rc-steam-grid (shortcuts.css). */
+  touch-action: none;
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
+}
+.app-grid.is-sliding-next { transition: none; transform: translateX(28px); opacity: 0; }
+.app-grid.is-sliding-prev { transition: none; transform: translateX(-28px); opacity: 0; }
+.app-grid.is-dragging { transition: none; }
+
+.app-card {
+  background: var(--rc-surface-2);
+  border-radius: 14px;
+  box-shadow: var(--rc-shadow-tile);
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.app-card-left {
+  width: 38%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 8px 6px;
+}
+.app-card-left .ic { font-size: 26px; }
+.app-card-left .name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--rc-text-primary);
+  text-align: center;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.app-card-right { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.app-table { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; padding: 6px 12px; }
+.app-stat { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.app-stat .lbl { font-size: 14px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--rc-text-tertiary); }
+.app-stat .val { font-size: 16px; font-weight: 600; color: var(--rc-text-primary); white-space: nowrap; }
+
+.close-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--rc-danger-soft);
+  color: var(--rc-danger);
+  font-size: 15.5px;
+  font-weight: 600;
+  padding: 10px 0;
+  cursor: pointer;
+  min-height: 34px;
+  box-sizing: border-box;
+}
+.close-badge:active { background: rgba(255, 122, 107, 0.28); }
+
+.app-dots { display: flex; justify-content: center; gap: 5px; padding-top: 10px; flex-shrink: 0; }
+.app-dots .d { width: 6px; height: 6px; border-radius: 50%; background: var(--rc-text-tertiary); }
+.app-dots .d.active { background: var(--notch-blue); width: 18px; border-radius: 4px; }
+
+/* ── Mixeur de volume — même style de slider que le sur-menu de la notch
+   (accent-color + dégradé peint en JS, poignée native visible), pas
+   l'ancien curseur "barre pleine sans poignée" de l'ex-onglet Médias. ─── */
+.apps-volume-content { flex: 1; display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+
+.audio-app-item-modern { display: flex; align-items: center; gap: 14px; }
+
+.app-item-info { display: flex; align-items: center; gap: 10px; width: 210px; flex-shrink: 0; overflow: hidden; }
+.app-item-icon { font-size: 19px; width: 28px; height: 28px; background: var(--rc-surface-2); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.audio-app-name-modern { font-size: 19px; font-weight: 500; color: var(--rc-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+.app-item-slider-wrapper { flex: 1; display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.audio-app-slider-modern {
+  flex: 1;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--rc-surface-2);
+  accent-color: var(--notch-blue);
+  cursor: pointer;
+  outline: none;
+}
+
+.audio-app-value-modern {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--rc-text-secondary);
+  min-width: 38px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Réseau — cartes = bouton entier (même principe que .rc-macro-tile) ── */
+.net-cards { flex: 1; display: flex; gap: 14px; }
+
+.net-card {
+  flex: 1;
+  background: var(--rc-surface-2);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  cursor: pointer;
+  min-height: 44px;
+  box-sizing: border-box;
+  /* Sans ça, un appui long sur tablette déclenche la sélection de texte /
+     le menu contextuel natif du navigateur, qui annule la séquence de
+     pointer events (pointercancel) avant que le timer de 450ms
+     (initNetCards, app-ui-network.js) n'ait le temps d'ouvrir le sur-menu.
+     Même principe que .rc-app-tile (shortcuts.css). */
+  user-select: none;
+  touch-action: manipulation;
+}
+.net-card:active { transform: scale(0.97); }
+.net-card.on { background: var(--rc-accent-soft); border-color: var(--rc-accent-border); }
+.net-card .ic { font-size: 30px; color: var(--rc-text-secondary); }
+.net-card.on .ic { color: var(--notch-blue); }
+.net-card .t { font-size: 19px; font-weight: 600; color: var(--rc-text-primary); }
+.net-card .s { font-size: 16px; color: var(--rc-text-tertiary); }
+.net-card .state { font-size: 14.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; margin-top: 2px; color: var(--rc-text-tertiary); }
+.net-card.on .state { color: var(--notch-blue); }
+
+/* ── Sur-menu réseau étendu (appui long sur une carte Wi-Fi/Bluetooth) ──── */
+.setup-shell { position: relative; }
+
+.net-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 3, 7, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+.net-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+.net-overlay-panel {
+  width: 78%;
+  height: 78%;
+  background: var(--rc-surface-1);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+.net-overlay-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--rc-surface-2);
+  color: var(--rc-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  z-index: 3;
+  cursor: pointer;
+}
+.net-overlay-col { flex: 1; padding: 28px 30px; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.net-overlay-col + .net-overlay-col { border-left: 1px solid rgba(255, 255, 255, 0.07); }
+/* La colonne la plus à droite a besoin d'une marge supplémentaire : le
+   bouton de fermeture (position absolute, top:20/right:20, 44px) chevauche
+   sinon son interrupteur, tous deux alignés en haut à droite du panneau. */
+.net-overlay-col:last-child { padding-right: 78px; }
+.net-overlay-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-shrink: 0; }
+.net-overlay-head__left { display: flex; align-items: center; gap: 12px; }
+.net-overlay-head .ic { font-size: 21px; color: var(--rc-text-secondary); }
+.net-overlay-title { font-size: 19px; font-weight: 600; color: var(--rc-text-primary); }
+
+.net-switch { width: 46px; height: 26px; border-radius: 999px; background: var(--rc-surface-2); position: relative; flex-shrink: 0; cursor: pointer; }
+.net-switch.on { background: linear-gradient(120deg, var(--notch-blue), var(--accent-2)); }
+.net-switch__knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 160ms ease; }
+.net-switch.on .net-switch__knob { left: 23px; }
+
+.net-list { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+.net-list-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--rc-surface-2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  min-height: 44px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.net-list-row:active { transform: scale(0.99); }
+.net-list-row .name { flex: 1; font-size: 16px; font-weight: 500; color: var(--rc-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.net-list-row .meta { font-size: 13.5px; color: var(--rc-text-tertiary); flex-shrink: 0; }
+.net-list-row .meta.on { color: var(--rc-connected-dot); }
+
+.signal-bars { display: flex; align-items: flex-end; gap: 2px; height: 15px; flex-shrink: 0; }
+.signal-bars span { width: 4px; border-radius: 1px; background: var(--rc-text-tertiary); }
+.signal-bars span.active { background: var(--notch-blue); }
+
+/* .empty-state de base vient de style.css (padding/couleur/centrage texte) —
+   complété ici pour la disposition icône/titre/sous-titre du sur-menu réseau
+   (cf. UI.updateSetupWifi/updateSetupBluetooth, app-ui-network.js). */
+.net-overlay-col .empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0;
+}
+.net-overlay-col .empty-state .ic { font-size: 32px; opacity: 0.5; }
+.net-overlay-col .empty-state .t { font-size: 16px; font-weight: 600; color: var(--rc-text-secondary); }
+.net-overlay-col .empty-state .s { font-size: 13.5px; color: var(--rc-text-tertiary); max-width: 260px; }

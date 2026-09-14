@@ -111,7 +111,7 @@
 }
 
 .widget-title {
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.75px;
@@ -127,7 +127,7 @@
 
 /* ── Typographie décorative ─────────────────────────────────────────────── */
 .font-extra-large {
-  font-size: 42px;
+  font-size: 46px;
   font-weight: 800;
   letter-spacing: -1px;
   line-height: 1.1;
@@ -246,13 +246,13 @@
 }
 
 .instruction-distance {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .instruction-road {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -284,13 +284,13 @@
 }
 
 .arrival-value {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .arrival-label {
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.5px;
@@ -307,7 +307,7 @@
   align-items: center;
   gap: 6px;
   margin-left: auto;
-  font-size: 11px;
+  font-size: 15px;
   color: #3b82f6;
   font-weight: 600;
 }
@@ -370,7 +370,7 @@
 }
 
 .dash-cover-placeholder {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: bold;
   color: var(--text-muted);
 }
@@ -383,7 +383,7 @@
 }
 
 .dash-title-text {
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
@@ -392,7 +392,7 @@
 }
 
 .dash-artist-text {
-  font-size: 12px;
+  font-size: 16px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -408,7 +408,7 @@
 }
 
 .dash-progress-time {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--text-muted);
   min-width: 32px;
 }
@@ -505,19 +505,19 @@
 }
 
 .stat-card-number {
-  font-size: 28px ;
+  font-size: 32px ;
   font-weight: 800;
   line-height: 1;
 }
 
 .stat-card-unit {
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-secondary);
 }
 
 .stat-card-label {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;

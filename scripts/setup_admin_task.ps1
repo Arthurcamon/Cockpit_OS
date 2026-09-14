@@ -1,9 +1,10 @@
 # Cockpit OS — configuration unique de la tâche planifiée élevée
 #
 # À exécuter UNE SEULE FOIS (double-clic sur setup_admin_task.bat), un prompt UAC
-# s'affichera. Après ça, Cockpit OS peut déclencher des actions Bluetooth qui
-# nécessitent des droits admin (connecter/déconnecter un appareil) sans jamais
-# tourner lui-même en administrateur et sans autre prompt UAC.
+# s'affichera. Après ça, Cockpit OS peut déclencher des actions qui nécessitent
+# des droits admin (connecter/déconnecter un appareil Bluetooth, activer/désactiver
+# l'adaptateur Wi-Fi) sans jamais tourner lui-même en administrateur et sans autre
+# prompt UAC.
 
 $ErrorActionPreference = "Stop"
 
@@ -29,6 +30,6 @@ Register-ScheduledTask -TaskName "CockpitOS_BluetoothHelper" -Action $taskAction
 
 Write-Host ""
 Write-Host "Tâche planifiée 'CockpitOS_BluetoothHelper' créée avec succès."
-Write-Host "Le connect/disconnect Bluetooth de Cockpit OS peut maintenant fonctionner."
+Write-Host "Le connect/disconnect Bluetooth et la bascule Wi-Fi de Cockpit OS peuvent maintenant fonctionner."
 Write-Host ""
 Read-Host "Appuyez sur Entrée pour fermer cette fenêtre"

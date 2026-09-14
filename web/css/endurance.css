@@ -196,7 +196,7 @@ body #tab-endurance .widget-car-settings {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-weight: 800 !important;
   color: #94a3b8 !important;
   padding: 0 4px !important;
@@ -298,7 +298,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .status-indicator-tile .tile-label {
-  font-size: 9.5px !important;
+  font-size: 13.5px !important;
   font-weight: 900 !important;
   color: #8e8ea0 !important;
   text-transform: uppercase !important;
@@ -307,7 +307,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .status-indicator-tile .tile-text {
-  font-size: 19px !important;
+  font-size: 23px !important;
   font-weight: 900 !important;
   color: #8e8ea0 !important;
   text-transform: uppercase !important;
@@ -461,7 +461,7 @@ body #tab-endurance .widget-car-settings {
   background: rgba(0, 0, 0, 0.6) !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
-  font-size: 8px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   padding: 1px 4px !important;
   border-radius: 4px !important;
@@ -578,7 +578,7 @@ body #tab-endurance .widget-car-settings {
   position: absolute !important;
   top: 0 !important;
   right: 4px !important;
-  font-size: 9px !important;
+  font-size: 13px !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.08em !important;
@@ -601,7 +601,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .sim-track-title-modern {
-  font-size: 15px !important;
+  font-size: 19px !important;
   font-weight: 800 !important;
   color: #ffffff !important;
   white-space: nowrap !important;
@@ -613,7 +613,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .sim-track-artist-modern {
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 600 !important;
   color: #94a3b8 !important;
   white-space: nowrap !important;
@@ -651,7 +651,7 @@ body #tab-endurance .widget-car-settings {
 .sim-time-labels-modern {
   display: flex !important;
   justify-content: space-between !important;
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 700 !important;
   color: #94a3b8 !important;
   font-family: monospace !important;
@@ -875,7 +875,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .sim-mixer-val-text {
-  font-size: 14.5px !important;
+  font-size: 18.5px !important;
   font-weight: 700 !important;
   color: #f8fafc !important;
   min-width: 44px !important;
@@ -905,7 +905,7 @@ body #tab-endurance .widget-car-settings {
   margin-bottom: 4px !important;
 }
 .group-header-text {
-  font-size: 9.5px !important;
+  font-size: 13.5px !important;
   font-weight: 900 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -1025,7 +1025,7 @@ body #tab-endurance .widget-car-settings {
   transform: translateX(-50%) !important;
   background: #000000 !important;
   padding: 0 5px !important;
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 800 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -1060,7 +1060,7 @@ body #tab-endurance .widget-car-settings {
   width: 100% !important;
   flex: 1 !important;
   min-height: 0 !important;
-  font-size: 22px !important;
+  font-size: 26px !important;
   font-weight: 900 !important;
   font-family: 'Roboto', sans-serif !important;
   color: #ffffff !important;
@@ -1205,7 +1205,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .bbox-btn-sign {
-  font-size: 15px !important;
+  font-size: 19px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
   font-family: 'Roboto', sans-serif !important;
@@ -1213,7 +1213,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .bbox-btn-title {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 800 !important;
   letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
@@ -1361,7 +1361,7 @@ body #tab-endurance .widget-car-settings {
   position: absolute !important;
   top: 2px !important;
   right: 3px !important;
-  font-size: 7px !important;
+  font-size: 11px !important;
   font-weight: 900 !important;
   color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.2) !important;
@@ -1398,7 +1398,7 @@ body #tab-endurance .widget-car-settings {
 }
 
 .ctrl-btn-label {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
@@ -1519,7 +1519,7 @@ body #tab-endurance .widget-central * {
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3) !important;
 }
 .delta-pill-bar span {
-  font-size: 22px !important;
+  font-size: 26px !important;
   font-weight: 900 !important;
   color: #000000 !important;
   letter-spacing: -0.02em !important;
@@ -1533,7 +1533,7 @@ body #tab-endurance .widget-central * {
   flex: 10 1 0% !important;
 }
 .sector-badge-mini {
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 800 !important;
   height: 28px !important;
   border-radius: 9px !important;
@@ -1604,14 +1604,14 @@ body #tab-endurance .widget-central * {
   padding: 4px 0 !important;
 }
 .gear-large {
-  font-size: 148px !important;
+  font-size: 152px !important;
   font-weight: 900 !important;
   line-height: 0.8 !important;
   color: #ffffff !important;
   text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
 }
 .rpm-row {
-  font-size: 17px !important;
+  font-size: 21px !important;
   color: #38bdf8 !important;
   font-weight: 800 !important;
   margin-top: -2px !important;
@@ -1675,7 +1675,7 @@ body #tab-endurance .widget-central * {
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
 }
 .speed-large {
-  font-size: 48px !important;
+  font-size: 52px !important;
   line-height: 1 !important;
   color: #000000 !important;
   font-weight: 900 !important;
@@ -1700,7 +1700,7 @@ body #tab-endurance .widget-central * {
   flex: 1 !important;
 }
 .temp-label {
-  font-size: 8.5px !important;
+  font-size: 12.5px !important;
   font-weight: 900 !important;
   color: #71717a !important; /* beautiful gray label */
   text-transform: uppercase !important;
@@ -1709,7 +1709,7 @@ body #tab-endurance .widget-central * {
   font-family: 'Roboto', sans-serif !important;
 }
 .temp-value {
-  font-size: 19px !important; /* beautifully readable large bold character */
+  font-size: 23px !important; /* beautifully readable large bold character */
   font-weight: 900 !important;
   font-family: 'Roboto', sans-serif !important;
   line-height: 1 !important;
@@ -1742,7 +1742,7 @@ body #tab-endurance .widget-central * {
   box-sizing: border-box !important;
 }
 .session-val {
-  font-size: 24px !important;
+  font-size: 28px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
   font-family: 'Roboto', 'Arial', sans-serif !important;
@@ -1756,7 +1756,7 @@ body #tab-endurance .widget-central * {
   color: #71717a !important; /* Greyish color matching TIME 00:00 in reference image */
 }
 .session-lbl {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   text-transform: uppercase !important;
@@ -1785,14 +1785,14 @@ body #tab-endurance .widget-central * {
 }
 
 .fuel-tab-liters, .fuel-tab-laps {
-  font-size: 22px !important;
+  font-size: 26px !important;
   font-weight: 800 !important;
   color: #ffffff !important;
   line-height: 1 !important;
 }
 
 .fuel-tab-unit {
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-weight: 700 !important;
   color: #a1a1aa !important;
   margin-left: 2px !important;
@@ -1832,7 +1832,7 @@ body #tab-endurance .widget-central * {
 }
 
 .fuel-tab-box-lbl {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 800 !important;
   color: #71717a !important;
   text-transform: uppercase !important;
@@ -1841,7 +1841,7 @@ body #tab-endurance .widget-central * {
 }
 
 .fuel-tab-box-val {
-  font-size: 26px !important;
+  font-size: 30px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
   font-family: monospace !important;
@@ -1938,7 +1938,7 @@ body #tab-endurance .widget-central * {
   color: #eab308; /* idem */
   font-family: 'Roboto', 'Inter', sans-serif !important;
   font-weight: 900 !important;
-  font-size: 15px !important;
+  font-size: 19px !important;
   line-height: 1 !important;
   box-shadow: 0 0 6px rgba(234, 179, 8, 0.25); /* idem */
 }
@@ -1953,7 +1953,7 @@ body #tab-endurance .widget-central * {
 .main-temp-val {
   color: #ffffff !important;
   font-family: 'Roboto', 'Inter', sans-serif !important;
-  font-size: 41px !important;
+  font-size: 45px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
   letter-spacing: -0.02em !important;
@@ -1962,7 +1962,7 @@ body #tab-endurance .widget-central * {
 .unit-text {
   color: #71717a !important;
   font-family: 'Roboto', 'Inter', sans-serif !important;
-  font-size: 17px !important;
+  font-size: 21px !important;
   font-weight: 700 !important;
 }
 
@@ -2052,21 +2052,21 @@ body #tab-endurance .widget-central * {
 .val-brake {
   color: #ffffff !important;
   font-family: 'Roboto', 'Inter', sans-serif !important;
-  font-size: 16px !important;
+  font-size: 20px !important;
   font-weight: 800 !important;
 }
 
 .val-psi {
   color: #ffffff !important;
   font-family: 'Roboto', 'Inter', sans-serif !important;
-  font-size: 18px !important;
+  font-size: 22px !important;
   font-weight: 800 !important;
 }
 
 .val-wear {
   color: #ffffff !important;
   font-family: 'Roboto', 'Inter', sans-serif !important;
-  font-size: 36px !important;
+  font-size: 40px !important;
   font-weight: 900 !important;
   letter-spacing: -0.01em !important;
 }
@@ -2074,14 +2074,14 @@ body #tab-endurance .widget-central * {
 .unit-sm {
   color: #71717a !important;
   font-family: 'Roboto', 'Inter', sans-serif !important;
-  font-size: 12px !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
 }
 
 .unit-lg {
   color: #71717a !important;
   font-family: 'Roboto', 'Inter', sans-serif !important;
-  font-size: 16px !important;
+  font-size: 20px !important;
   font-weight: 700 !important;
 }
 
@@ -2103,7 +2103,7 @@ body #tab-endurance .widget-central * {
   display: flex !important;
   align-items: center !important;
   gap: 3px !important;
-  font-size: 7px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   color: #71717a !important;
   letter-spacing: 0.06em !important;
@@ -2111,7 +2111,7 @@ body #tab-endurance .widget-central * {
 }
 
 .foot-val {
-  font-size: 10.5px !important;
+  font-size: 14.5px !important;
   font-weight: 900 !important;
   font-family: 'Roboto', monospace, sans-serif !important;
 }
@@ -2149,7 +2149,7 @@ body #tab-endurance .widget-central * {
   box-sizing: border-box !important;
   align-items: center !important;
   gap: 8px !important;
-  font-size: 11px !important;
+  font-size: 15px !important;
   background: #0b0d14 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   padding: 8px 12px !important;
@@ -2216,7 +2216,7 @@ body #tab-endurance .widget-central * {
 }
 
 .lb-col-pos {
-  font-size: 14px !important;
+  font-size: 18px !important;
   font-weight: 800 !important;
   color: #ffffff !important;
   text-align: center !important;
@@ -2230,7 +2230,7 @@ body #tab-endurance .widget-central * {
 
 .lb-car-num {
   font-family: monospace !important;
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-weight: 800 !important;
   color: #71717a !important;
 }
@@ -2251,7 +2251,7 @@ body #tab-endurance .widget-central * {
 }
 
 .lb-col-driver {
-  font-size: 13.5px !important;
+  font-size: 17.5px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   white-space: nowrap !important;
@@ -2261,7 +2261,7 @@ body #tab-endurance .widget-central * {
 }
 
 .lb-col-gap, .lb-col-int {
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-weight: 800 !important;
   color: #ffffff !important;
   font-family: monospace !important;
@@ -2270,20 +2270,20 @@ body #tab-endurance .widget-central * {
 
 .lb-col-gap.lbl-hdr, .lb-col-int.lbl-hdr {
   color: #a1a1aa !important;
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
 }
 
 .lb-col-gap.leader-text {
   color: #06b6d4 !important;
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-weight: 800 !important;
   letter-spacing: 0.02em !important;
 }
 
 .lb-col-int.leader-text {
   color: #71717a !important;
-  font-size: 13px !important;
+  font-size: 17px !important;
   font-weight: 800 !important;
 }
 
@@ -2296,7 +2296,7 @@ body #tab-endurance .widget-central * {
   border-radius: 50% !important;
   border: 1.5px solid #eab308 !important;
   color: #eab308 !important;
-  font-size: 14px !important;
+  font-size: 18px !important;
   font-weight: 900 !important;
   background: rgba(234, 179, 8, 0.08) !important;
   box-shadow: 0 0 6px rgba(234, 179, 8, 0.25) !important;
@@ -2340,7 +2340,7 @@ body #tab-endurance .widget-central * {
 .resume-item.last { border-left-color: #f59e0b !important; }
 .resume-item.best { border-left-color: #a855f7 !important; }
 .resume-lbl {
-  font-size: 9.5px !important;
+  font-size: 13.5px !important;
   font-weight: 900 !important;
   color: #71717a !important;
   text-transform: uppercase !important;
@@ -2348,7 +2348,7 @@ body #tab-endurance .widget-central * {
   margin-bottom: 2px !important;
 }
 .resume-val {
-  font-size: 26px !important;
+  font-size: 30px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
   line-height: 1 !important;
@@ -2383,7 +2383,7 @@ body #tab-endurance .widget-central * {
 }
 
 .energy-lbl, .flow-lbl {
-  font-size: 11px !important;
+  font-size: 15px !important;
   font-weight: 800 !important;
   color: #a1a1aa !important;
   text-transform: uppercase !important;
@@ -2391,7 +2391,7 @@ body #tab-endurance .widget-central * {
 }
 
 .energy-val-large {
-  font-size: 28px !important;
+  font-size: 32px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
   font-family: var(--font-mono, monospace) !important;
@@ -2400,7 +2400,7 @@ body #tab-endurance .widget-central * {
 }
 
 .energy-unit {
-  font-size: 14px !important;
+  font-size: 18px !important;
   color: #a1a1aa !important;
 }
 
@@ -2442,7 +2442,7 @@ body #tab-endurance .widget-central * {
 }
 
 .flow-val {
-  font-size: 18px !important;
+  font-size: 22px !important;
   font-weight: 900 !important;
   font-family: var(--font-mono, monospace) !important;
 }
@@ -2456,7 +2456,7 @@ body #tab-endurance .widget-central * {
 }
 
 .flow-unit {
-  font-size: 11px !important;
+  font-size: 15px !important;
   color: rgba(255,255,255,0.5) !important;
 }
 }
@@ -2552,7 +2552,7 @@ body #tab-endurance .widget-central * {
 }
 
 .ce-lbl {
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 900 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -2574,7 +2574,7 @@ body #tab-endurance .widget-central * {
   justify-content: center !important;
   flex: 1 !important;
   width: 100% !important;
-  font-size: 35px !important; /* Dominant large size */
+  font-size: 39px !important; /* Dominant large size */
   font-weight: 900 !important;
   color: #ffffff !important;
   text-align: center !important;
@@ -2586,7 +2586,7 @@ body #tab-endurance .widget-central * {
 }
 
 .ce-box.ce-bb .ce-val {
-  font-size: 22px !important;
+  font-size: 26px !important;
 }
 
 /* ARB Combined Tile (Double Width) */
@@ -2614,7 +2614,7 @@ body #tab-endurance .widget-central * {
 }
 
 .ce-arb-val {
-  font-size: 30px !important;
+  font-size: 34px !important;
   font-weight: 900 !important;
   color: #ffffff !important;
   text-align: center !important;
@@ -2626,7 +2626,7 @@ body #tab-endurance .widget-central * {
 }
 
 .ce-arb-sub-lbl {
-  font-size: 7.5px !important;
+  font-size: 11.5px !important;
   font-weight: 800 !important;
   letter-spacing: 0.05em !important;
   text-transform: uppercase !important;

@@ -80,6 +80,8 @@ function applyAppScale() {
   shell.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px) scale(' + scale + ')';
 }
 
+// Même principe que _APP_META (services/process_monitor.py) — noms alignés
+// entre les deux tables pour les applis communes aux deux widgets (Setup).
 var PROCESS_NAME_MAP = {
   'firefox': 'Firefox',
   'msedge': 'Microsoft Edge',
@@ -91,6 +93,13 @@ var PROCESS_NAME_MAP = {
   'spotify': 'Spotify',
   'discord': 'Discord',
   'steam': 'Steam',
+  'steamwebhelper': 'Steam',
+  'deezer': 'Deezer',
+  'obs64': 'OBS Studio',
+  'obs32': 'OBS Studio',
+  'simhub': 'SimHub',
+  'simhub64': 'SimHub',
+  'claude': 'Claude',
   'foobar2000': 'foobar2000',
   'mpc-hc': 'MPC-HC',
   'mpc-hc64': 'MPC-HC',

@@ -45,7 +45,7 @@
   margin-bottom: 20px;
   flex-shrink: 0;
 }
-.rc-panel__title { font-size: 14px; font-weight: 600; letter-spacing: 0.4px; color: var(--rc-text-secondary); }
+.rc-panel__title { font-size: 18px; font-weight: 600; letter-spacing: 0.4px; color: var(--rc-text-secondary); }
 
 /* Message vide / chargement — partagé par les 4 zones */
 .rc-status-msg {
@@ -56,7 +56,7 @@
   width: 100%;
   text-align: center;
   color: var(--rc-text-secondary);
-  font-size: 12.5px;
+  font-size: 16.5px;
   font-weight: 500;
   gap: 12px;
   padding: 16px;
@@ -115,7 +115,7 @@
 }
 .rc-app-tile__icon svg { width: 32px; height: 32px; }
 
-.rc-app-tile__name { font-size: 14px; font-weight: 400; letter-spacing: 0.1px; color: var(--rc-text-secondary); }
+.rc-app-tile__name { font-size: 18px; font-weight: 400; letter-spacing: 0.1px; color: var(--rc-text-secondary); }
 
 /* Point "app déjà lancée sur le PC" — visibilité pilotée par .is-running
    (ShortcutsController.pollAppsStatus), fondu discret à l'apparition comme à
@@ -199,7 +199,7 @@
 }
 .rc-macro-tile__icon svg { width: 26px; height: 26px; }
 
-.rc-macro-tile__name { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; }
+.rc-macro-tile__name { font-size: 20px; font-weight: 500; letter-spacing: 0.1px; }
 
 /* ───────────────────────────────────────────────────────────────────────────
    STEAM — 3 vignettes par page, pagination par points (.rc-pager). Couleur
@@ -291,7 +291,7 @@
 .rc-game-card .name {
   position: relative;
   z-index: 1;
-  font-size: 14.5px;
+  font-size: 18.5px;
   font-weight: 500;
   color: #ffffff;
   white-space: nowrap;
@@ -383,7 +383,7 @@
 
 .rc-action-tile__icon { color: var(--rc-text-primary); display: flex; }
 .rc-action-tile__icon svg { width: 36px; height: 36px; }
-.rc-action-tile__name { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; color: var(--rc-text-secondary); }
+.rc-action-tile__name { font-size: 20px; font-weight: 500; letter-spacing: 0.1px; color: var(--rc-text-secondary); }
 
 /* Hiérarchie de gravité — deux paliers, valeurs littérales de la maquette :
    Fermer session/Redémarrer (avertissement, réversible) vs Éteindre (plus
@@ -405,7 +405,7 @@
   gap: 18px;
 }
 .rc-action-tile--wide .rc-action-tile__icon svg { width: 32px; height: 32px; }
-.rc-action-tile--wide .rc-action-tile__name { font-size: 17px; letter-spacing: 0.1px; }
+.rc-action-tile--wide .rc-action-tile__name { font-size: 21px; letter-spacing: 0.1px; }
 
 /* ───────────────────────────────────────────────────────────────────────────
    MODALE DE CONFIRMATION — texte du corps (icône/carte/boutons viennent de
@@ -428,7 +428,7 @@
 }
 
 .shortcuts-modal-text {
-  font-size: 13.5px;
+  font-size: 17.5px;
   font-weight: 500;
   color: var(--text-soft);
   line-height: 1.6;
