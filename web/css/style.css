@@ -381,9 +381,9 @@ body {
 }
 
 /* --- Jeu : idle / launching (anneau) / running (point pulsant) ---
-   Pas de jaquette par jeu disponible actuellement (les vignettes Steam de
-   l'onglet Raccourcis n'ont qu'un dégradé de couleur, pas d'image) — le
-   glyphe manette reste affiché dans les 3 états, seule sa couleur change. */
+   Pas de jaquette reprise ici même si le jeu en a une (cf. cover_path,
+   onglet Raccourcis/shortcuts.js) — le glyphe manette reste affiché dans
+   les 3 états, seule sa couleur change. */
 .notch__game-icon {
   width: 34px;
   height: 34px;

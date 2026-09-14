@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    COCKPIT OS — ONGLET RACCOURCIS (SHORTCUTS TAB)
-   Grille fixe en 4 zones (pas de scroll) : Apps rapides / Macros / Steam /
+   Grille fixe en 4 zones (pas de scroll) : Apps rapides / Macros / Jeux /
    Système. Palette et rayons repris des tokens partagés (design-tokens.css) ;
    --notch-border/--notch-glow/--accent-2 sont réservés au notch média du
    header, jamais utilisés ici. Refonte 2026-09-03 — voir
@@ -113,7 +113,8 @@
   justify-content: center;
   color: var(--rc-text-primary);
 }
-.rc-app-tile__icon svg { width: 32px; height: 32px; }
+.rc-app-tile__icon svg { width: 44px; height: 44px; }
+.rc-app-tile__icon .icon-img { width: 44px; height: 44px; border-radius: 9px; object-fit: cover; }
 
 .rc-app-tile__name { font-size: 18px; font-weight: 400; letter-spacing: 0.1px; color: var(--rc-text-secondary); }
 
@@ -197,15 +198,20 @@
   background: var(--rc-accent-soft);
   border-radius: 10px;
 }
-.rc-macro-tile__icon svg { width: 26px; height: 26px; }
+.rc-macro-tile__icon svg { width: 36px; height: 36px; }
+.rc-macro-tile__icon .icon-img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
 
 .rc-macro-tile__name { font-size: 20px; font-weight: 500; letter-spacing: 0.1px; }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   STEAM — 3 vignettes par page, pagination par points (.rc-pager). Couleur
-   de fond assignée par JS (paletteFor) en guise de vignette de substitution.
+   JEUX — 3 vignettes par page, pagination par points (.rc-pager). Jaquette
+   portrait (cover_path, récupérée automatiquement via l'API Steam côté
+   serveur — voir core/shortcuts.py) si connue, sinon couleur de fond
+   assignée par JS (paletteFor) en guise de vignette de substitution.
+   Entrées "type":"game" de shortcuts_config.json (app compagnon) — plus de
+   détection Steam installée automatique depuis le 2026-09-14.
    ─────────────────────────────────────────────────────────────────────────── */
-.rc-steam-grid {
+.rc-games-grid {
   flex: 1;
   min-height: 0;
   display: grid;
@@ -214,10 +220,10 @@
   /* Empêche le navigateur d'interpréter un swipe horizontal comme un geste
      système (retour/scroll) — cette grille ne scrolle jamais (pas de
      scroll dans l'app), donc aucun geste natif à préserver ici. Nécessaire
-     pour que le drag (initSteamSwipe, shortcuts.js) reçoive tous les
+     pour que le drag (initGamesSwipe, shortcuts.js) reçoive tous les
      pointermove sans interruption sur tablette. */
   touch-action: none;
-  /* Transition de page (groupe 4) — swap déjà fait en JS (renderSteamPage) ;
+  /* Transition de page (groupe 4) — swap déjà fait en JS (renderGamesPage) ;
      .is-sliding-* pré-positionne la nouvelle page hors-champ + invisible
      (transition coupée le temps du positionnement), puis JS retire la
      classe pour relâcher vers 0/1 avec l'easing ci-dessous. Pendant un
@@ -225,9 +231,9 @@
      doigt 1:1 ; réactivée au relâchement (snap-back ou changement de page). */
   transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
 }
-.rc-steam-grid.is-sliding-next { transition: none; transform: translateX(28px); opacity: 0; }
-.rc-steam-grid.is-sliding-prev { transition: none; transform: translateX(-28px); opacity: 0; }
-.rc-steam-grid.is-dragging { transition: none; }
+.rc-games-grid.is-sliding-next { transition: none; transform: translateX(28px); opacity: 0; }
+.rc-games-grid.is-sliding-prev { transition: none; transform: translateX(-28px); opacity: 0; }
+.rc-games-grid.is-dragging { transition: none; }
 
 .rc-game-card {
   position: relative;
@@ -242,6 +248,10 @@
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
+  /* Couvre le fond que ce soit le dégradé de substitution (paletteFor) ou
+     une vraie jaquette (cover_path) posée en background-image inline. */
+  background-size: cover;
+  background-position: center;
   /* Rendu sourd, valeurs littérales de la maquette. */
   filter: saturate(0.55) brightness(0.85);
 }
@@ -267,9 +277,9 @@
 
 /* Marqueur "jeu en cours d'exécution" (groupe 4) — pulsation discrète,
    distincte du spinner de chargement (les deux classes ne se recouvrent
-   jamais dans le temps, voir ShortcutsController.launchSteamGame) et de
+   jamais dans le temps, voir ShortcutsController.launchGame) et de
    l'historique "joué il y a Xh" (pas de style dédié à ça pour l'instant).
-   Mémoire optimiste côté front — pas de détection de processus Steam
+   Mémoire optimiste côté front — pas de détection de processus jeu
    réelle, voir journal de refonte. */
 @keyframes rc-running-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); opacity: 1; }
@@ -309,10 +319,10 @@
   z-index: 0;
 }
 
-/* Pagination par points — partagée Apps rapides / Steam. Le bouton garde
+/* Pagination par points — partagée Apps rapides / Jeux. Le bouton garde
    une cible tactile généreuse (44x32, valeur maquette) autour d'un point
    visuel de 7px — la taille "cliquable" et la taille "visible" sont
-   volontairement différentes ici, cf. maquette (.steam-dots .d/::after). */
+   volontairement différentes ici, cf. maquette (.games-dots .d/::after). */
 .rc-pager {
   display: flex;
   align-items: center;

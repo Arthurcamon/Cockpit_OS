@@ -130,7 +130,7 @@
 
   /* Point 6 (maquette finale) — une seule ombre par élément (pas d'empilement,
      contrainte de perf Tab A8), remplace --shadow-card (app-wide, plus
-     prononcée) sur ces éléments précis. Les cartes Steam ont leur propre
+     prononcée) sur ces éléments précis. Les cartes Jeux ont leur propre
      valeur plus légère dans la maquette (déjà très chargées visuellement par
      leur dégradé/filtre de fond), pas la même que les autres tuiles. */
   --rc-shadow-panel: 0 8px 26px rgba(0, 0, 0, 0.45);

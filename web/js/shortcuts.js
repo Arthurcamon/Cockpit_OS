@@ -1,29 +1,34 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    COCKPIT OS — SHORTCUTS TAB CONTROLLER (ShortcutsController)
-   Grille en 4 zones (Apps rapides / Macros / Steam / Système) — refonte
+   Grille en 4 zones (Apps rapides / Macros / Jeux / Système) — refonte
    2026-09-03, voir Design_code/refonte-ui-2026.md pour la référence visuelle.
+   Jeux : plus de détection Steam automatique depuis le 2026-09-14 — les
+   entrées "type":"game" viennent de shortcuts_config.json (même liste que
+   les apps, voir core/shortcuts.py::_normalize_app_entry), gérées depuis
+   l'app compagnon CustomTkinter. Lancement par le même mécanisme "command"
+   que les apps (POST /shortcuts/launch/{id}), plus de protocole steam://.
    ═══════════════════════════════════════════════════════════════════════════ */
 window.ShortcutsController = (function() {
   var isTabActive = false;
   var currentActionModal = null;
 
   var APPS_PAGE_SIZE = 8;   // grille 4x2
-  var STEAM_PAGE_SIZE = 3;  // 3 vignettes par page, cf. mockup
+  var GAMES_PAGE_SIZE = 3;  // 3 vignettes par page, cf. mockup
 
   var appsList = [];
   var appsPage = 0;
   var appsRunning = {};
   var appsStatusTimer = null;
 
-  var steamList = [];
-  var steamPage = 0;
+  var gamesList = [];
+  var gamesPage = 0;
 
-  // Jeu Steam actuellement mis en évidence "en cours d'exécution" (groupe 4
-  // des animations) — mémoire optimiste côté front uniquement, au même
-  // titre que activeSceneId ci-dessous : aucune détection de processus
-  // Steam n'existe côté backend (launch_steam_game ne fait que déclencher
-  // le protocole steam://, pas de endpoint de statut comme pour les apps).
-  var runningSteamAppId = null;
+  // Jeu actuellement mis en évidence "en cours d'exécution" (groupe 4 des
+  // animations) — mémoire optimiste côté front uniquement, au même titre
+  // que activeSceneId ci-dessous : aucune détection de processus n'existe
+  // côté backend pour les jeux (launchGame déclenche juste "command", pas
+  // de endpoint de statut comme pour les apps via /apps/status).
+  var runningGameId = null;
 
   // Macro actuellement mise en évidence (groupe 2 des animations) — mémoire
   // optimiste côté front uniquement : aucune notion de "scène active" n'est
@@ -68,29 +73,39 @@ window.ShortcutsController = (function() {
     'icon-cube': '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M12 12v9M12 12l8-4.5M12 12L4 7.5"/></svg>',
     'icon-spark': '<svg width="17" height="17" viewBox="0 0 24 24" fill="#D97757" xmlns="http://www.w3.org/2000/svg"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>'
   };
-  function appIcon(app) {
-    return (app.icon_class && APP_ICONS[app.icon_class]) || ICONS.app;
+  // Résolution d'icône générique, partagée par les apps/jeux et les macros
+  // (mêmes champs de schéma : icon_path prioritaire — vraie icône extraite
+  // par l'app compagnon — puis repli sur le pictogramme icon_class, puis
+  // repli générique). Remplace l'ancienne table SCENE_ICONS codée en dur
+  // par id (MOCK_SCENES, retirée du backend le 2026-09-14) : les macros
+  // sont maintenant entièrement pilotées par la config, comme les apps.
+  function resolveIconMarkup(entry, fallbackSvg) {
+    if (entry && entry.icon_path) {
+      // Pas de width/height figée ici : chaque conteneur (.rc-app-tile__icon,
+      // .rc-macro-tile__icon...) fixe déjà la taille de son SVG de repli
+      // (32px/26px...) — la classe .icon-img reprend la même règle pour
+      // l'image réelle, cf. shortcuts.css. Avant ce correctif, 17×17px codé
+      // en dur ici faisait paraître les icônes extraites minuscules à côté
+      // des glyphes SVG de 32px sur les tuiles Apps rapides.
+      return '<img class="icon-img" src="' + entry.icon_path + '" alt="" />';
+    }
+    return (entry && entry.icon_class && APP_ICONS[entry.icon_class]) || fallbackSvg;
   }
-
-  // Icônes par scène, par id (cf. MOCK_SCENES côté backend).
-  var SCENE_ICONS = {
-    'race_mode': APP_ICONS['icon-gauge'],
-    'cinema_mode': '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2.5"/><path d="M2.5 10h19M6.5 6l3-3.5M12 6l3-3.5M17.5 6l2-2.5"/></svg>',
-    'work_mode': '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 20.5h8M12 17v3.5"/></svg>',
-    'night_mode': '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg>'
-  };
+  function appIcon(app) {
+    return resolveIconMarkup(app, ICONS.app);
+  }
   function sceneIcon(sc) {
-    return (sc.id && SCENE_ICONS[sc.id]) || ICONS.scene;
+    return resolveIconMarkup(sc, ICONS.scene);
   }
 
   // Petite flèche pour les boutons "aller à" (fenêtres) / "lancer" (macros).
   ICONS.go = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
 
   // Palette déterministe (hash simple d'une clé texte) — dégradés sourds en
-  // guise de cover art de substitution pour les vignettes Steam (une seule
-  // collection utilise une couleur d'identité par élément dans cet onglet ;
-  // Apps rapides et Macros n'en ont volontairement plus, voir journal de
-  // refonte v5).
+  // guise de cover art de substitution pour les vignettes Jeux sans jaquette
+  // connue (une seule collection utilise une couleur d'identité par élément
+  // dans cet onglet ; Apps rapides et Macros n'en ont volontairement plus,
+  // voir journal de refonte v5).
   var PALETTE = [
     ['#3a3ea8', '#1c1f52'],
     ['#a542e0', '#4c1780'],
@@ -148,7 +163,7 @@ window.ShortcutsController = (function() {
     if (modal) modal.classList.remove('is-open');
   }
 
-  // --- PAGINATION PARTAGÉE (Apps rapides / Steam) ---
+  // --- PAGINATION PARTAGÉE (Apps rapides / Jeux) ---
   // Rend une rangée de points cliquables dans #pagerId ; masquée si une
   // seule page. La transition de balayage entre pages (swipe/easing) est
   // ajoutée en étape 3 (groupe 4 des animations) — ici, changement direct.
@@ -178,6 +193,14 @@ window.ShortcutsController = (function() {
   }
 
   // --- 1. APPS RAPIDES ---
+  // /shortcuts/apps renvoie TOUTES les entrées de shortcuts_config.json
+  // (apps ET jeux, même liste depuis le schéma étendu — voir
+  // core/shortcuts.py::_normalize_app_entry) : ce widget ne garde que
+  // celles dont "type" n'est pas "game" (absent == "app", cf. backend).
+  function isGameEntry(entry) {
+    return entry && entry.type === 'game';
+  }
+
   function fetchApps() {
     var container = document.getElementById('shortcuts-dock-apps');
     if (!container) return;
@@ -187,8 +210,8 @@ window.ShortcutsController = (function() {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       })
-      .then(function(apps) {
-        renderApps(apps);
+      .then(function(entries) {
+        renderApps((entries || []).filter(function(e) { return !isGameEntry(e); }));
       })
       .catch(function(err) {
         console.warn('[Shortcuts] Error fetching apps:', err);
@@ -296,63 +319,74 @@ window.ShortcutsController = (function() {
       });
   }
 
-  // --- 2. JEUX STEAM ---
-  function fetchSteamGames() {
-    var container = document.getElementById('shortcuts-steam-grid');
+  // --- 2. JEUX ---
+  // Entrées "type":"game" de shortcuts_config.json (mêmes objets que les
+  // apps, filtrées ici — voir isGameEntry ci-dessus), gérées depuis l'app
+  // compagnon CustomTkinter. Lancement par le même mécanisme que les apps
+  // (POST /shortcuts/launch/{id}) — plus de détection Steam installée ni
+  // de protocole steam://, retirés du backend le 2026-09-14.
+  function fetchGames() {
+    var container = document.getElementById('shortcuts-games-grid');
     if (!container) return;
 
-    authFetch('/shortcuts/steam-games')
+    authFetch('/shortcuts/apps')
       .then(function(res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       })
-      .then(function(games) {
-        renderSteamGames(games);
+      .then(function(entries) {
+        renderGames((entries || []).filter(isGameEntry));
       })
       .catch(function(err) {
-        console.warn('[Shortcuts] Error fetching steam games:', err);
+        console.warn('[Shortcuts] Error fetching games:', err);
         container.innerHTML = '<div class="rc-status-msg"><span>Erreur de chargement des jeux</span>' +
-          '<button style="margin-top:4px;padding:6px 14px;border-radius:999px;border:none;background:rgba(255,255,255,0.10);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;" onclick="ShortcutsController.fetchSteamGames()">Réessayer</button></div>';
+          '<button style="margin-top:4px;padding:6px 14px;border-radius:999px;border:none;background:rgba(255,255,255,0.10);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;" onclick="ShortcutsController.fetchGames()">Réessayer</button></div>';
       });
   }
 
-  function renderSteamGames(games) {
-    steamList = games || [];
-    steamPage = 0;
-    renderSteamPage();
+  function renderGames(games) {
+    gamesList = games || [];
+    gamesPage = 0;
+    renderGamesPage();
   }
 
   // direction : 'next'/'prev', pilote le sens de la transition d'entrée
-  // (voir .rc-steam-grid.is-sliding-*, shortcuts.css) ; omis au premier
+  // (voir .rc-games-grid.is-sliding-*, shortcuts.css) ; omis au premier
   // rendu d'une liste (pas de transition à jouer depuis rien).
-  function renderSteamPage(direction) {
-    var container = document.getElementById('shortcuts-steam-grid');
+  function renderGamesPage(direction) {
+    var container = document.getElementById('shortcuts-games-grid');
     if (!container) return;
 
-    var total = steamList.length;
+    var total = gamesList.length;
 
     if (total === 0) {
-      container.innerHTML = '<div class="rc-status-msg">Aucun jeu détecté</div>';
-      renderPager('shortcuts-steam-pager', 0, 0, function() {});
+      container.innerHTML = '<div class="rc-status-msg">Aucun jeu configuré</div>';
+      renderPager('shortcuts-games-pager', 0, 0, function() {});
       return;
     }
 
-    var pageCount = Math.max(1, Math.ceil(total / STEAM_PAGE_SIZE));
-    steamPage = Math.max(0, Math.min(steamPage, pageCount - 1));
-    var start = steamPage * STEAM_PAGE_SIZE;
-    var pageGames = steamList.slice(start, start + STEAM_PAGE_SIZE);
+    var pageCount = Math.max(1, Math.ceil(total / GAMES_PAGE_SIZE));
+    gamesPage = Math.max(0, Math.min(gamesPage, pageCount - 1));
+    var start = gamesPage * GAMES_PAGE_SIZE;
+    var pageGames = gamesList.slice(start, start + GAMES_PAGE_SIZE);
 
     var html = '';
     for (var i = 0; i < pageGames.length; i++) {
       var game = pageGames[i];
       var safeName = (game.name || '').replace(/'/g, "\\'");
-      var c = paletteFor(game.app_id);
-      html += '<div class="rc-game-card" id="steam-game-' + game.app_id + '" style="background:linear-gradient(155deg, ' + c[0] + ', ' + c[1] + ')" onclick="ShortcutsController.launchSteamGame(\'' + game.app_id + '\', \'' + safeName + '\')">' +
+      // Jaquette réelle (cover_path, récupérée par le serveur via l'API
+      // Steam) si connue, sinon dégradé de substitution déterministe — pas
+      // de repli intermédiaire sur icon_path (une icône .exe n'a pas le
+      // bon ratio pour cette vignette portrait).
+      var bg = game.cover_path
+        ? 'background-image:url(\'' + game.cover_path + '\')'
+        : (function() { var c = paletteFor(game.id); return 'background:linear-gradient(155deg, ' + c[0] + ', ' + c[1] + ')'; })();
+      html += '<div class="rc-game-card" id="game-card-' + game.id + '" style="' + bg + '" onclick="ShortcutsController.launchGame(\'' + game.id + '\', \'' + safeName + '\')">' +
                 '<span class="name">' + truncateName(game.name, 18) + '</span>' +
               '</div>';
     }
     container.innerHTML = html;
-    applySteamRunningMarker();
+    applyGameRunningMarker();
 
     if (direction) {
       container.classList.add('is-sliding-' + direction);
@@ -360,72 +394,72 @@ window.ShortcutsController = (function() {
       container.classList.remove('is-sliding-next', 'is-sliding-prev');
     }
 
-    renderPager('shortcuts-steam-pager', pageCount, steamPage, function(page) {
-      var dir = page > steamPage ? 'next' : 'prev';
-      steamPage = page;
-      renderSteamPage(dir);
+    renderPager('shortcuts-games-pager', pageCount, gamesPage, function(page) {
+      var dir = page > gamesPage ? 'next' : 'prev';
+      gamesPage = page;
+      renderGamesPage(dir);
     });
   }
 
-  function applySteamRunningMarker() {
+  function applyGameRunningMarker() {
     var cards = document.querySelectorAll('.rc-game-card');
     for (var i = 0; i < cards.length; i++) {
-      cards[i].classList.toggle('is-running', cards[i].id === 'steam-game-' + runningSteamAppId);
+      cards[i].classList.toggle('is-running', cards[i].id === 'game-card-' + runningGameId);
     }
   }
 
-  // --- Swipe/balayage tactile entre pages Steam (groupe 4 des animations) ---
+  // --- Swipe/balayage tactile entre pages Jeux (groupe 4 des animations) ---
   // Jusqu'ici le seul déclencheur de changement de page était le pager
   // (points de 44x32px) — sur tablette l'utilisateur s'attend aussi à
   // pouvoir balayer directement les vignettes. Pointer Events : un seul
   // chemin de code pour souris/tactile (cible = Chrome sur Galaxy Tab A8,
   // pas besoin de fallback touchstart/mousedown séparés).
-  var steamSwipeInited = false;
-  var steamSwipe = { active: false, moved: false, startX: 0, startY: 0, pointerId: null };
-  var steamSwipeConsumeNextClick = false;
-  var STEAM_SWIPE_THRESHOLD = 40; // px de déplacement horizontal avant de compter comme un swipe
+  var gamesSwipeInited = false;
+  var gamesSwipe = { active: false, moved: false, startX: 0, startY: 0, pointerId: null };
+  var gamesSwipeConsumeNextClick = false;
+  var GAMES_SWIPE_THRESHOLD = 40; // px de déplacement horizontal avant de compter comme un swipe
 
-  function steamPageCount() {
-    return Math.max(1, Math.ceil(steamList.length / STEAM_PAGE_SIZE));
+  function gamesPageCount() {
+    return Math.max(1, Math.ceil(gamesList.length / GAMES_PAGE_SIZE));
   }
 
-  function initSteamSwipe() {
-    if (steamSwipeInited) return;
-    var grid = document.getElementById('shortcuts-steam-grid');
+  function initGamesSwipe() {
+    if (gamesSwipeInited) return;
+    var grid = document.getElementById('shortcuts-games-grid');
     if (!grid) return;
-    steamSwipeInited = true;
+    gamesSwipeInited = true;
 
     grid.addEventListener('pointerdown', function(e) {
-      if (steamSwipe.active || !e.isPrimary) return;
-      steamSwipe.active = true;
-      steamSwipe.moved = false;
-      steamSwipe.startX = e.clientX;
-      steamSwipe.startY = e.clientY;
-      steamSwipe.pointerId = e.pointerId;
+      if (gamesSwipe.active || !e.isPrimary) return;
+      gamesSwipe.active = true;
+      gamesSwipe.moved = false;
+      gamesSwipe.startX = e.clientX;
+      gamesSwipe.startY = e.clientY;
+      gamesSwipe.pointerId = e.pointerId;
     });
 
     grid.addEventListener('pointermove', function(e) {
-      if (!steamSwipe.active || e.pointerId !== steamSwipe.pointerId) return;
-      var dx = e.clientX - steamSwipe.startX;
-      var dy = e.clientY - steamSwipe.startY;
-      if (!steamSwipe.moved && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      steamSwipe.moved = true;
+      if (!gamesSwipe.active || e.pointerId !== gamesSwipe.pointerId) return;
+      var dx = e.clientX - gamesSwipe.startX;
+      var dy = e.clientY - gamesSwipe.startY;
+      if (!gamesSwipe.moved && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      gamesSwipe.moved = true;
       // Résistance légère en bout de piste (première/dernière page) : suit
       // toujours le doigt, mais moins loin, pour signaler qu'il n'y a rien
       // au-delà plutôt que de bloquer net.
-      var atStart = steamPage === 0 && dx > 0;
-      var atEnd = steamPage === steamPageCount() - 1 && dx < 0;
+      var atStart = gamesPage === 0 && dx > 0;
+      var atEnd = gamesPage === gamesPageCount() - 1 && dx < 0;
       var followed = (atStart || atEnd) ? dx * 0.35 : dx;
       grid.classList.add('is-dragging');
       grid.style.transform = 'translateX(' + followed + 'px)';
     });
 
     function endSwipe(e) {
-      if (!steamSwipe.active || (e && e.pointerId !== steamSwipe.pointerId)) return;
-      var dx = e ? (e.clientX - steamSwipe.startX) : 0;
-      var wasMoved = steamSwipe.moved;
-      steamSwipe.active = false;
-      steamSwipe.moved = false;
+      if (!gamesSwipe.active || (e && e.pointerId !== gamesSwipe.pointerId)) return;
+      var dx = e ? (e.clientX - gamesSwipe.startX) : 0;
+      var wasMoved = gamesSwipe.moved;
+      gamesSwipe.active = false;
+      gamesSwipe.moved = false;
       grid.classList.remove('is-dragging');
       grid.style.transform = '';
 
@@ -434,56 +468,58 @@ window.ShortcutsController = (function() {
       // Consomme le clic qui suit immédiatement le relâchement (évite de
       // lancer le jeu sous le doigt à la fin d'un swipe) — intercepté par
       // le listener 'click' en phase de capture ci-dessous.
-      steamSwipeConsumeNextClick = true;
+      gamesSwipeConsumeNextClick = true;
 
-      var pageCount = steamPageCount();
-      if (dx <= -STEAM_SWIPE_THRESHOLD && steamPage < pageCount - 1) {
-        steamPage += 1;
-        renderSteamPage('next');
-      } else if (dx >= STEAM_SWIPE_THRESHOLD && steamPage > 0) {
-        steamPage -= 1;
-        renderSteamPage('prev');
+      var pageCount = gamesPageCount();
+      if (dx <= -GAMES_SWIPE_THRESHOLD && gamesPage < pageCount - 1) {
+        gamesPage += 1;
+        renderGamesPage('next');
+      } else if (dx >= GAMES_SWIPE_THRESHOLD && gamesPage > 0) {
+        gamesPage -= 1;
+        renderGamesPage('prev');
       }
       // Sinon (sous le seuil, ou déjà en bout de piste) : le retrait du
       // transform inline ci-dessus suffit, la transition normale de
-      // .rc-steam-grid (280ms) fait revenir la page en place ("snap-back").
+      // .rc-games-grid (280ms) fait revenir la page en place ("snap-back").
     }
 
     grid.addEventListener('pointerup', endSwipe);
     grid.addEventListener('pointercancel', endSwipe);
 
     grid.addEventListener('click', function(e) {
-      if (steamSwipeConsumeNextClick) {
-        steamSwipeConsumeNextClick = false;
+      if (gamesSwipeConsumeNextClick) {
+        gamesSwipeConsumeNextClick = false;
         e.stopPropagation();
         e.preventDefault();
       }
     }, true);
   }
 
-  function launchSteamGame(appId, gameName) {
-    var el = document.getElementById('steam-game-' + appId);
+  function launchGame(gameId, gameName) {
+    var el = document.getElementById('game-card-' + gameId);
     if (el && el.classList.contains('is-loading')) return;
 
     if (el) el.classList.add('is-pressed', 'is-loading');
 
     // Écho vers l'état partagé (State.steamRunning) — la notch fermée et le
     // sur-menu du header suivent la même mémoire optimiste que cette tuile,
-    // voir UI.updateHeaderGame (app-ui-core.js).
+    // voir UI.updateHeaderGame (app-ui-core.js). Nom de champ conservé tel
+    // quel (State.steamRunning) : renommer toucherait app-ui-core.js et
+    // notch-menu.js pour un gain purement cosmétique, hors scope ici.
     if (window.UI && UI.updateHeaderGame) UI.updateHeaderGame({ status: 'launching', name: gameName });
 
-    authFetch('/shortcuts/steam/launch/' + encodeURIComponent(appId), { method: 'POST' })
+    authFetch('/shortcuts/launch/' + encodeURIComponent(gameId), { method: 'POST' })
       .then(function(res) {
-        if (!res.ok) throw new Error('Erreur Steam');
+        if (!res.ok) throw new Error('Erreur lancement jeu');
         return res.json();
       })
       .then(function(data) {
-        toast('Démarrage de ' + gameName + '...', false);
+        toast((data && data.message) || ('Démarrage de ' + gameName + '...'), false);
         setTimeout(function() {
           if (el) el.classList.remove('is-pressed', 'is-loading');
-          runningSteamAppId = appId;
-          applySteamRunningMarker();
-          window.State && (State.steamRunning = { appId: appId, name: gameName });
+          runningGameId = gameId;
+          applyGameRunningMarker();
+          window.State && (State.steamRunning = { appId: gameId, name: gameName });
           if (window.UI && UI.updateHeaderGame) UI.updateHeaderGame({ status: 'running', name: gameName });
         }, 1500);
       })
@@ -656,9 +692,9 @@ window.ShortcutsController = (function() {
     isTabActive = true;
 
     fetchApps();
-    fetchSteamGames();
+    fetchGames();
     fetchScenes();
-    initSteamSwipe();
+    initGamesSwipe();
 
     clearInterval(appsStatusTimer);
     appsStatusTimer = setInterval(pollAppsStatus, 6000);
@@ -676,8 +712,8 @@ window.ShortcutsController = (function() {
     onDeactivate: onDeactivate,
     fetchApps: fetchApps,
     launchApp: launchApp,
-    fetchSteamGames: fetchSteamGames,
-    launchSteamGame: launchSteamGame,
+    fetchGames: fetchGames,
+    launchGame: launchGame,
     handleSystemAction: handleSystemAction,
     confirmSystemAction: confirmSystemAction,
     confirmGenericAction: confirmGenericAction,

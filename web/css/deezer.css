@@ -64,6 +64,23 @@
   transform: scale(0.94) ;
 }
 
+/* Avertissement CDP Deezer indisponible (raccourci sans
+   --remote-debugging-port=9222) — voir web/tabs/deezer.html et
+   UI.updateDeezerMedia (app-ui-core.js). [hidden] géré par le reset
+   d'artefact/l'app, jamais display:none en dur ici. */
+.dz-cdp-warning {
+  flex-shrink: 0 ;
+  margin-bottom: 16px ;
+  padding: 12px 18px ;
+  border-radius: 12px ;
+  background: rgba(242, 114, 106, 0.14) ;
+  border: 1px solid rgba(242, 114, 106, 0.35) ;
+  color: var(--danger) ;
+  font-size: 14px ;
+  font-weight: 500 ;
+  line-height: 1.4 ;
+}
+
 /* Panneau de recherche & filtres */
 .deezer-search-panel-modern {
   background: none ;

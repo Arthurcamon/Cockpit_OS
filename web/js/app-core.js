@@ -143,10 +143,13 @@ var State = {
   reconnectCount: 0,
   reconnectTimer: null,
   mediaState: {},
-  // Jeu Steam actuellement "en cours" (mémoire optimiste, pas de détection
-  // PC réelle — voir ShortcutsController.launchSteamGame, qui l'alimente,
-  // et UI.updateHeaderGame, qui en dérive la notch/le sur-menu du header).
+  // Jeu actuellement "en cours" (mémoire optimiste, pas de détection PC
+  // réelle — voir ShortcutsController.launchGame, qui l'alimente, et
+  // UI.updateHeaderGame, qui en dérive la notch/le sur-menu du header).
   // { appId, name } ou null si aucun jeu lancé depuis le démarrage de l'app.
+  // Nom de champ conservé (steamRunning) malgré la suppression de la
+  // détection Steam le 2026-09-14 — renommer toucherait aussi
+  // app-ui-core.js et notch-menu.js pour un gain purement cosmétique.
   steamRunning: null,
   currentFilter: 'track',
   searchDebounceTimer: null,

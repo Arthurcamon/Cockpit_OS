@@ -294,11 +294,11 @@ var UI = {
   // BRANCHÉE à une source réelle confirmée par le PC (aucun endpoint ne
   // suit "quel jeu est en cours" indépendamment de l'onglet Raccourcis :
   // voir State.steamRunning, alimenté de façon optimiste par
-  // ShortcutsController.launchSteamGame). Prête à être appelée avec
+  // ShortcutsController.launchGame). Prête à être appelée avec
   // state = {status:'idle'|'launching'|'running', name}. Pas de jaquette
-  // par jeu disponible (vignettes Steam = dégradé de couleur, pas
-  // d'image) : glyphe manette générique sur la notch, fond neutre sur le
-  // sur-menu, seule la couleur/l'état changent. Temps de session/total :
+  // reprise ici (même si le jeu en a une, cf. cover_path/shortcuts.js) :
+  // glyphe manette générique sur la notch, fond neutre sur le sur-menu,
+  // seule la couleur/l'état changent. Temps de session/total :
   // aucune donnée réelle nulle part dans l'app pour l'instant (signalé à
   // l'utilisateur) — laissés à "—" tant que ce n'est pas ajouté côté serveur.
   updateHeaderGame: function(state) {
@@ -336,6 +336,23 @@ var UI = {
   // ── Deezer Media Update ──────────────────────────────────────────────────
   updateDeezerMedia: function(state) {
     this._renderMediaWidget(this.MEDIA_WIDGET_CONFIGS.deezer, state);
+
+    // Avertissement CDP : uniquement sur false EXPLICITE — deezer_cdp_available
+    // vaut undefined tant qu'aucun cycle de vérification n'a encore tourné
+    // côté serveur (voir services/windows_media.py), et true dès que le
+    // raccourci "Deezer (Cockpit OS)" (--remote-debugging-port=9222) est
+    // bien celui utilisé. Ne concerne que le lecteur Deezer — un autre
+    // lecteur actif (Chrome, Spotify...) ne doit jamais déclencher ceci.
+    var warningEl = el('dz-cdp-warning');
+    if (warningEl) {
+      // state.player vaut "Deezer Desktop" côté backend quand is_deezer est
+      // vrai (services/windows_media.py) — PAS "deezer" en minuscule (cf. la
+      // branche playerNameSelector juste au-dessus, qui teste 'deezer' et ne
+      // matche donc jamais : bug préexistant sans impact visuel puisque son
+      // repli affiche la même chaîne, non touché ici pour rester focalisé).
+      var isDeezer = state && state.player === 'Deezer Desktop';
+      warningEl.hidden = !(isDeezer && state.deezer_cdp_available === false);
+    }
   },
 
   // ── Skeletons loaders pour les transitions ──────────────────────────────

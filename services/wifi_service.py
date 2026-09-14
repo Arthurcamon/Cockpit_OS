@@ -32,6 +32,15 @@ from core.logger import get_logger
 logger = get_logger(__name__)
 IS_WINDOWS = platform.system() == "Windows"
 
+# Sans ce flag, chaque subprocess.run ci-dessous ouvre sa PROPRE fenêtre
+# console visible (brièvement) dès que le process Python appelant n'a
+# lui-même aucune console — le cas depuis que l'app compagnon lance main.py
+# avec CREATE_NO_WINDOW (companion_app/server_control.py). Avant ça, main.py
+# tournait dans une console visible et les sous-process en héritaient
+# silencieusement ; sans ce flag ici, une invite de commandes vide flashe
+# désormais à chaque appel (1x/poll Wi-Fi, très visible en continu).
+_CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if IS_WINDOWS else 0
+
 # Nom historique (créé pour le Bluetooth) — la tâche planifiée exécute
 # toujours le même script scripts/bt_elevated_action.ps1, désormais étendu
 # pour gérer aussi la bascule de l'adaptateur Wi-Fi. Pas besoin de renommer
@@ -48,6 +57,7 @@ def _run_ps(command: str, timeout: float = 4.0):
     return subprocess.run(
         ["powershell", "-NoProfile", "-Command", ps_cmd],
         capture_output=True, encoding="utf-8", errors="replace", timeout=timeout,
+        creationflags=_CREATE_NO_WINDOW,
     )
 
 
@@ -72,6 +82,7 @@ def _run_elevated_wifi_toggle(enable: bool):
         res = subprocess.run(
             ["schtasks", "/run", "/tn", ELEVATED_TASK_NAME],
             capture_output=True, encoding="utf-8", errors="replace", timeout=5,
+            creationflags=_CREATE_NO_WINDOW,
         )
         if res.returncode != 0:
             return False, "Tâche planifiée introuvable — exécutez scripts/setup_admin_task.bat une fois."
