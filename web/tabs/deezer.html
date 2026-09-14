@@ -16,6 +16,15 @@
     </button>
   </div>
 
+  <!-- Avertissement : Deezer tourne mais pas via le raccourci CDP
+       (--remote-debugging-port=9222) — shuffle/repeat/lecture précise
+       silencieusement inopérants sans lui. Masqué par défaut, affiché par
+       UI.updateDeezerMedia (app-ui-core.js) sur deezer_cdp_available===false
+       uniquement (jamais sur "pas encore su" au démarrage). -->
+  <div class="dz-cdp-warning" id="dz-cdp-warning" hidden>
+    ⚠️ Deezer est ouvert, mais pas via le raccourci "Deezer (Cockpit OS)" — la lecture précise, le shuffle et la répétition ne fonctionneront pas. Ferme Deezer et relance-le depuis ce raccourci.
+  </div>
+
   <!-- 2. PANNEAU DE RECHERCHE (Input + Pilules de filtres intégrées dans une seule capsule) -->
   <div class="deezer-search-panel-modern">
     <div class="search-bar pill-glass-modern">

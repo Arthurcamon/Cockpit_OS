@@ -93,6 +93,18 @@ class WindowsMediaService:
         self._dz_shuffle_repeat_cache_at: float = 0.0
         self._DZ_CACHE_TTL = 3.0
 
+        # Disponibilité du port CDP Deezer (voir DeezerCDPPlayer.is_cdp_reachable) —
+        # mise à jour à CHAQUE tentative (succès ou non), contrairement au cache
+        # shuffle/repeat ci-dessus qui ne se met à jour qu'en cas de succès :
+        # sans ce champ séparé, un échec CDP durable laisserait
+        # _dz_shuffle_repeat_cache figé sur une VIEILLE valeur sans jamais
+        # signaler que le contrôle avancé (shuffle/repeat/lecture précise)
+        # est en réalité indisponible. Exposé au frontend via
+        # "deezer_cdp_available" pour avertir l'utilisateur (ex: raccourci
+        # Deezer lancé sans --remote-debugging-port=9222) au lieu de laisser
+        # le shuffle/repeat silencieusement ne rien faire.
+        self._dz_cdp_available: bool | None = None
+
         # Dernier état connu avec une piste — certains lecteurs (Deezer Desktop
         # notamment) retirent purement et simplement leur session Windows Media
         # dès qu'ils sont mis en pause, au lieu de rester présents avec le statut
@@ -232,6 +244,10 @@ class WindowsMediaService:
                 now = time.time()
                 if self._dz_shuffle_repeat_cache is None or (now - self._dz_shuffle_repeat_cache_at) >= self._DZ_CACHE_TTL:
                     from services.deezer_player import deezer_player_service
+                    # Vérifié à CHAQUE cycle (succès ou non) — voir le
+                    # commentaire de _dz_cdp_available dans __init__ pour
+                    # pourquoi ce n'est PAS déduit de dz_state ci-dessous.
+                    self._dz_cdp_available = await deezer_player_service.is_cdp_reachable()
                     dz_state = await deezer_player_service.get_player_state()
                     if dz_state is not None:
                         self._dz_shuffle_repeat_cache = dz_state
@@ -239,8 +255,14 @@ class WindowsMediaService:
                 if self._dz_shuffle_repeat_cache is not None:
                     base["shuffle"] = bool(self._dz_shuffle_repeat_cache.get("shuffle", False))
                     base["repeat"] = {0: "none", 1: "track", 2: "list"}.get(self._dz_shuffle_repeat_cache.get("repeat", 0), "none")
+                # None tant qu'aucun cycle n'a encore tourné (tout premier
+                # état média après démarrage du serveur) — le frontend ne
+                # doit afficher l'avertissement que sur False explicite,
+                # jamais sur "pas encore su".
+                base["deezer_cdp_available"] = self._dz_cdp_available
             except Exception as e:
                 logger.debug(f"Lecture shuffle/repeat Deezer via CDP échouée : {e}")
+                base["deezer_cdp_available"] = False
 
         # Position et durée
         try:

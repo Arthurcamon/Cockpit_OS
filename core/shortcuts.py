@@ -7,7 +7,6 @@ import ctypes
 import json
 import os
 import platform
-import re
 import subprocess
 from pathlib import Path
 
@@ -17,6 +16,13 @@ from config import settings
 from core.logger import get_logger
 
 logger = get_logger(__name__)
+
+# Sans ce flag, chaque subprocess.Popen/run ci-dessous ouvre sa PROPRE
+# fenêtre console visible (brièvement) dès que le process Python appelant
+# n'a lui-même aucune console — le cas depuis que l'app compagnon lance
+# main.py avec CREATE_NO_WINDOW (companion_app/server_control.py).
+_IS_WINDOWS = platform.system() == "Windows"
+_CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if _IS_WINDOWS else 0
 
 
 # ── Authentification ──────────────────────────────────────────────────────
@@ -41,71 +47,93 @@ async def verify_token(
 router = APIRouter(prefix="/shortcuts", tags=["Shortcuts"], dependencies=[Depends(verify_token)])
 
 
-# ── Configuration des raccourcis (apps / jeux Steam) ────────────────────────
+# ── Configuration des raccourcis (apps / jeux) ───────────────────────────────
 # Chargée depuis shortcuts_config.json (racine du projet), éditable sans
 # toucher au code. Voir ce fichier pour le format attendu.
 
 CONFIG_PATH = Path(__file__).parent.parent / "shortcuts_config.json"
 
 
+def _normalize_app_entry(entry: dict, index: int) -> dict:
+    """
+    Comble les nouveaux champs (type/icon_path/order, voir Note/ pour le
+    schéma) s'ils manquent dans une entrée éditée à la main ou provenant
+    d'une config antérieure à leur introduction — rétro-compatibilité :
+    absence de "type" == "app", absence d'"order" == position dans le
+    fichier. Ne modifie jamais le fichier lui-même, uniquement la valeur
+    servie en mémoire/API.
+    """
+    entry.setdefault("type", "app")
+    entry.setdefault("icon_path", None)
+    entry.setdefault("order", index)
+    if entry["type"] == "game":
+        entry.setdefault("cover_path", None)
+    return entry
+
+
+def _normalize_macro_entry(entry: dict, index: int) -> dict:
+    entry.setdefault("icon_path", None)
+    entry.setdefault("order", index)
+    entry.setdefault("steps", [])
+    return entry
+
+
 def _load_shortcuts_config() -> dict:
     if not CONFIG_PATH.exists():
-        logger.warning(f"[Shortcuts] Fichier de config introuvable : {CONFIG_PATH} — apps vides")
-        return {"apps": []}
+        logger.warning(f"[Shortcuts] Fichier de config introuvable : {CONFIG_PATH} — apps/macros vides")
+        return {"apps": [], "macros": []}
     try:
         with open(CONFIG_PATH, encoding="utf-8") as f:
             data = json.load(f)
-        return {"apps": data.get("apps", [])}
+        apps = [_normalize_app_entry(a, i) for i, a in enumerate(data.get("apps", []))]
+        macros = [_normalize_macro_entry(m, i) for i, m in enumerate(data.get("macros", []))]
+        return {"apps": apps, "macros": macros}
     except (json.JSONDecodeError, OSError) as e:
-        logger.error(f"[Shortcuts] Erreur de lecture de {CONFIG_PATH} : {e} — apps vides")
-        return {"apps": []}
+        logger.error(f"[Shortcuts] Erreur de lecture de {CONFIG_PATH} : {e} — apps/macros vides")
+        return {"apps": [], "macros": []}
 
 
 _SHORTCUTS_CONFIG = _load_shortcuts_config()
 
-# --- Scènes : encore simulées (nécessite un format de séquence d'actions, chantier à part) ---
-
-MOCK_SCENES = [
-    {"id": "race_mode", "name": "Mode Course", "description": "Lance SimHub + CrewChief + Profil Audio Casque", "icon": "flag"},
-    {"id": "cinema_mode", "name": "Mode Cinéma", "description": "Mute Micro + Luminosité 30% + Fullscreen Media", "icon": "film"},
-    {"id": "work_mode", "name": "Mode Travail", "description": "Ouvre VSCode + Navigateur + Musique calme", "icon": "briefcase"},
-    {"id": "night_mode", "name": "Mode Nuit", "description": "Luminosité minimale + Limiteur volume 40%", "icon": "moon"},
-]
-
-# --- Jeux Steam : détectés en direct depuis les raccourcis .url que Steam
-#     crée automatiquement dans le menu Démarrer (un par jeu installé), donc
-#     toujours à jour sans liste à maintenir à la main. Repli simulé sur
-#     non-Windows uniquement. ---
-
-STEAM_SHORTCUTS_DIR = Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Steam"
-_STEAM_RUNGAMEID_RE = re.compile(r"steam://rungameid/(\d+)", re.IGNORECASE)
-
-MOCK_STEAM_GAMES = [
-    {"app_id": "805550", "name": "Assetto Corsa Competizione"},
-    {"app_id": "266410", "name": "iRacing"},
-]
+# Horodatage de dernière lecture (mtime disque) — sert à détecter que le
+# fichier a changé sous nos pieds (édition manuelle, ou l'app compagnon
+# CustomTkinter qui écrit dans ce même fichier pendant que main.py tourne)
+# sans avoir à le relire à chaque requête API. Voir
+# reload_shortcuts_config_if_changed, appelée périodiquement par une tâche
+# de fond (core/app.py) plutôt qu'à la demande.
+try:
+    _config_mtime: float | None = CONFIG_PATH.stat().st_mtime
+except OSError:
+    _config_mtime = None
 
 
-def _discover_steam_games() -> list[dict]:
-    """Scanne STEAM_SHORTCUTS_DIR et retourne un jeu par raccourci .url valide."""
-    if not STEAM_SHORTCUTS_DIR.exists():
-        logger.debug(f"[Shortcuts] Dossier raccourcis Steam introuvable : {STEAM_SHORTCUTS_DIR}")
-        return []
+def reload_shortcuts_config_if_changed() -> bool:
+    """
+    Recharge _SHORTCUTS_CONFIG depuis le disque si shortcuts_config.json a
+    changé depuis la dernière lecture connue (mtime). Retourne True si un
+    rechargement a eu lieu. Sans ce mécanisme, une app/un jeu/une macro
+    ajouté(e) par l'app compagnon pendant que le serveur tourne resterait
+    invisible pour la tablette jusqu'au prochain redémarrage.
+    """
+    global _SHORTCUTS_CONFIG, _config_mtime
+    try:
+        current_mtime = CONFIG_PATH.stat().st_mtime
+    except OSError:
+        return False
 
-    games = []
-    for url_file in STEAM_SHORTCUTS_DIR.glob("*.url"):
-        try:
-            content = url_file.read_text(encoding="utf-8", errors="replace")
-        except OSError as e:
-            logger.debug(f"[Shortcuts] Lecture impossible de {url_file.name} : {e}")
-            continue
-        match = _STEAM_RUNGAMEID_RE.search(content)
-        if not match:
-            continue
-        games.append({"app_id": match.group(1), "name": url_file.stem})
+    if _config_mtime is not None and current_mtime == _config_mtime:
+        return False
 
-    games.sort(key=lambda g: g["name"].lower())
-    return games
+    _config_mtime = current_mtime
+    _SHORTCUTS_CONFIG = _load_shortcuts_config()
+    logger.info("[Shortcuts] shortcuts_config.json rechargé (changement détecté)")
+    return True
+
+
+def get_games_missing_cover() -> list[dict]:
+    """Entrées "type":"game" sans cover_path — utilisé par la tâche de
+    fond de récupération de jaquettes (core/app.py + services/steam_covers.py)."""
+    return [a for a in _SHORTCUTS_CONFIG["apps"] if a.get("type") == "game" and not a.get("cover_path")]
 
 
 # --- Fenêtres ouvertes : repli si l'énumération Win32 échoue ---
@@ -199,12 +227,15 @@ def _find_window_for_process_names(process_names: list[str]) -> int | None:
     return result["hwnd"]
 
 
-@router.post("/launch/{app_id}")
-async def launch_app(app_id: str):
+async def _launch_app_by_id(app_id: str) -> dict:
     """
-    Lance une application rapide via la commande configurée dans shortcuts_config.json.
-    Si l'app est déjà ouverte (détectée via `process_names`), sa fenêtre est mise
-    au premier plan à la place — pas de nouvelle instance.
+    Logique de lancement partagée entre l'endpoint /launch/{app_id} (Apps
+    rapides ET Jeux, mêmes entrées "apps" depuis le schéma étendu — un jeu
+    n'a rien de spécial ici, il utilise "command" comme une app) et
+    l'exécution d'une étape "launch_app" de macro (_run_macro_step).
+    Lève HTTPException en cas d'échec — chaque appelant décide comment
+    réagir (propager telle quelle pour l'endpoint direct, ou l'attraper
+    pour ne pas interrompre le reste d'une macro).
     """
     app = next((a for a in _SHORTCUTS_CONFIG["apps"] if a.get("id") == app_id), None)
     if app is None:
@@ -233,7 +264,7 @@ async def launch_app(app_id: str):
         return {"status": "ok", "app_id": app_id, "action": "launched", "message": f"(simulation non-Windows) '{name}' lancée"}
 
     try:
-        subprocess.Popen(command, shell=True)
+        subprocess.Popen(command, shell=True, creationflags=_CREATE_NO_WINDOW)
     except OSError as e:
         logger.error(f"[Shortcuts] Échec lancement '{app_id}' ({command!r}) : {e}")
         raise HTTPException(status_code=500, detail=f"Échec du lancement de '{name}' : {e}")
@@ -241,34 +272,15 @@ async def launch_app(app_id: str):
     return {"status": "ok", "app_id": app_id, "action": "launched", "message": f"Application '{name}' lancée"}
 
 
-@router.get("/steam-games")
-async def get_steam_games():
-    """Retourne la liste des jeux Steam actuellement installés (détectés en direct)."""
-    if platform.system() != "Windows":
-        return MOCK_STEAM_GAMES
-    return _discover_steam_games()
-
-
-@router.post("/steam/launch/{app_id}")
-async def launch_steam_game(app_id: str):
-    """Lance un jeu Steam via son AppID (protocole steam://rungameid/)."""
-    if platform.system() != "Windows":
-        await asyncio.sleep(0.2)
-        return {"status": "ok", "app_id": app_id, "message": f"(simulation non-Windows) Jeu Steam '{app_id}' démarré"}
-
-    game = next((g for g in _discover_steam_games() if g["app_id"] == app_id), None)
-    if game is None:
-        raise HTTPException(status_code=404, detail=f"Jeu Steam inconnu ou non installé : {app_id}")
-
-    logger.info(f"[Shortcuts] Lancement jeu Steam AppID : {app_id} ({game['name']})")
-
-    try:
-        os.startfile(f"steam://rungameid/{app_id}")
-    except OSError as e:
-        logger.error(f"[Shortcuts] Échec lancement jeu Steam {app_id} : {e}")
-        raise HTTPException(status_code=500, detail=f"Échec du lancement du jeu Steam '{game['name']}' : {e} (Steam est-il installé ?)")
-
-    return {"status": "ok", "app_id": app_id, "message": f"Jeu Steam '{game['name']}' démarré"}
+@router.post("/launch/{app_id}")
+async def launch_app(app_id: str):
+    """
+    Lance une application (ou un jeu — même schéma "apps", voir
+    _normalize_app_entry) via la commande configurée dans
+    shortcuts_config.json. Si déjà ouverte (détectée via `process_names`),
+    sa fenêtre est mise au premier plan à la place — pas de nouvelle instance.
+    """
+    return await _launch_app_by_id(app_id)
 
 
 # --- Actions système ---
@@ -291,10 +303,10 @@ def _run_system_action_sync(action: str) -> None:
             raise OSError("ExitWindowsEx(EWX_LOGOFF) a échoué")
 
     elif action == "restart":
-        subprocess.run(["shutdown", "/r", "/t", "10"], check=True)
+        subprocess.run(["shutdown", "/r", "/t", "10"], check=True, creationflags=_CREATE_NO_WINDOW)
 
     elif action == "shutdown":
-        subprocess.run(["shutdown", "/s", "/t", "10"], check=True)
+        subprocess.run(["shutdown", "/s", "/t", "10"], check=True, creationflags=_CREATE_NO_WINDOW)
 
 
 @router.post("/system/{action}")
@@ -378,15 +390,43 @@ async def focus_window(hwnd: int):
 
 @router.get("/scenes")
 async def get_scenes():
-    """Retourne la liste des macros / scènes disponibles."""
-    return MOCK_SCENES
+    """Retourne la liste des macros configurées (shortcuts_config.json::macros)."""
+    return _SHORTCUTS_CONFIG["macros"]
 
 
-@router.post("/shortcuts/scenes/{scene_id}/run")
+async def _run_macro_step(step: dict) -> None:
+    """
+    Exécute une étape de macro. Deux types supportés pour l'instant (schéma
+    validé — voir Note/) : "launch_app" (référence un id de la liste "apps",
+    même mécanisme que le lancement direct) et "wait" (pause en secondes).
+    Une étape "launch_app" qui échoue (app inconnue, commande manquante) est
+    loggée mais N'INTERROMPT PAS le reste de la macro — les étapes suivantes
+    s'exécutent quand même, cohérent avec l'esprit "best effort" d'une
+    séquence d'actions plutôt qu'une transaction tout-ou-rien.
+    """
+    step_type = step.get("type")
+    if step_type == "launch_app":
+        app_id = step.get("app_id")
+        try:
+            await _launch_app_by_id(app_id)
+        except HTTPException as e:
+            logger.warning(f"[Shortcuts] Étape de macro 'launch_app' ({app_id}) échouée : {e.detail}")
+    elif step_type == "wait":
+        seconds = step.get("seconds") or 0
+        await asyncio.sleep(seconds)
+    else:
+        logger.warning(f"[Shortcuts] Type d'étape de macro inconnu, ignoré : {step_type!r}")
+
+
 @router.post("/scenes/{scene_id}/run")
 async def run_scene(scene_id: str):
-    """Déclenche une scène / macro prédéfinie. Encore simulé — voir MOCK_SCENES ci-dessus."""
-    logger.info(f"[Shortcuts] Exécution de la scène : {scene_id}")
-    # Simule l'enchaînement de plusieurs actions (1.5 sec)
-    await asyncio.sleep(1.5)
-    return {"status": "ok", "scene_id": scene_id, "message": f"Scène '{scene_id}' exécutée"}
+    """Exécute réellement les étapes de la macro (voir _run_macro_step)."""
+    macro = next((m for m in _SHORTCUTS_CONFIG["macros"] if m.get("id") == scene_id), None)
+    if macro is None:
+        raise HTTPException(status_code=404, detail=f"Macro inconnue : {scene_id}")
+
+    logger.info(f"[Shortcuts] Exécution de la macro : {scene_id} ({len(macro.get('steps', []))} étape(s))")
+    for step in macro.get("steps", []):
+        await _run_macro_step(step)
+
+    return {"status": "ok", "scene_id": scene_id, "message": f"Macro '{macro.get('name', scene_id)}' exécutée"}

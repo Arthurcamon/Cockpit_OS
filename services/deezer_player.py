@@ -645,6 +645,25 @@ class DeezerCDPPlayer:
     # plutôt que par la session Windows Media.
     # ══════════════════════════════════════════════════════════════════
 
+    async def is_cdp_reachable(self) -> bool:
+        """
+        True si le port de débogage distant répond ET qu'une page Deezer y
+        est trouvée — INDÉPENDANT du chargement effectif de dzPlayer dans
+        cette page (voir get_player_state, qui peut encore renvoyer None un
+        court instant après le lancement, le temps que la page charge).
+        Sert à distinguer deux situations bien différentes pour l'utilisateur :
+          - False : Deezer n'a pas été lancé avec --remote-debugging-port=9222
+            (mauvais raccourci / raccourci Bureau) — CDP jamais disponible,
+            durablement. C'est CE cas qui doit déclencher un avertissement.
+          - True mais get_player_state() encore None : Deezer vient de
+            démarrer, page en cours de chargement — transitoire, pas une
+            erreur de configuration, ne doit rien afficher.
+        Utilisée par services/windows_media.py pour peupler
+        "deezer_cdp_available" dans l'état média diffusé aux clients.
+        """
+        target = await self._get_target()
+        return target is not None
+
     async def get_player_state(self) -> Optional[dict]:
         """
         État de lecture réel de Deezer Desktop lu directement via dzPlayer (CDP).

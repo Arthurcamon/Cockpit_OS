@@ -9,11 +9,18 @@ IMPORTANT — Dépendances Windows :
 import asyncio
 import platform
 import re
+import subprocess
 from core.logger import get_logger
 
 logger = get_logger(__name__)
 
 IS_WINDOWS = platform.system() == "Windows"
+
+# Sans ce flag, chaque subprocess.run ci-dessous ouvre sa PROPRE fenêtre
+# console visible (brièvement) dès que le process Python appelant n'a
+# lui-même aucune console — le cas depuis que l'app compagnon lance main.py
+# avec CREATE_NO_WINDOW (companion_app/server_control.py).
+_CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if IS_WINDOWS else 0
 
 if IS_WINDOWS:
     try:
@@ -50,7 +57,7 @@ def _get_windows_audio_devices():
             "Select-Object FriendlyName, InstanceId, Status | "
             "ConvertTo-Json"
         )
-        res = subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, encoding="utf-8", errors="replace", timeout=3)
+        res = subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, encoding="utf-8", errors="replace", timeout=3, creationflags=_CREATE_NO_WINDOW)
         if res.returncode == 0 and res.stdout.strip():
             raw = json.loads(res.stdout)
             if isinstance(raw, dict):
@@ -105,7 +112,7 @@ def _get_windows_bluetooth_devices():
             "Select-Object FriendlyName, InstanceId, Status | "
             "ConvertTo-Json"
         )
-        res = subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, encoding="utf-8", errors="replace", timeout=3)
+        res = subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, encoding="utf-8", errors="replace", timeout=3, creationflags=_CREATE_NO_WINDOW)
         if res.returncode == 0 and res.stdout.strip():
             raw = json.loads(res.stdout)
             if isinstance(raw, dict):
@@ -244,7 +251,8 @@ def _run_elevated_pnp_action(instance_id: str, enable: bool):
 
         res = subprocess.run(
             ["schtasks", "/run", "/tn", ELEVATED_TASK_NAME],
-            capture_output=True, encoding="utf-8", errors="replace", timeout=5
+            capture_output=True, encoding="utf-8", errors="replace", timeout=5,
+            creationflags=_CREATE_NO_WINDOW,
         )
         if res.returncode != 0:
             return False, "Tâche planifiée introuvable — exécutez scripts/setup_admin_task.bat une fois."
@@ -379,7 +387,7 @@ class WindowsAudioService:
             try:
                 import subprocess
                 ps_cmd = f"Get-PnpDevice -InstanceId '{dev_id}' -ErrorAction SilentlyContinue | Enable-PnpDevice -Confirm:$false -ErrorAction SilentlyContinue"
-                subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, timeout=2)
+                subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, timeout=2, creationflags=_CREATE_NO_WINDOW)
             except Exception as e:
                 logger.debug(f"Attempt set default audio endpoint PnP: {e}")
 

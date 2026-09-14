@@ -1,0 +1,13 @@
+# Cockpit OS — App compagnon PC (dépendances GUI, séparées du serveur
+# principal — voir ../requirements.txt pour main.py/FastAPI).
+# Installez avec : pip install -r companion_app/requirements.txt
+
+customtkinter>=5.2.0   # interface graphique (thème sombre + accent bleu, voir theme.py)
+tkinterdnd2>=0.6.0     # glisser-déposer natif .exe/.lnk (onglet Apps & Jeux)
+qrcode>=8.0            # QR code de connexion tablette (onglet Serveur)
+icoextract>=0.3.0      # extraction d'icône depuis un .exe/.dll (onglet Apps & Jeux, icon_extract.py)
+pystray>=0.19.0        # icône system tray (comportement général, tray.py)
+pywin32                # raccourci .lnk (démarrage Windows) + résolution de cible .lnk (icon_extract.py)
+httpx>=0.27.0          # appels REST vers le serveur local (GET/POST /api/devices, /api/health)
+psutil>=6.0.0          # CPU/RAM du processus serveur (onglet Performance)
+Pillow                 # traitement d'images (icônes, QR code, jaquettes) — dépendance transitive de plusieurs libs ci-dessus, listée explicitement pour la clarté

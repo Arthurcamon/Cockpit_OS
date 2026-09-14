@@ -182,7 +182,7 @@
      système — cette grille ne scrolle jamais, donc rien à préserver ici.
      Nécessaire pour que le drag (initAppsSwipe, app-ui-system.js) reçoive
      tous les pointermove sans interruption sur tablette. Même technique que
-     .rc-steam-grid (shortcuts.css). */
+     .rc-games-grid (shortcuts.css). */
   touch-action: none;
   transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
 }

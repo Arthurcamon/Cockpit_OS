@@ -22,6 +22,15 @@ logger = get_logger(__name__)
 
 IS_WINDOWS = platform.system() == "Windows"
 
+# Sans ce flag, chaque subprocess.run/Popen ci-dessous ouvre sa PROPRE
+# fenêtre console visible (brièvement) dès que le process Python appelant
+# n'a lui-même aucune console — le cas depuis que l'app compagnon lance
+# main.py avec CREATE_NO_WINDOW (companion_app/server_control.py). Ce
+# service étant interrogé ~1x/s dès qu'un client est connecté, l'absence
+# de ce flag se traduisait par une invite de commandes vide qui flashait
+# en continu pendant toute la connexion.
+_CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if IS_WINDOWS else 0
+
 try:
     import psutil
     PSUTIL_AVAILABLE = True
@@ -139,6 +148,7 @@ class SystemMonitorService:
                 res = subprocess.run(
                     ["powershell", "-NoProfile", "-Command", ps_cmd],
                     capture_output=True, encoding="utf-8", errors="replace", timeout=6,
+                    creationflags=_CREATE_NO_WINDOW,
                 )
                 if res.returncode == 0 and res.stdout.strip():
                     import json
@@ -203,6 +213,7 @@ class SystemMonitorService:
                 res = subprocess.run(
                     ["powershell", "-NoProfile", "-Command", ps_cmd],
                     capture_output=True, encoding="utf-8", errors="replace", timeout=3,
+                    creationflags=_CREATE_NO_WINDOW,
                 )
                 if res.returncode == 0 and res.stdout.strip():
                     import json
@@ -288,6 +299,7 @@ class SystemMonitorService:
                 ["nvidia-smi", "--query-gpu=name,utilization.gpu,temperature.gpu",
                  "--format=csv,noheader,nounits"],
                 capture_output=True, encoding="utf-8", errors="replace", timeout=2,
+                creationflags=_CREATE_NO_WINDOW,
             )
             if res.returncode != 0 or not res.stdout.strip():
                 return []

@@ -10,6 +10,8 @@ Protocole :
 
 import asyncio
 import json
+import time
+import uuid
 from typing import Awaitable, Callable, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -22,24 +24,43 @@ logger = get_logger(__name__)
 class WebSocketManager:
     """
     Gère toutes les connexions WebSocket actives.
-    Centralise l'envoi de messages à tous les clients connectés.
+    Centralise l'envoi de messages à tous les clients connectés, et garde en
+    mémoire (non persistant, réinitialisé à chaque redémarrage du serveur)
+    {ip, connected_at} par connexion pour l'onglet "Appareils connectés" de
+    l'app compagnon (voir GET /api/devices, core/app.py).
     """
 
     def __init__(self):
-        # Liste des connexions WebSocket actives
-        self.active_connections: list[WebSocket] = []
+        # id de connexion (uuid court) -> {"ws", "ip", "connected_at"}
+        self._connections: dict[str, dict] = {}
 
-    async def connect(self, websocket: WebSocket) -> None:
-        """Accepte et enregistre une nouvelle connexion client."""
+    async def connect(self, websocket: WebSocket) -> str:
+        """Accepte et enregistre une nouvelle connexion client. Retourne
+        l'id généré pour cette connexion (non utilisé par le protocole
+        WS lui-même, seulement pour le suivi des appareils)."""
         await websocket.accept()
-        self.active_connections.append(websocket)
-        logger.info(f"Client connecté. Total : {len(self.active_connections)}")
+        conn_id = uuid.uuid4().hex[:12]
+        ip = websocket.client.host if websocket.client else "?"
+        self._connections[conn_id] = {
+            "ws": websocket,
+            "ip": ip,
+            "connected_at": time.time(),
+        }
+        logger.info(f"Client connecté ({ip}, id={conn_id}). Total : {len(self._connections)}")
+        return conn_id
 
     def disconnect(self, websocket: WebSocket) -> None:
         """Supprime une connexion déconnectée de la liste active."""
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-        logger.info(f"Client déconnecté. Total : {len(self.active_connections)}")
+        conn_id = self._find_id(websocket)
+        if conn_id:
+            del self._connections[conn_id]
+        logger.info(f"Client déconnecté. Total : {len(self._connections)}")
+
+    def _find_id(self, websocket: WebSocket) -> Optional[str]:
+        for conn_id, info in self._connections.items():
+            if info["ws"] is websocket:
+                return conn_id
+        return None
 
     async def send_to_client(self, websocket: WebSocket, message: dict) -> None:
         """Envoie un message JSON à un client spécifique."""
@@ -50,15 +71,15 @@ class WebSocketManager:
 
     async def broadcast(self, message: dict) -> None:
         """Diffuse un message JSON à tous les clients connectés."""
-        if not self.active_connections:
+        if not self._connections:
             return
 
         disconnected = []
-        for connection in self.active_connections:
+        for conn_id, info in list(self._connections.items()):
             try:
-                await connection.send_text(json.dumps(message))
+                await info["ws"].send_text(json.dumps(message))
             except Exception:
-                disconnected.append(connection)
+                disconnected.append(info["ws"])
 
         # Nettoyage des connexions mortes
         for conn in disconnected:
@@ -67,7 +88,35 @@ class WebSocketManager:
     @property
     def client_count(self) -> int:
         """Nombre de clients actuellement connectés."""
-        return len(self.active_connections)
+        return len(self._connections)
+
+    def list_devices(self) -> list[dict]:
+        """Appareils actuellement connectés — voir GET /api/devices."""
+        now = time.time()
+        return [
+            {
+                "id": conn_id,
+                "ip": info["ip"],
+                "connected_at": info["connected_at"],
+                "connected_seconds": round(now - info["connected_at"]),
+            }
+            for conn_id, info in self._connections.items()
+        ]
+
+    async def kick(self, conn_id: str) -> bool:
+        """Ferme de force la connexion `conn_id` (voir POST /api/devices/
+        {id}/kick, déclenché depuis l'onglet Appareils de l'app compagnon).
+        Retourne False si l'id est inconnu (déjà déconnecté entre-temps)."""
+        info = self._connections.get(conn_id)
+        if info is None:
+            return False
+        try:
+            await info["ws"].close(code=1000)
+        except Exception as e:
+            logger.debug(f"Fermeture de la connexion {conn_id} lors du kick : {e}")
+        self._connections.pop(conn_id, None)
+        logger.info(f"Appareil {conn_id} ({info['ip']}) déconnecté de force (kick)")
+        return True
 
 
 # Instance unique partagée dans toute l'application

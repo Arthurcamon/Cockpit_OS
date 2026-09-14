@@ -14,6 +14,10 @@ env/
 .env.*
 .cockpit_token
 
+# Jaquettes de jeux téléchargées à la volée (cache runtime, pas du contenu
+# source) — voir services/steam_covers.py
+assets/game_covers/
+
 # Visual Studio
 .vs/
 

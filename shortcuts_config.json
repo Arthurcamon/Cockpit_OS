@@ -1,14 +1,95 @@
 {
-  "_comment": "Édite ce fichier pour ajouter/retirer des apps, sans toucher au code. `command` est une commande shell Windows exécutée telle quelle (null = pas encore configuré, l'app apparaît mais son lancement renverra une erreur explicite). `process_names` liste le(s) nom(s) d'exécutable (ex: 'Discord.exe') utilisés pour détecter si l'app tourne déjà et mettre sa fenêtre au premier plan au lieu d'en relancer une instance — laisse [] si tu ne connais pas le nom exact, ça retombera simplement sur un lancement à chaque fois. Redémarre le serveur après modification. Les jeux Steam ne sont plus listés ici : ils sont détectés automatiquement depuis le menu Démarrer (voir _discover_steam_games dans core/shortcuts.py).",
-
+  "_comment": "Édite ce fichier pour ajouter/retirer des apps/jeux/macros, sans toucher au code (ou via l'app compagnon CustomTkinter, qui écrit dans ce même fichier). `command` est une commande shell Windows exécutée telle quelle (null = pas encore configuré, l'app apparaît mais son lancement renverra une erreur explicite). `process_names` liste le(s) nom(s) d'exécutable (ex: 'Discord.exe') utilisés pour détecter si l'app tourne déjà et mettre sa fenêtre au premier plan au lieu d'en relancer une instance — laisse [] si tu ne connais pas le nom exact, ça retombera simplement sur un lancement à chaque fois. Redémarre le serveur après modification manuelle. `type` : 'app' (Apps rapides) ou 'game' (grille Jeux) — absent = traité comme 'app'. `icon_path` : icône carrée extraite d'un .exe/.lnk (optionnel, repli sur `icon_class` si absent). `cover_path` (jeux uniquement) : jaquette portrait récupérée automatiquement par le serveur via l'API Steam — ne pas éditer à la main, null tant qu'aucune correspondance n'est trouvée. `order` : position d'affichage. `macros` : séquences d'actions ('launch_app' référence un id ci-dessus, ou 'wait' en secondes). Les jeux Steam ne sont plus auto-détectés depuis le menu Démarrer — toute entrée 'game' doit être ajoutée ici (ou via l'app compagnon).",
   "apps": [
-    { "id": "deezer",    "name": "Deezer",     "icon_class": "icon-music",    "category": "Média",       "command": "C:\\Users\\33658\\AppData\\Local\\Programs\\deezer-desktop\\Deezer.exe", "process_names": ["Deezer.exe"] },
-    { "id": "chrome",    "name": "Chrome",     "icon_class": "icon-browser",  "category": "Web",         "command": "start chrome",  "process_names": ["chrome.exe"] },
-    { "id": "fanatec",   "name": "Fanatec",    "icon_class": "icon-gauge",    "category": "Sim-Racing",  "command": null,            "process_names": [] },
-    { "id": "simhub",    "name": "SimHub",     "icon_class": "icon-gauge",    "category": "Sim-Racing",  "command": null,            "process_names": [] },
-    { "id": "steam",     "name": "Steam",      "icon_class": "icon-gamepad",  "category": "Jeux",        "command": "start steam",   "process_names": ["steam.exe"] },
-    { "id": "reglage",   "name": "Réglages",   "icon_class": "icon-settings", "category": "Système",     "command": "start ms-settings:", "process_names": [] },
-    { "id": "minecraft", "name": "Minecraft",  "icon_class": "icon-cube",     "category": "Jeux",        "command": null,            "process_names": [] },
-    { "id": "claude",    "name": "Claude",     "icon_class": "icon-spark",    "category": "Productivité", "command": null,           "process_names": ["Claude.exe"] }
-  ]
+    {
+      "id": "google",
+      "name": "Google",
+      "type": "app",
+      "icon_class": "icon-app",
+      "icon_path": "/assets/shortcut_icons/google.png",
+      "category": "Personnalisé",
+      "command": "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\"",
+      "process_names": [
+        "chrome.exe"
+      ],
+      "order": 1
+    },
+    {
+      "id": "steam",
+      "name": "Steam",
+      "type": "app",
+      "icon_class": "icon-app",
+      "icon_path": "/assets/shortcut_icons/steam.png",
+      "category": "Personnalisé",
+      "command": "\"C:\\Program Files (x86)\\Steam\\Steam.exe\"",
+      "process_names": [
+        "Steam.exe"
+      ],
+      "order": 2
+    },
+    {
+      "id": "simhub",
+      "name": "SimHub",
+      "type": "app",
+      "icon_class": "icon-app",
+      "icon_path": "/assets/shortcut_icons/simhub.png",
+      "category": "Personnalisé",
+      "command": "\"C:\\Program Files (x86)\\SimHub\\SimHubWPF.exe\"",
+      "process_names": [
+        "SimHubWPF.exe"
+      ],
+      "order": 3
+    },
+    {
+      "id": "fanatec",
+      "name": "Fanatec",
+      "type": "app",
+      "icon_class": "icon-app",
+      "icon_path": "/assets/shortcut_icons/fanatec.png",
+      "category": "Personnalisé",
+      "command": "\"C:\\Program Files\\Fanatec\\FanatecUI\\UI\\Fanatec.exe\"",
+      "process_names": [
+        "Fanatec.exe"
+      ],
+      "order": 4
+    },
+    {
+      "id": "le_mans_ultimate",
+      "name": "Le Mans Ultimate",
+      "type": "game",
+      "icon_class": "icon-app",
+      "icon_path": "/assets/shortcut_icons/le_mans_ultimate.png",
+      "category": "Personnalisé",
+      "command": "start \"\" \"steam://rungameid/2399420\"",
+      "process_names": [],
+      "order": 5,
+      "cover_path": "/assets/game_covers/le_mans_ultimate.jpg"
+    },
+    {
+      "id": "sid_meier_s_civilization_vi",
+      "name": "Sid Meier's Civilization VI",
+      "type": "game",
+      "icon_class": "icon-app",
+      "icon_path": "/assets/shortcut_icons/sid_meier_s_civilization_vi.png",
+      "category": "Personnalisé",
+      "command": "start \"\" \"steam://rungameid/289070\"",
+      "process_names": [],
+      "order": 6,
+      "cover_path": "/assets/game_covers/sid_meier_s_civilization_vi.jpg"
+    },
+    {
+      "id": "deezer_cockpit_os",
+      "name": "Deezer (Cockpit OS)",
+      "type": "app",
+      "icon_class": "icon-app",
+      "icon_path": "/assets/shortcut_icons/deezer_cockpit_os.png",
+      "category": "Personnalisé",
+      "command": "\"C:\\Users\\33658\\AppData\\Local\\Programs\\deezer-desktop\\Deezer.exe\" --remote-debugging-port=9222",
+      "process_names": [
+        "Deezer.exe"
+      ],
+      "order": 6
+    }
+  ],
+  "macros": []
 }

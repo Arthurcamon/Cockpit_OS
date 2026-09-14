@@ -341,7 +341,7 @@ function appsPageCount() {
 // direction : 'next'/'prev', pilote le sens de la transition d'entrée
 // (.app-grid.is-sliding-*, setup.css) ; omis au premier rendu ou lors d'un
 // simple rafraîchissement périodique (pas de transition à jouer depuis rien
-// ni à chaque tick de 2s). Même mécanique que shortcuts.js::renderSteamPage.
+// ni à chaque tick de 2s). Même mécanique que shortcuts.js::renderGamesPage.
 function renderAppsPage(direction) {
   var container = el('app-grid');
   if (!container) return;
@@ -397,7 +397,7 @@ function renderAppsPage(direction) {
 }
 
 // --- Swipe/balayage tactile entre pages (mêmes principes que
-// shortcuts.js::initSteamSwipe — Pointer Events, un seul chemin de code
+// shortcuts.js::initGamesSwipe — Pointer Events, un seul chemin de code
 // souris/tactile, résistance légère en bout de piste, clic consommé après
 // un swipe pour ne pas déclencher "Fermer l'app" sous le doigt). ---
 var appsSwipeInited = false;

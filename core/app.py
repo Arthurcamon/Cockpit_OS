@@ -10,14 +10,14 @@ import asyncio
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.logger import get_logger
 from core.websocket import handle_websocket, ws_manager
-from core.shortcuts import router as shortcuts_router
+from core.shortcuts import router as shortcuts_router, verify_token
 from core.telemetry import router as telemetry_router
 from core.setup import router as setup_router
 from config import settings
@@ -95,6 +95,25 @@ def create_app() -> FastAPI:
             "audio": audio_state,
             "ws_clients": ws_manager.client_count,
         }
+
+    @app.get("/api/devices", dependencies=[Depends(verify_token)])
+    async def get_devices():
+        """
+        Liste les appareils actuellement connectés au WebSocket (app
+        compagnon, onglet Serveur/Appareils). En mémoire uniquement,
+        réinitialisée à chaque redémarrage du serveur — voir
+        core/websocket.py::WebSocketManager.list_devices.
+        """
+        return ws_manager.list_devices()
+
+    @app.post("/api/devices/{device_id}/kick", dependencies=[Depends(verify_token)])
+    async def kick_device(device_id: str):
+        """Déconnecte de force l'appareil `device_id` (onglet Appareils de
+        l'app compagnon — confirmation gérée côté client avant l'appel)."""
+        ok = await ws_manager.kick(device_id)
+        if not ok:
+            raise HTTPException(status_code=404, detail=f"Appareil inconnu ou déjà déconnecté : {device_id}")
+        return {"status": "ok", "device_id": device_id, "message": "Appareil déconnecté"}
 
     @app.get("/api/debug/media-poll")
     async def debug_media_poll():
@@ -205,7 +224,8 @@ def create_app() -> FastAPI:
         asyncio.create_task(_system_polling_task())
         asyncio.create_task(_apps_polling_task())
         asyncio.create_task(_wifi_polling_task())
-        logger.info("Cockpit OS démarré — polling média, audio, système, applications & Wi-Fi actif")
+        asyncio.create_task(_game_covers_task())
+        logger.info("Cockpit OS démarré — polling média, audio, système, applications, Wi-Fi & jaquettes de jeux actif")
 
     return app
 
@@ -357,3 +377,36 @@ async def _wifi_polling_task():
             logger.error(f"Erreur dans le polling Wi-Fi : {e}")
 
         await asyncio.sleep(3.0)
+
+
+async def _game_covers_task():
+    """
+    Tâche de fond qui (1) recharge shortcuts_config.json s'il a changé
+    depuis la dernière lecture — édition manuelle ou app compagnon
+    CustomTkinter écrivant en parallèle — puis (2) lance la recherche de
+    jaquette Steam pour tout jeu ("type":"game") qui n'en a pas encore.
+    Pas de dépendance à un client WebSocket connecté (contrairement aux
+    autres polls) : contrairement à la tablette, l'app compagnon peut
+    éditer la config à tout moment, serveur affiché ou non sur la tablette.
+
+    Se déclenche dès le démarrage (premier passage de la boucle, avant le
+    premier sleep) pour rattraper les jeux déjà configurés sans jaquette,
+    puis à chaque changement de fichier détecté ensuite — voir
+    core/shortcuts.py::reload_shortcuts_config_if_changed. L'intervalle
+    (8s) n'est qu'un stat() disque la plupart du temps ; le travail réel
+    (recherche + téléchargement HTTP, services/steam_covers.py) ne se
+    déclenche que pour les jeux réellement sans cover_path.
+    """
+    from core import shortcuts
+    from services.steam_covers import fetch_missing_covers
+
+    while True:
+        try:
+            shortcuts.reload_shortcuts_config_if_changed()
+            missing = shortcuts.get_games_missing_cover()
+            if missing:
+                await fetch_missing_covers(missing)
+        except Exception as e:
+            logger.error(f"Erreur dans la récupération de jaquettes de jeux : {e}")
+
+        await asyncio.sleep(8.0)

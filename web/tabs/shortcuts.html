@@ -1,7 +1,7 @@
 <!-- ═══════════════════════════════════════════════════════════════════════════
      COCKPIT OS — ONGLET RACCOURCIS (SHORTCUTS TAB)
      Grille en 4 zones fixes (pas de scroll) : Apps rapides (haut-gauche),
-     Macros (haut-droite), Jeux Steam (bas-gauche, paginé), Système
+     Macros (haut-droite), Jeux (bas-gauche, paginé), Système
      (bas-droite). Voir Design_code/refonte-ui-2026.md pour la référence
      visuelle. La logique/les données (ShortcutsController, shortcuts.js)
      sont inchangées par cette refonte — seuls le balisage et les classes
@@ -37,18 +37,19 @@
       </div>
     </div>
 
-    <!-- BAS GAUCHE : STEAM -->
+    <!-- BAS GAUCHE : JEUX (entrées "type":"game" de shortcuts_config.json,
+         gérées depuis l'app compagnon — plus de détection Steam auto) -->
     <div class="rc-panel">
       <div class="rc-panel__head">
-        <span class="rc-panel__title">Steam</span>
+        <span class="rc-panel__title">Jeux</span>
       </div>
-      <div class="rc-steam-grid" id="shortcuts-steam-grid">
+      <div class="rc-games-grid" id="shortcuts-games-grid">
         <div class="rc-status-msg">
           <div class="loading-ring"></div>
-          <span>Recherche des jeux installés...</span>
+          <span>Chargement...</span>
         </div>
       </div>
-      <div class="rc-pager is-hidden" id="shortcuts-steam-pager"></div>
+      <div class="rc-pager is-hidden" id="shortcuts-games-pager"></div>
     </div>
 
     <!-- BAS DROITE : ACTIONS SYSTÈME -->
